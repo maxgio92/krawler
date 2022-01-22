@@ -1,0 +1,40 @@
+project_name: krawler 
+
+before:
+  hooks:
+  - go mod tidy
+  - go generate ./...
+  - go vet ./...
+
+builds:
+- env:
+  - CGO_ENABLED=0
+  goos:
+  - linux
+  - windows
+  - darwin
+  goarch:
+  - amd64
+  - arm
+  - arm64
+  goarm:
+  - '6'
+  - '7'
+  ignore:
+  - goos: darwin
+    goarch: '386'
+  - goos: linux
+    goarch: arm
+    goarm: '7'
+  ldflags:
+  - -s -w -X main.buildVersion={{ .Version }}
+
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^[^S][^L][^-][^\d+]*'

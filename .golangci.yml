@@ -1,0 +1,23 @@
+linters-settings:
+  govet:
+    check-shadowing: true
+  maligned:
+    suggest-new: true
+  goconst:
+    min-len: 2
+    min-occurrences: 3
+  gci:
+    local-prefixes: github.com/maxgio92/krawler
+
+linters:
+  enable-all: true
+  disable:
+    - interfacer
+    - golint
+    - scopelint
+    - maligned
+    - gochecknoglobals
+    - gochecknoinits
+    - exhaustivestruct
+    - ireturn
+    - lll
