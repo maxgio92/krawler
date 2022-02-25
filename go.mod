@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/falcosecurity/driverkit v0.5.0
 	github.com/gocolly/colly v1.2.0
+	github.com/olekukonko/tablewriter v0.0.6-0.20210304033056-74c60be0ef68
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
@@ -26,8 +27,10 @@ require (
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
+	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/rivo/uniseg v0.1.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect

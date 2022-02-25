@@ -29,6 +29,9 @@ var (
 	// The config file flag value
 	cfgFile string
 
+	// The commands output buffer
+	Output = bufio.NewWriter(os.Stdout)
+
 	// The verbose flag value
 	v string
 
@@ -42,6 +45,13 @@ var (
 	Cobra is a CLI library for Go that empowers applications.
 	This application is a tool to generate the needed files
 	to quickly create a Cobra application.`,
+		PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+			if err := Output.Flush(); err != nil {
+				return fmt.Errorf("cannot flush output: %w", err)
+			}
+
+			return nil
+		},
 	}
 )
 

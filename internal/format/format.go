@@ -1,11 +1,12 @@
 package format
 
 import (
-	"strings"
+	"bufio"
 	"encoding/json"
 
-	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"gopkg.in/yaml.v2"
+
+	"github.com/olekukonko/tablewriter"
 )
 
 type FormatType string
@@ -16,40 +17,59 @@ const (
 	Yaml FormatType = "yaml"
 )
 
-func Encode(kernelReleases []kernelrelease.KernelRelease, format FormatType) (string, error) {
+func Encode(output *bufio.Writer,
+	objects interface{},
+	format FormatType) (*bufio.Writer, error) {
 	switch format {
 	case Json:
-		return encodeJson(kernelReleases)
+		return encodeJson(output, objects)
 	case Text:
-		return encodeText(kernelReleases), nil
+		return encodeText(output, objects)
 	case Yaml:
-		return encodeYaml(kernelReleases)
+		return encodeYaml(output, objects)
 	default:
-		return encodeText(kernelReleases), nil
+		return encodeText(output, objects)
 	}
 }
 
-func encodeText(kernelReleases []kernelrelease.KernelRelease) string {
-	var ss []string
-	for _, v := range kernelReleases {
-		ss = append(ss, v.Fullversion+v.FullExtraversion)
-	}
-	raw := strings.Join(ss, " ")
-	return raw
-}
-
-func encodeJson(kernelReleases []kernelrelease.KernelRelease) (string, error) {
-	json, err := json.Marshal(kernelReleases)
+func encodeJson(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
+	json, err := json.Marshal(objects)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(json), nil
+
+	_, err = output.Write(json)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
 }
 
-func encodeYaml(kernelReleases []kernelrelease.KernelRelease) (string, error) {
-	yaml, err := yaml.Marshal(kernelReleases)
+func encodeYaml(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
+	yaml, err := yaml.Marshal(objects)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(yaml), nil
+
+	_, err = output.Write(yaml)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
 }
+
+func encodeText(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
+	return encodeTableFromStructs(output, objects)
+}
+
+func encodeTableFromStructs(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
+	printer := tablewriter.NewWriter(output)
+
+	printer.SetStructs(objects)
+	printer.Render()
+
+	return output, nil
+}
+

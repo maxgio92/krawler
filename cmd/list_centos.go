@@ -16,16 +16,21 @@ limitations under the License.
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 
 	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
-	"github.com/maxgio92/krawler/internal/format"
+	//"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
 	"github.com/maxgio92/krawler/pkg/scraper"
+	"github.com/olekukonko/tablewriter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+var Output = bufio.NewWriter(os.Stdout)
 
 // centosCmd represents the centos command
 var centosCmd = &cobra.Command{
@@ -36,11 +41,28 @@ var centosCmd = &cobra.Command{
 		if err != nil {
 			fmt.Errorf("Error: %s", err)
 		}
-		output, err := format.Encode(releases, format.FormatType(o))
-		if err != nil {
-			fmt.Errorf("Error: %s", err)
+
+		printer := tablewriter.NewWriter(Output)
+		printer.SetHeader([]string{"Fullversion", "Version", "PatchLevel", "Sublevel", "Extraversion", "FullExtraversion"})
+		printer.SetBorders(tablewriter.Border{Left: false, Top: true, Right: false, Bottom: false})
+		for _, release := range releases {
+			printer.Append([]string{
+				release.Fullversion,
+				release.Version,
+				release.PatchLevel,
+				release.Sublevel,
+				release.Extraversion,
+				release.FullExtraversion,
+			})
 		}
-		fmt.Println(output)
+		printer.Render()
+
+		//output, err := format.Encode(releases, format.FormatType(o))
+		//if err != nil {
+		//	fmt.Errorf("Error: %s", err)
+		//}
+
+		//fmt.Println(output)
 	},
 }
 
