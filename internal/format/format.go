@@ -9,17 +9,17 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-type FormatType string
+type Type string
 
 const (
-	Text FormatType = "text"
-	JSON FormatType = "json"
-	YAML FormatType = "yaml"
+	Text Type = "text"
+	JSON Type = "json"
+	YAML Type = "yaml"
 )
 
 func Encode(output *bufio.Writer,
 	objects interface{},
-	format FormatType) (*bufio.Writer, error) {
+	format Type) (*bufio.Writer, error) {
 	switch format {
 	case JSON:
 		return encodeJSON(output, objects)
