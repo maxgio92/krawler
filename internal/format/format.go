@@ -13,26 +13,26 @@ type FormatType string
 
 const (
 	Text FormatType = "text"
-	Json FormatType = "json"
-	Yaml FormatType = "yaml"
+	JSON FormatType = "json"
+	YAML FormatType = "yaml"
 )
 
 func Encode(output *bufio.Writer,
 	objects interface{},
 	format FormatType) (*bufio.Writer, error) {
 	switch format {
-	case Json:
-		return encodeJson(output, objects)
+	case JSON:
+		return encodeJSON(output, objects)
 	case Text:
 		return encodeText(output, objects)
-	case Yaml:
-		return encodeYaml(output, objects)
+	case YAML:
+		return encodeYAML(output, objects)
 	default:
 		return encodeText(output, objects)
 	}
 }
 
-func encodeJson(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
+func encodeJSON(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
 	json, err := json.Marshal(objects)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func encodeJson(output *bufio.Writer, objects interface{}) (*bufio.Writer, error
 	return output, nil
 }
 
-func encodeYaml(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
+func encodeYAML(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
 	yaml, err := yaml.Marshal(objects)
 	if err != nil {
 		return nil, err
