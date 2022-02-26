@@ -37,7 +37,7 @@ var centosCmd = &cobra.Command{
 			fmt.Errorf("Error: %s", err)
 		}
 
-		Output, err = format.Encode(Output, releases, format.FormatType(o))
+		Output, err = format.Encode(Output, releases, format.Type(o))
 		if err != nil {
 			fmt.Errorf("Error: %s", err)
 		}
@@ -80,7 +80,7 @@ func scrape() ([]kernelrelease.KernelRelease, error) {
 
 	packages, err := s.Scrape(mirrorsConfig, packagePrefix)
 	if err != nil {
-		fmt.Println("Error: %s", err)
+		logrus.Error(err)
 	}
 
 	logrus.Debug("Getting kernel releases from packages: ", packages)
