@@ -72,4 +72,3 @@ func encodeTableFromStructs(output *bufio.Writer, objects interface{}) (*bufio.W
 
 	return output, nil
 }
-
