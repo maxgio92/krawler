@@ -37,7 +37,7 @@ var centosCmd = &cobra.Command{
 			fmt.Errorf("Error: %s", err)
 		}
 
-		Output, err = format.Encode(Output, releases, format.Type(o))
+		Output, err = format.Encode(Output, releases, format.Type(outputFormat))
 		if err != nil {
 			fmt.Errorf("Error: %s", err)
 		}
