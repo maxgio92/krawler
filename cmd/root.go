@@ -34,7 +34,7 @@ var (
 	Output = bufio.NewWriter(os.Stdout)
 
 	// The verbose flag value.
-	v string
+	verbosity string
 
 	// rootCmd represents the base command when called without any subcommands.
 	rootCmd = &cobra.Command{
@@ -72,7 +72,7 @@ func init() {
 	// Here is where we define the PreRun func, using the verbose flag value.
 	// We use the standard output for logs.
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
-		if err := initLogs(os.Stdout, v); err != nil {
+		if err := initLogs(os.Stdout, verbosity); err != nil {
 			return err
 		}
 
@@ -83,7 +83,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.krawler.yaml)")
 
 	// Bind the verbose flag. Default value is the warn level.
-	rootCmd.PersistentFlags().StringVarP(&v, "verbosity", "v", logrus.WarnLevel.String(), "Log level (debug, info, warn, error, fatal, panic)")
+	rootCmd.PersistentFlags().StringVarP(&verbosity, "verbosity", "v", logrus.WarnLevel.String(), "Log level (debug, info, warn, error, fatal, panic)")
 }
 
 // initConfig reads in config file and ENV variables if set.

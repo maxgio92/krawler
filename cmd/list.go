@@ -21,7 +21,7 @@ import (
 
 var (
 	// The output format flag value.
-	o string
+	outputFormat string
 
 	// listCmd represents the list command.
 	listCmd = &cobra.Command{
@@ -34,5 +34,5 @@ func init() {
 	rootCmd.AddCommand(listCmd)
 
 	// Bind the output format flag. Default is text.
-	listCmd.PersistentFlags().StringVarP(&o, "output", "o", "text", "Output format (text, json, yaml)")
+	listCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format (text, json, yaml)")
 }
