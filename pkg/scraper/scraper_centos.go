@@ -62,6 +62,7 @@ func seekDistroVersionsURLs(mirrorsConfig MirrorsConfig) ([]string, error) {
 		distroVersionFolderMatch := centosMirrorsDistroVersionPattern.FindStringSubmatch(e.Attr("href"))
 
 		if len(distroVersionFolderMatch) > 0 {
+			//nolint:errcheck
 			co.Visit(e.Request.AbsoluteURL(e.Attr("href")))
 		}
 	})
@@ -103,6 +104,7 @@ func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix
 		// Do not traverse the hierarchy in inverse order
 		if !(strings.Contains(link, "../")) {
 			// TODO: implement a retry logic
+			//nolint:errcheck
 			co.Visit(e.Request.AbsoluteURL(link))
 		}
 	})
@@ -144,6 +146,7 @@ func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix
 		for _, packagesURI := range packagesURIs {
 			packagesURL := versionRootURL + packagesURI
 
+			//nolint:errcheck
 			co.Visit(packagesURL)
 		}
 	}
