@@ -85,6 +85,7 @@ func seekDistroVersionsURLs(mirrorsConfig MirrorsConfig) ([]string, error) {
 }
 
 // Seek packages for each Distro version
+//nolint:funlen
 func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix string) ([]string, error) {
 	var packages []string
 	packageFilenameRegex := `^` + packagePrefix + `.+.` + centosPackageFileExtension
