@@ -15,6 +15,10 @@ init:
 	@$(go) mod init krawler
 	@$(cobra) init $(COBRA_FLAGS)
 
+.PHONY: lint
+lint:
+	@golangci-lint run `github.com/maxgio92/krawler`
+
 
 define declare_binpaths
 $(1) := $(shell command -v 2>/dev/null $(1))
