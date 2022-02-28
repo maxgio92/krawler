@@ -11,6 +11,7 @@ func sliceContains(s []string, e string) bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -22,7 +23,9 @@ func getHostnamesFromURLs(URLs []string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("No hostnames found in URLs: %s", URLs)
 		}
+
 		hostnames = append(hostnames, url.Host)
 	}
+
 	return hostnames, nil
 }

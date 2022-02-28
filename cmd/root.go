@@ -75,6 +75,7 @@ func init() {
 		if err := initLogs(os.Stdout, v); err != nil {
 			return err
 		}
+
 		return nil
 	}
 
@@ -114,10 +115,13 @@ func initConfig() {
 // setUpLogs set the log output ans the log level
 func initLogs(out io.Writer, level string) error {
 	logrus.SetOutput(out)
+
 	lvl, err := logrus.ParseLevel(level)
 	if err != nil {
 		return err
 	}
+
 	logrus.SetLevel(lvl)
+
 	return nil
 }
