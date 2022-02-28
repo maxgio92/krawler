@@ -70,6 +70,7 @@ func encodeTableFromStructs(output *bufio.Writer, objects interface{}) (*bufio.W
 	if err := printer.SetStructs(objects); err != nil {
 		return nil, err
 	}
+
 	printer.Render()
 
 	return output, nil

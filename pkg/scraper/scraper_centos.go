@@ -88,6 +88,7 @@ func seekDistroVersionsURLs(mirrorsConfig MirrorsConfig) ([]string, error) {
 //nolint:funlen
 func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix string) ([]string, error) {
 	var packages []string
+
 	packageFilenameRegex := `^` + packagePrefix + `.+.` + centosPackageFileExtension
 
 	allowedDomains, err := getHostnamesFromURLs(mirrorsConfig.URLs)

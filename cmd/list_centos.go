@@ -69,6 +69,7 @@ func scrape() ([]kernelrelease.KernelRelease, error) {
 	} else {
 		mirrorsConfig.URLs = centosDefaultMirrors
 	}
+
 	mirrorsConfig.Archs = []string{"x86_64"}
 	mirrorsConfig.PackagesURIFormats = []string{
 		"/BaseOS/%s/os/Packages/",
@@ -87,6 +88,7 @@ func scrape() ([]kernelrelease.KernelRelease, error) {
 
 	// Get kernel releases from kernel header packages
 	kernelReleases := []kernelrelease.KernelRelease{}
+
 	for _, v := range packages {
 		s := utils.KernelReleaseFromPackageName(v, packagePrefix)
 		r := kernelrelease.FromString(s)
@@ -94,5 +96,6 @@ func scrape() ([]kernelrelease.KernelRelease, error) {
 	}
 
 	logrus.Debug("Obtained KernelRelease objects: ", kernelReleases)
+
 	return utils.UniqueKernelReleases(kernelReleases), nil
 }

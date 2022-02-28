@@ -20,6 +20,7 @@ func UniqueKernelReleases(kernelReleases []kernelrelease.KernelRelease) []kernel
 	for _, v := range kernelReleases {
 		if _, ok := m[v]; !ok {
 			m[v] = true
+
 			krs = append(krs, v)
 		}
 	}
