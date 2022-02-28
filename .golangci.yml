@@ -21,3 +21,4 @@ linters:
     - exhaustivestruct
     - ireturn
     - lll
+    - wrapcheck
