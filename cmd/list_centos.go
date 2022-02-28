@@ -64,6 +64,7 @@ func scrape() ([]kernelrelease.KernelRelease, error) {
 	// Get packages
 	packagePrefix := "kernel-devel"
 	mirrorsConfig := scraper.MirrorsConfig{}
+
 	if u := viper.GetStringSlice("mirrors.centos"); u != nil {
 		mirrorsConfig.URLs = u
 	} else {
