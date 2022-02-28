@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// centosCmd represents the centos command
+// centosCmd represents the centos command.
 var centosCmd = &cobra.Command{
 	Use:   "centos",
 	Short: "List CentOS kernel releases with headers available from mirrors",

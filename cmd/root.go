@@ -27,16 +27,16 @@ import (
 )
 
 var (
-	// The config file flag value
+	// The config file flag value.
 	cfgFile string
 
-	// The commands output buffer
+	// The commands output buffer.
 	Output = bufio.NewWriter(os.Stdout)
 
-	// The verbose flag value
+	// The verbose flag value.
 	v string
 
-	// rootCmd represents the base command when called without any subcommands
+	// rootCmd represents the base command when called without any subcommands.
 	rootCmd = &cobra.Command{
 		Use:   "krawler",
 		Short: "A brief description of your application",
@@ -69,7 +69,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here is where we define the PreRun func, using the verbose flag value
+	// Here is where we define the PreRun func, using the verbose flag value.
 	// We use the standard output for logs.
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if err := initLogs(os.Stdout, v); err != nil {
@@ -79,10 +79,10 @@ func init() {
 		return nil
 	}
 
-	// Bind the config file flag. Default value is $HOME/.krawler.yaml
+	// Bind the config file flag. Default value is $HOME/.krawler.yaml.
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.krawler.yaml)")
 
-	// Bind the verbose flag. Default value is the warn level
+	// Bind the verbose flag. Default value is the warn level.
 	rootCmd.PersistentFlags().StringVarP(&v, "verbosity", "v", logrus.WarnLevel.String(), "Log level (debug, info, warn, error, fatal, panic)")
 }
 
@@ -102,7 +102,7 @@ func initConfig() {
 		viper.SetConfigName(".krawler")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 
@@ -112,7 +112,7 @@ func initConfig() {
 	}
 }
 
-// setUpLogs set the log output ans the log level
+// setUpLogs set the log output ans the log level.
 func initLogs(out io.Writer, level string) error {
 	logrus.SetOutput(out)
 

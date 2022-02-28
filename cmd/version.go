@@ -23,12 +23,12 @@ import (
 
 var version = "Krawler CLI v0.0.1"
 
-// versionCmd represents the version command
+// versionCmd represents the version command.
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of Krawler CLI",
 	Run: func(cmd *cobra.Command, args []string) {
-		//nolint:forbidgo
+		//nolint:forbidigo
 		fmt.Println(version)
 	},
 }

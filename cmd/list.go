@@ -20,10 +20,10 @@ import (
 )
 
 var (
-	// The output format flag value
+	// The output format flag value.
 	o string
 
-	// listCmd represents the list command
+	// listCmd represents the list command.
 	listCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List available kernel releases with distributed headers, by Linux distribution",
