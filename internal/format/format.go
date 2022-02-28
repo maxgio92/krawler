@@ -67,7 +67,9 @@ func encodeText(output *bufio.Writer, objects interface{}) (*bufio.Writer, error
 func encodeTableFromStructs(output *bufio.Writer, objects interface{}) (*bufio.Writer, error) {
 	printer := tablewriter.NewWriter(output)
 
-	printer.SetStructs(objects)
+	if err := printer.SetStructs(objects); err != nil {
+		return nil, err
+	}
 	printer.Render()
 
 	return output, nil
