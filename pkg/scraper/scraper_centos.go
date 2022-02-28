@@ -10,15 +10,16 @@ import (
 	"github.com/gocolly/colly"
 )
 
-var centosMirrorsDistroVersionRegex = `^(0|[1-9]\d*)(\.(0|[1-9]\d*)?)?(\.(0|[1-9]\d*)?)?(-[a-zA-Z\d][-a-zA-Z.\d]*)?(\+[a-zA-Z\d][-a-zA-Z.\d]*)?\/$`
-var centosPackageFileExtension = "rpm"
+var (
+	centosMirrorsDistroVersionRegex = `^(0|[1-9]\d*)(\.(0|[1-9]\d*)?)?(\.(0|[1-9]\d*)?)?(-[a-zA-Z\d][-a-zA-Z.\d]*)?(\+[a-zA-Z\d][-a-zA-Z.\d]*)?\/$`
+	centosPackageFileExtension      = "rpm"
+)
 
 func init() {
 	ScraperByDistro[Centos] = &centosScraper{}
 }
 
-type centosScraper struct {
-}
+type centosScraper struct{}
 
 // Scrape to find packages.
 func (c centosScraper) Scrape(mirrorsConfig MirrorsConfig, packagePrefix string) ([]string, error) {
