@@ -28,7 +28,6 @@ func (c centosScraper) Scrape(mirrorsConfig MirrorsConfig, packagePrefix string)
 	}
 
 	if len(mirrorSpecificVersionRootURLs) > 0 {
-
 		packages, err := scrape(mirrorsConfig, mirrorSpecificVersionRootURLs, packagePrefix)
 		if err != nil {
 			return nil, err
@@ -68,7 +67,6 @@ func seekDistroVersionsURLs(mirrorsConfig MirrorsConfig) ([]string, error) {
 	})
 
 	co.OnRequest(func(r *colly.Request) {
-
 		if !sliceContains(mirrorsConfig.URLs, r.URL.String()) {
 			distroVersionsURLs = append(distroVersionsURLs, r.URL.String())
 		}

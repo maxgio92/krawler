@@ -105,7 +105,6 @@ func initConfig() {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			panic(fmt.Errorf("fatal error config file: %w", err))
 		}
