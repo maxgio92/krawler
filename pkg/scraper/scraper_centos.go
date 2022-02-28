@@ -20,7 +20,7 @@ func init() {
 type centosScraper struct {
 }
 
-// Scrape to find packages
+// Scrape to find packages.
 func (c centosScraper) Scrape(mirrorsConfig MirrorsConfig, packagePrefix string) ([]string, error) {
 	mirrorSpecificVersionRootURLs, err := seekDistroVersionsURLs(mirrorsConfig)
 	if err != nil {
@@ -44,7 +44,7 @@ func (c centosScraper) Scrape(mirrorsConfig MirrorsConfig, packagePrefix string)
 	return nil, errors.New("No mirrors found.")
 }
 
-// Seek Distro version folders to cycle only on those packages folders directly!
+// Seek Distro version folders to cycle only on those packages folders directly.
 func seekDistroVersionsURLs(mirrorsConfig MirrorsConfig) ([]string, error) {
 	centosMirrorsDistroVersionPattern := regexp.MustCompile(centosMirrorsDistroVersionRegex)
 	distroVersionsURLs := []string{}
@@ -84,7 +84,7 @@ func seekDistroVersionsURLs(mirrorsConfig MirrorsConfig) ([]string, error) {
 	return distroVersionsURLs, nil
 }
 
-// Seek packages for each Distro version
+// Seek packages for each Distro version.
 //nolint:funlen
 func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix string) ([]string, error) {
 	var packages []string
@@ -116,7 +116,7 @@ func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix
 		folderMatch := folderPattern.FindStringSubmatch(r.URL.String())
 
 		// If the URL is of a folder
-		if len(folderMatch) <= 0 {
+		if len(folderMatch) == 0 {
 			packagePattern := regexp.MustCompile(fmt.Sprintf(`.+\.%s$`, centosPackageFileExtension))
 			packageMatch := packagePattern.FindStringSubmatch(r.URL.String())
 
