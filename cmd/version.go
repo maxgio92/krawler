@@ -28,6 +28,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of Krawler CLI",
 	Run: func(cmd *cobra.Command, args []string) {
+		//nolint:forbidgo
 		fmt.Println(version)
 	},
 }
