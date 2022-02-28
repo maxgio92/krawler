@@ -102,7 +102,13 @@ func initConfig() {
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
-	viper.ReadInConfig()
+
+	if err := viper.ReadInConfig(); err != nil {
+
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			panic(fmt.Errorf("Fatal error config file: %w \n", err))
+		}
+	}
 }
 
 // setUpLogs set the log output ans the log level
