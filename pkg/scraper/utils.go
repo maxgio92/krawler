@@ -15,13 +15,13 @@ func sliceContains(s []string, e string) bool {
 	return false
 }
 
-func getHostnamesFromURLs(URLs []string) ([]string, error) {
+func getHostnamesFromURLs(urls []string) ([]string, error) {
 	hostnames := []string{}
 
-	for _, v := range URLs {
+	for _, v := range urls {
 		url, err := url.Parse(v)
 		if err != nil {
-			return nil, fmt.Errorf("No hostnames found in URLs: %s", URLs)
+			return nil, fmt.Errorf("No hostnames found in URLs: %s", urls)
 		}
 
 		hostnames = append(hostnames, url.Host)
