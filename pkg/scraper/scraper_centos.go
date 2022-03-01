@@ -1,7 +1,6 @@
 package scraper
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"regexp"
@@ -25,7 +24,7 @@ type centosScraper struct{}
 func (c centosScraper) Scrape(mirrorsConfig MirrorsConfig, packagePrefix string) ([]string, error) {
 	mirrorSpecificVersionRootURLs, err := seekDistroVersionsURLs(mirrorsConfig)
 	if err != nil {
-		return nil, errors.New("no distribution versions found with specified mirrors config")
+		return nil, errDistributionVersionsNotFound
 	}
 
 	if len(mirrorSpecificVersionRootURLs) > 0 {
@@ -38,10 +37,10 @@ func (c centosScraper) Scrape(mirrorsConfig MirrorsConfig, packagePrefix string)
 			return packages, nil
 		}
 
-		return nil, errors.New("no packages found")
+		return nil, errPackagesNotFound
 	}
 
-	return nil, errors.New("no mirrors found")
+	return nil, errMirrorsNotFound
 }
 
 // Seek Distro version folders to cycle only on those packages folders directly.
@@ -51,7 +50,7 @@ func seekDistroVersionsURLs(mirrorsConfig MirrorsConfig) ([]string, error) {
 
 	allowedDomains, err := getHostnamesFromURLs(mirrorsConfig.URLs)
 	if err != nil {
-		return nil, fmt.Errorf("error while getting domains from mirrors root URLs: %s", mirrorsConfig.URLs)
+		return nil, err
 	}
 
 	co := colly.NewCollector(
@@ -92,7 +91,7 @@ func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix
 
 	allowedDomains, err := getHostnamesFromURLs(mirrorsConfig.URLs)
 	if err != nil {
-		return nil, fmt.Errorf("error while getting domains from mirrors root URLs: %s", mirrorsConfig.URLs)
+		return nil, err
 	}
 
 	co := colly.NewCollector(
