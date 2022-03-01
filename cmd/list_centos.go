@@ -56,7 +56,6 @@ func init() {
 
 func scrape() ([]kernelrelease.KernelRelease, error) {
 	s, err := scraper.Factory(scraper.Centos)
-
 	if err != nil {
 		return nil, err
 	}
