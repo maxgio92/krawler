@@ -34,12 +34,12 @@ var centosCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		releases, err := scrape()
 		if err != nil {
-			fmt.Errorf("Error: %s", err)
+			fmt.Errorf("Error: %w", err)
 		}
 
 		Output, err = format.Encode(Output, releases, format.Type(outputFormat))
 		if err != nil {
-			fmt.Errorf("Error: %s", err)
+			fmt.Errorf("Error: %w", err)
 		}
 	},
 }
