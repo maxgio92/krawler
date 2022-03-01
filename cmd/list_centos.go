@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
@@ -31,16 +29,17 @@ import (
 var centosCmd = &cobra.Command{
 	Use:   "centos",
 	Short: "List CentOS kernel releases with headers available from mirrors",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		releases, err := scrape()
 		if err != nil {
-			fmt.Errorf("Error: %w", err)
+			return err
 		}
 
 		Output, err = format.Encode(Output, releases, format.Type(outputFormat))
 		if err != nil {
-			fmt.Errorf("Error: %w", err)
+			return err
 		}
+		return nil
 	},
 }
 
