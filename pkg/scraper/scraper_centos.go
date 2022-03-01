@@ -104,7 +104,6 @@ func scrape(mirrorsConfig MirrorsConfig, versionRootURLs []string, packagePrefix
 
 		// Do not traverse the hierarchy in inverse order
 		if !(strings.Contains(link, "../")) {
-			// TODO: implement a retry logic
 			//nolint:errcheck
 			co.Visit(e.Request.AbsoluteURL(link))
 		}
