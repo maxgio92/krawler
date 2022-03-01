@@ -39,6 +39,7 @@ var centosCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
 		return nil
 	},
 }
