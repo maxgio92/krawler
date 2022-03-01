@@ -1,7 +1,6 @@
 package scraper
 
 import (
-	"fmt"
 	"net/url"
 )
 
@@ -21,7 +20,7 @@ func getHostnamesFromURLs(urls []string) ([]string, error) {
 	for _, v := range urls {
 		url, err := url.Parse(v)
 		if err != nil {
-			return nil, fmt.Errorf("No hostnames found in URLs: %s", urls)
+			return nil, errDomainsFromMirrorUrls
 		}
 
 		hostnames = append(hostnames, url.Host)
