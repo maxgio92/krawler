@@ -19,7 +19,8 @@ const (
 
 func Encode(output *bufio.Writer,
 	objects interface{},
-	format Type) (*bufio.Writer, error) {
+	format Type,
+) (*bufio.Writer, error) {
 	switch format {
 	case JSON:
 		return encodeJSON(output, objects)
