@@ -4,9 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/olekukonko/tablewriter"
+	"gopkg.in/yaml.v2"
 )
 
 type Type string
