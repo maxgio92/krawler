@@ -8,7 +8,9 @@ linters-settings:
     min-occurrences: 3
   gci:
     sections:
-      - prefix(github.com/maxgio92/krawler)
+      - standard # Captures all standard packages if they do not match another section.
+      - default # Contains all imports that could not be matched to another section type.
+      - prefix(github.com\/maxgio92\/krawler) # Groups all imports with the specified Prefix.
 
 linters:
   enable-all: true
