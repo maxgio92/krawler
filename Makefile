@@ -17,7 +17,7 @@ init:
 
 .PHONY: lint
 lint:
-	@golangci-lint run `github.com/maxgio92/krawler`
+	@golangci-lint run ./...
 
 
 define declare_binpaths
