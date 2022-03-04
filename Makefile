@@ -19,7 +19,6 @@ init:
 lint:
 	@golangci-lint run ./...
 
-
 define declare_binpaths
 $(1) := $(shell command -v 2>/dev/null $(1))
 endef
