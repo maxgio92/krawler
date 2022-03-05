@@ -27,3 +27,15 @@ func UniqueKernelReleases(kernelReleases []kernelrelease.KernelRelease) []kernel
 
 	return krs
 }
+
+func GetKernelReleaseListFromPackageList(kernelReleases []kr.KernelRelease, packages []string) ([]kr.KernelRelease, error) {
+	kernelReleases := []kr.KernelRelease{}
+
+	for _, v := range packages {
+		s := utils.KernelReleaseFromPackageName(v, filter)
+		r := kr.FromString(s)
+		kernelReleases = append(kernelReleases, r)
+	}
+
+	return utils.UniqueKernelReleases(kernelReleases), nil
+}

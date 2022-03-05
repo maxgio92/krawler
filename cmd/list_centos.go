@@ -44,11 +44,13 @@ var centosCmd = &cobra.Command{
 	},
 }
 
+// TODO: skip, it is scrape package responsibility the default configuration
 var centosDefaultMirrors = []string{
 	"https://mirrors.edge.kernel.org/centos/",
 	"https://archive.kernel.org/centos-vault/",
 	"https://mirror.nsc.liu.se/centos-store/",
 }
+// end
 
 func init() {
 	listCmd.AddCommand(centosCmd)
@@ -63,19 +65,25 @@ func scrape() ([]kernelrelease.KernelRelease, error) {
 	// Get packages
 	packagePrefix := "kernel-devel"
 	mirrorsConfig := scraper.MirrorsConfig{}
+	//config := scrape.Config{}
 
 	if u := viper.GetStringSlice("mirrors.centos"); u != nil {
 		mirrorsConfig.URLs = u
+		//config.Mirrors = Mirrors(u)
 	} else {
+		// TODO: skip, it is scrape package responsibility the default configuration
 		mirrorsConfig.URLs = centosDefaultMirrors
+		// end
 	}
 
+	// TODO: the same, skip as this is scrape package responsibility the default configuration
 	mirrorsConfig.Archs = []string{"x86_64"}
 	mirrorsConfig.PackagesURIFormats = []string{
 		"/BaseOS/%s/os/Packages/",
 		"/os/%s/Packages/",
 		"/updates/%s/Packages/",
 	}
+	// end
 
 	logrus.Debug("Scraping with config: ", mirrorsConfig)
 
