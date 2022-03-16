@@ -1,4 +1,6 @@
 package scrape
 
-// Do we need it?
-type Repository string
+type Repository struct {
+	Name              string
+	PackagesURIFormat PackagesURIFormat
+}

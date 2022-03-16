@@ -2,9 +2,10 @@ package scrape
 
 type Mirror struct {
 
-	// The base URL of the package mirror (e.g. https://mirrors.kernel.org/<distribution>)
-	BaseUrl string
+	// The base URL of the package mirror
+	// (e.g. https://mirrors.kernel.org/<distribution>)
+	Url          string
 
-	// Do we need it?
-	//repositories []Repository
+	// The mirrored repositories
+	Repositories []Repository
 }

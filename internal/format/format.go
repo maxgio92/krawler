@@ -16,10 +16,7 @@ const (
 	YAML Type = "yaml"
 )
 
-func Encode(output *bufio.Writer,
-	objects interface{},
-	format Type,
-) (*bufio.Writer, error) {
+func Encode(output *bufio.Writer, objects interface{}, format Type) (*bufio.Writer, error) {
 	switch format {
 	case JSON:
 		return encodeJSON(output, objects)

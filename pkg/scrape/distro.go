@@ -1,20 +1,21 @@
 package scrape
 
-var DistroByName = map[DistroName]Distro{}
+var DistroByType = map[DistroType]Distro{}
 
 type Distro interface {
-	GetPackages(MirrorsConfig, Filter) ([]Package, error)
+	GetPackages(Config, Filter) ([]Package, error)
 }
 
-type DistroName int16
+type DistroVersion string
+
+type DistroType string
 
 const (
-	Unknown Distro = iota
-	Centos
+	CentosType = "centos"
 )
 
-func Factory(distro DistroName) (Distro, error) {
-	distro, ok := DistroByName[distro]
+func Factory(distroType DistroType) (Distro, error) {
+	distro, ok := DistroByType[distroType]
 
 	if !ok {
 		return nil, errDistroNotFound

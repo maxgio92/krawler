@@ -1,0 +1,35 @@
+distros:
+  centos:
+
+    # Scrape for only the specified versions
+    versions:
+    - "8-stream"
+    - "7"
+
+    # Scrape for only the specified architectures
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: https://archive.kernel.org/centos-vault/
+      repositories:
+
+      # Distribution version dependent (i.e. CentOS < 8)
+      - name: base
+        packagesUriFormat: "/os/%s/Packages/" # Compiles with the specified architectures (i.e. []string{"/BaseOS/x86_64/os/Packages/"})
+
+      - name: updates
+        packagesUriFormat: "/updates/%s/Packages/"
+
+    - url: https://mirrors.edge.kernel.org/centos/
+      repositories:
+
+      # Distribution version dependent (i.e. CentOS >= 8)
+      - name: BaseOS
+        packagesUriFormat: "/BaseOS/%s/os/Packages/"
+
+      # This is a completely new repository for CentOS >= 8
+      # (https://docs.centos.org/en-US/8-docs/managing-userspace-components/assembly_using-appstream/#packaging-methods-in-rhel-8_using-appstream)
+      - name: AppStream
+        packagesUriFormat: "/AppStream/%s/os/Packages/"

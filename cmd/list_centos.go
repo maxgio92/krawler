@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 maxgio92 <massimiliano.giovagnoli.1992@gmail.com>
+Copyright © 2022 maxgio92 <me@maxgio.it>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ import (
 	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
-	"github.com/maxgio92/krawler/pkg/scraper"
-	"github.com/sirupsen/logrus"
+	"github.com/maxgio92/krawler/pkg/scrape"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,80 +29,58 @@ var centosCmd = &cobra.Command{
 	Use:   "centos",
 	Short: "List CentOS kernel releases with headers available from mirrors",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		releases, err := scrape()
-		if err != nil {
-			return err
-		}
+		kernelReleases, err := getKernelReleases()
+		cobra.CheckErr(err)
 
-		Output, err = format.Encode(Output, releases, format.Type(outputFormat))
-		if err != nil {
-			return err
+		if len(kernelReleases) > 0 {
+			Output, err = format.Encode(Output, kernelReleases, format.Type(outputFormat))
+			cobra.CheckErr(err)
+		} else {
+			Output.WriteString("No releases found.\n")
 		}
 
 		return nil
 	},
 }
 
-// TODO: skip, it is scrape package responsibility the default configuration
-var centosDefaultMirrors = []string{
-	"https://mirrors.edge.kernel.org/centos/",
-	"https://archive.kernel.org/centos-vault/",
-	"https://mirror.nsc.liu.se/centos-store/",
-}
-// end
-
 func init() {
 	listCmd.AddCommand(centosCmd)
 }
 
-func scrape() ([]kernelrelease.KernelRelease, error) {
-	s, err := scraper.Factory(scraper.Centos)
+func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
+
+	// A representation of a Linux distribution package scraper.
+	distro, err := scrape.Factory(scrape.CentosType)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get packages
+	// The filter for filter packages.
 	packagePrefix := "kernel-devel"
-	mirrorsConfig := scraper.MirrorsConfig{}
-	//config := scrape.Config{}
+	filter := scrape.Filter(packagePrefix)
 
-	if u := viper.GetStringSlice("mirrors.centos"); u != nil {
-		mirrorsConfig.URLs = u
-		//config.Mirrors = Mirrors(u)
-	} else {
-		// TODO: skip, it is scrape package responsibility the default configuration
-		mirrorsConfig.URLs = centosDefaultMirrors
-		// end
+	// The scraping configuration.
+	var config scrape.Config
+	distroConfig := viper.Sub(ConfigDistrosRoot)
+	if distroConfig != nil {
+		var err error
+		config, err = utils.GetScrapeConfigFromViper(string(scrape.CentosType), viper.Sub(ConfigDistrosRoot))
+		if err != nil {
+			return []kernelrelease.KernelRelease{}, err
+		}
 	}
 
-	// TODO: the same, skip as this is scrape package responsibility the default configuration
-	mirrorsConfig.Archs = []string{"x86_64"}
-	mirrorsConfig.PackagesURIFormats = []string{
-		"/BaseOS/%s/os/Packages/",
-		"/os/%s/Packages/",
-		"/updates/%s/Packages/",
-	}
-	// end
-
-	logrus.Debug("Scraping with config: ", mirrorsConfig)
-
-	packages, err := s.Scrape(mirrorsConfig, packagePrefix)
+	// Scrape mirrors for packeges by filter.
+	packages, err := distro.GetPackages(config, filter)
 	if err != nil {
-		logrus.Error(err)
+		return []kernelrelease.KernelRelease{}, err
 	}
 
-	logrus.Debug("Getting kernel releases from packages: ", packages)
-
-	// Get kernel releases from kernel header packages
-	kernelReleases := []kernelrelease.KernelRelease{}
-
-	for _, v := range packages {
-		s := utils.KernelReleaseFromPackageName(v, packagePrefix)
-		r := kernelrelease.FromString(s)
-		kernelReleases = append(kernelReleases, r)
+	// Get kernel releases from kernel header packages.
+	kernelReleases, err := utils.GetKernelReleaseListFromPackageList(packages, packagePrefix)
+	if err != nil {
+		return []kernelrelease.KernelRelease{}, err
 	}
 
-	logrus.Debug("Obtained KernelRelease objects: ", kernelReleases)
-
-	return utils.UniqueKernelReleases(kernelReleases), nil
+	return kernelReleases, nil
 }

@@ -1,6 +1,0 @@
-distros:
-  centos:
-    archs:
-      - id: "x86_64"
-    mirrors:
-      - baseUrl: https://mirrors.edge.kernel.org/centos/

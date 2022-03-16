@@ -2,6 +2,6 @@ package scrape
 
 type Arch string
 
-var (
-	DefaultArch = Arch("x86_64")
+const (
+	X86_64Arch Arch = "x86_64"
 )
