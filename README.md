@@ -77,24 +77,6 @@ Let's imagine you want to list the available CentOS kernel releases, scraping de
 krawler list centos -o yaml
 ```
 
-### Configuration
-
-#### Mirrors
-
-It is possible to configure the mirrors to scrape for kernel headers.
-The supported formats are *json* and *yaml*.
-
-For example, consider if you'd want to scrape only current CentOS kernel releases and to ignore archived ones:
-
-```
-cat <<EOF > config.yaml
-mirrors:
-  centos:
-  - https://mirrors.edge.kernel.org/centos/
-EOF
-krawler list centos -o yaml -c config.yaml
-```
-
 ## VNEXT
 
 - Support new distributions (Debian, Ubuntu, Fedora, Amazon Linux)
