@@ -1,4 +1,4 @@
-# Krawler: a kernel releases crawler
+# [UNDER DEVELOPMENT] Krawler: a kernel releases crawler
 
 ![ci workflow](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)
 
@@ -35,28 +35,17 @@ Available distributions:
 
 ### Output
 
-The `list` command prints on standard ouput a is a list of kernel release objects of type [`KernelRelease`](https://github.com/falcosecurity/driverkit/blob/master/pkg/kernelrelease/kernelrelease.go#L13):
-
-```
-type KernelRelease struct {
-	Fullversion
-	Version
-	PatchLevel
-	Sublevel
-	Extraversion
-	FullExtraversion
-}
-```
+The `list` command prints on standard ouput a is a list of kernel release objects of type [`KernelRelease`](https://github.com/falcosecurity/driverkit/blob/master/pkg/kernelrelease/kernelrelease.go#L13).
 
 An example of a `yaml`-formatted result entry:
 
 ```
-- fullversion: 4.18.0
-  version: "4"
-  patchlevel: "18"
-  sublevel: "0"
-  extraversion: "348"
-  fullextraversion: -348.2.1.el8_5.x86_64
+fullversion: 4.18.0
+version: "4"
+patchlevel: "18"
+sublevel: "0"
+extraversion: "348"
+fullextraversion: -348.2.1.el8_5.x86_64
 ```
 
 ## Configuration
@@ -65,9 +54,20 @@ A configuration lets you configure parameters for the scraping, like the mirrors
 The configuration follows the structure that you can see below:
 
 ```yaml
-<distribution>:
-  mirrors: <url list>
+distros:
+  <Distribution name>:
+      versions: ["<Distribution version>"]
+      archs: ["<Architecture ID>"]
+      mirrors:
+      - url: "<Mirror root URL>"
+        repositories:
+          name: "<Package repository name label>"
+          packagesUriFormat: "<Packages URI Go string-format>"
 ```
+
+All fields are optional. When not specified [default configurations](./pkg/scrape/defaults.go) for repositories are used. For the configuration reference see [docs/reference/config.md](docs/reference/CONFIG.md).
+
+Example configurations are available in [config/samples](./config/samples).
 
 ## Getting started
 
@@ -98,7 +98,7 @@ krawler list centos -o yaml -c config.yaml
 ## VNEXT
 
 - Support new distributions (Debian, Ubuntu, Fedora, Amazon Linux)
-- Introduce new commands
+- Support package repositories URI as templates
 
 ## Thanks
 
