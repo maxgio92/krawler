@@ -16,16 +16,16 @@ var (
 			Mirror{
 				Url: "https://mirrors.edge.kernel.org/centos/",
 				Repositories: []Repository{
-					Repository{Name: "BaseOS", PackagesURIFormat: "/BaseOS/%s/os/Packages/"},
-					Repository{Name: "AppStream", PackagesURIFormat: "/AppStream/%s/os/Packages/"},
-					Repository{Name: "Devel", PackagesURIFormat: "/Devel/%s/os/Packages/"},
+					Repository{Name: "BaseOS", PackagesURITemplate: "/BaseOS/{{ Arch }}/os/Packages/"},
+					Repository{Name: "AppStream", PackagesURITemplate: "/AppStream/{{ Arch }}/os/Packages/"},
+					Repository{Name: "Devel", PackagesURITemplate: "/Devel/{{ Arch }}/os/Packages/"},
 				},
 			},
 			Mirror{
 				Url: "https://archive.kernel.org/centos-vault/",
 				Repositories: []Repository{
-					Repository{Name: "base", PackagesURIFormat: "/os/%s/Packages/"},
-					Repository{Name: "updates", PackagesURIFormat: "/updates/%s/Packages/"},
+					Repository{Name: "base", PackagesURITemplate: "/os/{{ Arch }}/Packages/"},
+					Repository{Name: "updates", PackagesURITemplate: "/updates/{{ Arch }}/Packages/"},
 				},
 			},
 		},

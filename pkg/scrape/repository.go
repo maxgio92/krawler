@@ -1,6 +1,6 @@
 package scrape
 
 type Repository struct {
-	Name              string
-	PackagesURIFormat PackagesURIFormat
+	Name                string
+	PackagesURITemplate PackagesURITemplate
 }

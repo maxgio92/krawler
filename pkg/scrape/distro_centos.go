@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/maxgio92/krawler/pkg/template"
+
 	"github.com/gocolly/colly"
 	d "github.com/gocolly/colly/debug"
 )
@@ -94,7 +96,7 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 				config.Mirrors[i].Repositories = c.getDefaultRepositories()
 			} else {
 				for _, repository := range mirror.Repositories {
-					if repository.PackagesURIFormat == "" {
+					if repository.PackagesURITemplate == "" {
 						config.Mirrors[i].Repositories = c.getDefaultRepositories()
 						break
 					}
@@ -222,8 +224,21 @@ func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch) ([]string
 
 	for _, mirror := range mirrors {
 		for _, repository := range mirror.Repositories {
+			var a []interface{}
 			for _, arch := range archs {
-				uris = append(uris, fmt.Sprintf(string(repository.PackagesURIFormat), string(arch)))
+				a = append(a, interface{}(arch))
+			}
+
+			if repository.PackagesURITemplate != "" {
+				inventory := map[string][]interface{}{
+					"Arch": a,
+				}
+				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), inventory)
+				if err != nil {
+					panic(err)
+				}
+				uris = append(uris, result...)
+				fmt.Println(uris)
 			}
 		}
 	}
