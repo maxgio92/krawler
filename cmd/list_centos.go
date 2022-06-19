@@ -16,10 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
-	"github.com/maxgio92/krawler/pkg/scrape"
+	d "github.com/maxgio92/krawler/pkg/distro"
+
+	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -50,21 +51,21 @@ func init() {
 func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 
 	// A representation of a Linux distribution package scraper.
-	distro, err := scrape.Factory(scrape.CentosType)
+	distro, err := d.Factory(d.CentosType)
 	if err != nil {
 		return nil, err
 	}
 
 	// The filter for filter packages.
 	packagePrefix := "kernel-devel"
-	filter := scrape.Filter(packagePrefix)
+	filter := d.Filter(packagePrefix)
 
 	// The scraping configuration.
-	var config scrape.Config
+	var config d.Config
 	distroConfig := viper.Sub(ConfigDistrosRoot)
 	if distroConfig != nil {
 		var err error
-		config, err = utils.GetScrapeConfigFromViper(string(scrape.CentosType), viper.Sub(ConfigDistrosRoot))
+		config, err = utils.GetScrapeConfigFromViper(string(d.CentosType), viper.Sub(ConfigDistrosRoot))
 		if err != nil {
 			return []kernelrelease.KernelRelease{}, err
 		}

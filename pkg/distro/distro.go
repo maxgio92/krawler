@@ -1,4 +1,4 @@
-package scrape
+package distro
 
 var DistroByType = map[DistroType]Distro{}
 

@@ -3,19 +3,19 @@ package utils
 import (
 	"fmt"
 
-	"github.com/maxgio92/krawler/pkg/scrape"
+	"github.com/maxgio92/krawler/pkg/distro"
 	v "github.com/spf13/viper"
 )
 
 //func GetScrapeConfigFromViper(distro string, viper *v.Viper) (scrape.Config, error) {
-func GetScrapeConfigFromViper(distro string, viper *v.Viper) (scrape.Config, error) {
-	if distro == "" {
-		return scrape.Config{}, fmt.Errorf("configuration is not valid")
+func GetScrapeConfigFromViper(distroName string, viper *v.Viper) (distro.Config, error) {
+	if distroName == "" {
+		return distro.Config{}, fmt.Errorf("configuration is not valid")
 	}
 
-	var config scrape.Config
+	var config distro.Config
 
-	distroViper := viper.Sub(distro)
+	distroViper := viper.Sub(distroName)
 	distroViper.Unmarshal(&config)
 
 	return config, nil

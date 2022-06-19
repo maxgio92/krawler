@@ -1,4 +1,4 @@
-package scrape
+package distro
 
 const (
 	X86_64Arch Arch = "x86_64"

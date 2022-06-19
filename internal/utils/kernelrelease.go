@@ -3,13 +3,13 @@ package utils
 import (
 	"strings"
 
-	"github.com/maxgio92/krawler/pkg/scrape"
 	kr "github.com/falcosecurity/driverkit/pkg/kernelrelease"
+	"github.com/maxgio92/krawler/pkg/distro"
 )
 
 func KernelReleaseFromPackageName(packageName string, packagePrefix string) string {
 	ss := strings.Split(packageName, ".")
-	ss = strings.Split(strings.Split(packageName, "." + ss[len(ss)-1])[0], packagePrefix + "-")
+	ss = strings.Split(strings.Split(packageName, "."+ss[len(ss)-1])[0], packagePrefix+"-")
 
 	return ss[1]
 }
@@ -29,7 +29,7 @@ func UniqueKernelReleases(kernelReleases []kr.KernelRelease) []kr.KernelRelease 
 	return krs
 }
 
-func GetKernelReleaseListFromPackageList(packages []scrape.Package, packagePrefix string) ([]kr.KernelRelease, error) {
+func GetKernelReleaseListFromPackageList(packages []distro.Package, packagePrefix string) ([]kr.KernelRelease, error) {
 	kernelReleases := []kr.KernelRelease{}
 
 	for _, v := range packages {

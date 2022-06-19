@@ -1,4 +1,4 @@
-package scrape
+package distro
 
 type Config struct {
 

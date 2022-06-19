@@ -1,4 +1,4 @@
-package scrape
+package distro
 
 import (
 	"fmt"
