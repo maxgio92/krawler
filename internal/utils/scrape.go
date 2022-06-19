@@ -10,7 +10,7 @@ import (
 //func GetScrapeConfigFromViper(distro string, viper *v.Viper) (scrape.Config, error) {
 func GetScrapeConfigFromViper(distro string, viper *v.Viper) (scrape.Config, error) {
 	if distro == "" {
-		return scrape.Config{}, fmt.Errorf("Configuration is not valid.")
+		return scrape.Config{}, fmt.Errorf("configuration is not valid")
 	}
 
 	var config scrape.Config
