@@ -2,14 +2,6 @@ package scrape
 
 var DistroByType = map[DistroType]Distro{}
 
-type Distro interface {
-	GetPackages(Config, Filter) ([]Package, error)
-}
-
-type DistroVersion string
-
-type DistroType string
-
 const (
 	CentosType = "centos"
 )
