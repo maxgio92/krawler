@@ -233,10 +233,12 @@ func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch) ([]string
 				inventory := map[string][]interface{}{
 					"Arch": a,
 				}
+
 				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), inventory)
 				if err != nil {
 					panic(err)
 				}
+
 				uris = append(uris, result...)
 				fmt.Println(uris)
 			}
