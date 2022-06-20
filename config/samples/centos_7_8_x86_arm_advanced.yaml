@@ -1,0 +1,30 @@
+distros:
+  centos:
+
+    new_repos:
+    - "BaseOS"
+    - "AppStream"
+
+    old_repos:
+    - "os"
+    - "updates"
+
+    packages_folder:
+    - "Packages"
+
+    versions:
+    - "7"
+
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: https://archive.kernel.org/centos-vault/
+      repositories:
+      - name: old
+        packagesUriTemplate: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+    - url: https://mirrors.edge.kernel.org/centos/
+      repositories:
+      - name: new
+        packagesUriTemplate: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"

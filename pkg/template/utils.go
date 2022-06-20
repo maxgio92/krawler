@@ -19,7 +19,7 @@ func generateTemplateRegex(variables []string) (string, error) {
 	return templateRegex, nil
 }
 
-func getSupportedVariables(templateString string) ([]string, error) {
+func GetSupportedVariables(templateString string) ([]string, error) {
 	return getVariablesFromTemplateString(templateString)
 }
 

@@ -21,19 +21,33 @@ type Centos struct{}
 
 // For each mirror, for each distro version, for each repository,
 // for each architecture, scrape.
-func (c *Centos) GetPackages(userConfig Config, filter Filter) ([]Package, error) {
+func (c *Centos) GetPackages(userConfig Config, filter Filter, allSettings map[string]interface{}) ([]Package, error) {
 
 	var packages []Package
 
 	// Merge custom config with default config.
-	config, _ := c.buildConfig(CentosDefaultConfig, userConfig)
+	config, err := c.buildConfig(CentosDefaultConfig, userConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	// Get distro versions for which to search packages.
-	versions, _ := c.buildVersions(config.Mirrors, config.Versions)
-	versionsUrls, _ := c.buildVersionsUrls(config.Mirrors, versions)
+	versions, err := c.buildVersions(config.Mirrors, config.Versions)
+	if err != nil {
+		return nil, err
+	}
+
+	versionsUrls, err := c.buildVersionsUrls(config.Mirrors, versions)
+	if err != nil {
+		return nil, err
+	}
 
 	// Apply repository packages URI for each provided architecture.
-	repositoriesUris, _ := c.buildRepositoriesUris(config.Mirrors, config.Archs)
+	//repositoriesUris, _ := c.buildRepositoriesUris(config.Mirrors, config.Archs, viper)
+	repositoriesUris, err := c.buildRepositoriesUris(config.Mirrors, config.Archs, allSettings)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, root := range versionsUrls {
 		for _, repositoryUri := range repositoriesUris {
@@ -219,20 +233,40 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]DistroVersion, e
 }
 
 // Returns the list of repositories URLs, for each specified architecture.
-func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch) ([]string, error) {
+func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch, allSettings map[string]interface{}) ([]string, error) {
 	uris := []string{}
 
 	for _, mirror := range mirrors {
 		for _, repository := range mirror.Repositories {
-			var a []interface{}
-			for _, arch := range archs {
-				a = append(a, interface{}(arch))
+
+			keys, err := template.GetSupportedVariables(string(repository.PackagesURITemplate))
+			if err != nil {
+				return nil, err
+			}
+
+			inventory := map[string][]interface{}{}
+			for _, key := range keys {
+				centosSettingsI := allSettings[string(CentosType)]
+
+				centosSettings, ok := centosSettingsI.(map[string]interface{})
+				if !ok {
+					return nil, fmt.Errorf("CentOS configuration does not contain a valid structure")
+				}
+
+				centosSettingI := centosSettings[key]
+				centosSetting, ok := centosSettingI.([]interface{})
+				if !ok {
+					return nil, fmt.Errorf("variable '%s' in CentOS repository configuration is not a valid slice", key)
+				}
+
+				for _, v := range centosSetting {
+					if v != "" {
+						inventory[key] = append(inventory[key], v)
+					}
+				}
 			}
 
 			if repository.PackagesURITemplate != "" {
-				inventory := map[string][]interface{}{
-					"Arch": a,
-				}
 
 				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), inventory)
 				if err != nil {

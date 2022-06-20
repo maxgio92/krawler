@@ -4,5 +4,5 @@ const (
 	cursor            = `.`
 	openDelimiter     = `{{`
 	closeDelimiter    = `}}`
-	variableNameRegex = `[a-zA-Z]+`
+	variableNameRegex = `[a-zA-Z_]+`
 )

@@ -24,7 +24,7 @@ import (
 // The result is multiple templates from a single template string and multiple
 // arbitrary variable values.
 func MultiplexAndExecute(templateString string, inventory map[string][]interface{}) ([]string, error) {
-	supportedVariables, err := getSupportedVariables(templateString)
+	supportedVariables, err := GetSupportedVariables(templateString)
 	if err != nil {
 		return nil, err
 	}

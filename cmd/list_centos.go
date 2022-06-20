@@ -65,14 +65,14 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 	distroConfig := viper.Sub(ConfigDistrosRoot)
 	if distroConfig != nil {
 		var err error
-		config, err = utils.GetScrapeConfigFromViper(string(d.CentosType), viper.Sub(ConfigDistrosRoot))
+		config, err = utils.GetScrapeConfigFromViper(string(d.CentosType), distroConfig)
 		if err != nil {
 			return []kernelrelease.KernelRelease{}, err
 		}
 	}
 
 	// Scrape mirrors for packeges by filter.
-	packages, err := distro.GetPackages(config, filter)
+	packages, err := distro.GetPackages(config, filter, distroConfig.AllSettings())
 	if err != nil {
 		return []kernelrelease.KernelRelease{}, err
 	}

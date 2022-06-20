@@ -15,7 +15,7 @@ type Config struct {
 type Arch string
 
 type Distro interface {
-	GetPackages(Config, Filter) ([]Package, error)
+	GetPackages(Config, Filter, map[string]interface{}) ([]Package, error)
 }
 
 type DistroVersion string

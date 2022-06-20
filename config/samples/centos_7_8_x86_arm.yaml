@@ -12,12 +12,12 @@ distros:
     - url: https://archive.kernel.org/centos-vault/
       repositories:
       - name: base
-        packagesUriTemplate: "/os/{{ .Arch }}/Packages/"
+        packagesUriTemplate: "/os/{{ .archs }}/Packages/"
       - name: updates
-        packagesUriTemplate: "/updates/{{ .Arch }}/Packages/"
+        packagesUriTemplate: "/updates/{{ .archs }}/Packages/"
     - url: https://mirrors.edge.kernel.org/centos/
       repositories:
       - name: BaseOS
-        packagesUriTemplate: "/BaseOS/{{ .Arch }}/os/Packages/"
+        packagesUriTemplate: "/BaseOS/{{ .archs }}/os/Packages/"
       - name: AppStream
-        packagesUriTemplate: "/AppStream/{{ .Arch }}/os/Packages/"
+        packagesUriTemplate: "/AppStream/{{ .archs }}/os/Packages/"
