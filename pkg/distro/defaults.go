@@ -15,19 +15,19 @@ var (
 	// Default configuration for scrape Centos (RPM) packages
 	CentosDefaultConfig Config = Config{
 		Mirrors: []Mirror{
-			Mirror{
+			{
 				Url: "https://mirrors.edge.kernel.org/centos/",
 				Repositories: []Repository{
-					Repository{Name: "BaseOS", PackagesURITemplate: "/BaseOS/{{ Arch }}/os/Packages/"},
-					Repository{Name: "AppStream", PackagesURITemplate: "/AppStream/{{ Arch }}/os/Packages/"},
-					Repository{Name: "Devel", PackagesURITemplate: "/Devel/{{ Arch }}/os/Packages/"},
+					{Name: "BaseOS", PackagesURITemplate: "/BaseOS/{{ Arch }}/os/Packages/"},
+					{Name: "AppStream", PackagesURITemplate: "/AppStream/{{ Arch }}/os/Packages/"},
+					{Name: "Devel", PackagesURITemplate: "/Devel/{{ Arch }}/os/Packages/"},
 				},
 			},
-			Mirror{
+			{
 				Url: "https://archive.kernel.org/centos-vault/",
 				Repositories: []Repository{
-					Repository{Name: "base", PackagesURITemplate: "/os/{{ Arch }}/Packages/"},
-					Repository{Name: "updates", PackagesURITemplate: "/updates/{{ Arch }}/Packages/"},
+					{Name: "base", PackagesURITemplate: "/os/{{ Arch }}/Packages/"},
+					{Name: "updates", PackagesURITemplate: "/updates/{{ Arch }}/Packages/"},
 				},
 			},
 		},
