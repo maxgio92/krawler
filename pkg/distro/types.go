@@ -29,6 +29,10 @@ type Mirror struct {
 	Url string
 
 	// The mirrored repositories
+	//
+	// TODO: actually we scrape all repositories for all mirrors,
+	// independently.
+	// Evaluate to decouple Repository from Mirror.
 	Repositories []Repository
 }
 
