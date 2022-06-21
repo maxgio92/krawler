@@ -239,38 +239,16 @@ func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch, allSettin
 	for _, mirror := range mirrors {
 		for _, repository := range mirror.Repositories {
 
-			keys, err := template.GetSupportedVariables(string(repository.PackagesURITemplate))
-			if err != nil {
-				return nil, err
-			}
-
-			inventory := map[string][]interface{}{}
-			for _, key := range keys {
-				centosSettingsI := allSettings[string(CentosType)]
-
-				centosSettings, ok := centosSettingsI.(map[string]interface{})
-				if !ok {
-					return nil, fmt.Errorf("CentOS configuration does not contain a valid structure")
-				}
-
-				centosSettingI := centosSettings[key]
-				centosSetting, ok := centosSettingI.([]interface{})
-				if !ok {
-					return nil, fmt.Errorf("variable '%s' in CentOS repository configuration is not a valid slice", key)
-				}
-
-				for _, v := range centosSetting {
-					if v != "" {
-						inventory[key] = append(inventory[key], v)
-					}
-				}
+			centosSettingsI := allSettings[string(CentosType)]
+			centosSettings, ok := centosSettingsI.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("CentOS configuration does not contain a valid structure")
 			}
 
 			if repository.PackagesURITemplate != "" {
-
-				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), inventory)
+				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), centosSettings)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 
 				uris = append(uris, result...)

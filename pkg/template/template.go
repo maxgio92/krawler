@@ -23,10 +23,30 @@ import (
 //
 // The result is multiple templates from a single template string and multiple
 // arbitrary variable values.
-func MultiplexAndExecute(templateString string, inventory map[string][]interface{}) ([]string, error) {
+//func MultiplexAndExecute(templateString string, inventory map[string][]interface{}) ([]string, error) {
+func MultiplexAndExecute(templateString string, input map[string]interface{}) ([]string, error) {
 	supportedVariables, err := GetSupportedVariables(templateString)
 	if err != nil {
 		return nil, err
+	}
+
+	// TODO: move into utility function or package.
+	inventory := make(map[string][]interface{})
+	for _, key := range supportedVariables {
+		i := input[key]
+		is, ok := i.([]interface{})
+		if !ok {
+			return nil, fmt.Errorf("variable '%s' in template is not a valid slice", key)
+		}
+
+		for _, v := range is {
+			if _, ok := v.(string); !ok {
+				return nil, fmt.Errorf("variable '%s' in template is not a valid slice of strings", key)
+			}
+			if v != "" {
+				inventory[key] = append(inventory[key], v)
+			}
+		}
 	}
 
 	templateRegex, err := generateTemplateRegex(supportedVariables)
