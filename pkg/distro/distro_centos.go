@@ -233,20 +233,18 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]DistroVersion, e
 }
 
 // Returns the list of repositories URLs, for each specified architecture.
-func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch, allSettings map[string]interface{}) ([]string, error) {
+//
+// TODO: the return of this method should compose the actual Scrape Config,
+// which would consists of root URLs (of which below the URI segments)
+// to scrape for pre-defined filters, i.e. package name.
+func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch, settings map[string]interface{}) ([]string, error) {
 	uris := []string{}
 
 	for _, mirror := range mirrors {
 		for _, repository := range mirror.Repositories {
 
-			centosSettingsI := allSettings[string(CentosType)]
-			centosSettings, ok := centosSettingsI.(map[string]interface{})
-			if !ok {
-				return nil, fmt.Errorf("CentOS configuration does not contain a valid structure")
-			}
-
 			if repository.PackagesURITemplate != "" {
-				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), centosSettings)
+				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), settings)
 				if err != nil {
 					return nil, err
 				}

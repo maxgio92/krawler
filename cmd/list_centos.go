@@ -22,7 +22,7 @@ import (
 
 	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	v "github.com/spf13/viper"
 )
 
 // centosCmd represents the centos command.
@@ -57,22 +57,23 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 	}
 
 	// The filter for filter packages.
-	packagePrefix := "kernel-devel"
+	packagePrefix := KernelHeadersPackageName
 	filter := d.Filter(packagePrefix)
 
-	// The scraping configuration.
+	// The distro configuration.
 	var config d.Config
-	distroConfig := viper.Sub(ConfigDistrosRoot)
-	if distroConfig != nil {
+	viper := v.Sub(ConfigDistrosRoot).Sub(string(d.CentosType))
+	if viper != nil {
 		var err error
-		config, err = utils.GetScrapeConfigFromViper(string(d.CentosType), distroConfig)
+
+		err = viper.Unmarshal(&config)
 		if err != nil {
 			return []kernelrelease.KernelRelease{}, err
 		}
 	}
 
 	// Scrape mirrors for packeges by filter.
-	packages, err := distro.GetPackages(config, filter, distroConfig.AllSettings())
+	packages, err := distro.GetPackages(config, filter, viper.AllSettings())
 	if err != nil {
 		return []kernelrelease.KernelRelease{}, err
 	}
