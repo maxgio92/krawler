@@ -12,10 +12,6 @@ distros:
     packages_folder:
     - "Packages"
 
-    versions:
-    - "7"
-    - "8"
-
     archs:
     - "x86_64"
     - "aarch64"

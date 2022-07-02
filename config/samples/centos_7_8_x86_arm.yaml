@@ -3,6 +3,7 @@ distros:
 
     versions:
     - "7"
+    - "8"
 
     archs:
     - "x86_64"
