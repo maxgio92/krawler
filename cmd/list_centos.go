@@ -51,7 +51,7 @@ func init() {
 func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 
 	// A representation of a Linux distribution package scraper.
-	distro, err := d.Factory(d.CentosType)
+	distro, err := d.NewDistro(d.CentosType)
 	if err != nil {
 		return nil, err
 	}
@@ -62,18 +62,24 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 
 	// The distro configuration.
 	var config d.Config
-	viper := v.Sub(ConfigDistrosRoot).Sub(string(d.CentosType))
-	if viper != nil {
-		var err error
+	var allsettings map[string]interface{}
 
-		err = viper.Unmarshal(&config)
-		if err != nil {
-			return []kernelrelease.KernelRelease{}, err
+	distros := v.Sub(ConfigDistrosRoot)
+	if distros != nil {
+
+		centos := distros.Sub(string(d.CentosType))
+		if centos != nil {
+
+			err := centos.Unmarshal(&config)
+			if err != nil {
+				return []kernelrelease.KernelRelease{}, err
+			}
+			allsettings = centos.AllSettings()
 		}
 	}
 
 	// Scrape mirrors for packeges by filter.
-	packages, err := distro.GetPackages(config, filter, viper.AllSettings())
+	packages, err := distro.GetPackages(config, filter, allsettings)
 	if err != nil {
 		return []kernelrelease.KernelRelease{}, err
 	}
