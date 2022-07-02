@@ -43,7 +43,6 @@ func (c *Centos) GetPackages(userConfig Config, filter Filter, allSettings map[s
 	}
 
 	// Apply repository packages URI for each provided architecture.
-	//repositoriesUris, _ := c.buildRepositoriesUris(config.Mirrors, config.Archs, viper)
 	repositoriesUris, err := c.buildRepositoriesUris(config.Mirrors, config.Archs, allSettings)
 	if err != nil {
 		return nil, err

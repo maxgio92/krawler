@@ -2,11 +2,7 @@ package distro
 
 var DistroByType = map[DistroType]Distro{}
 
-const (
-	CentosType = "centos"
-)
-
-func Factory(distroType DistroType) (Distro, error) {
+func NewDistro(distroType DistroType) (Distro, error) {
 	distro, ok := DistroByType[distroType]
 
 	if !ok {
