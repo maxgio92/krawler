@@ -249,7 +249,6 @@ func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch, settings 
 				}
 
 				uris = append(uris, result...)
-				fmt.Println(uris)
 			}
 		}
 	}
