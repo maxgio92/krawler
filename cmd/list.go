@@ -25,8 +25,9 @@ var (
 
 	// listCmd represents the list command.
 	listCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List available kernel releases with distributed headers, by Linux distribution",
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List available kernel releases with distributed headers, by Linux distribution",
 	}
 )
 
