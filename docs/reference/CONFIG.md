@@ -17,7 +17,7 @@ distros:
     - url: "<Mirror root URL>"
       repositories:
         name: "<Package repository name label>"
-        packagesUriFormat: "<Packages URI Go string-format>"
+        packagesUriTemplate: "<Packages URI Go string-format>"
 ```
 
 ### Distros
@@ -52,12 +52,50 @@ For example `x86_64`, `aarch86`, `ppc64le`.
 
 > Note: You need to know how the repository tree is structured before configuring this.
 
-`repository` is a map of `name` and `packagesUriFormat`.
+`repository` is a map of `name` and `packagesUriTemplate`.
 
 `name` is a string label for the name of the repository (e.e. [*"AppStream"*](http://mirrors.edge.kernel.org/centos/8-stream/AppStream/) for Centos). Please note that this is a label, the value does not have side effects in the crawling flow.
 
-`packagesUriFormat` is a string that contains a Go string-format of the URI path to the packages folder, starting from the root URL of the mirror (as defined in `mirror.url`).
-The format should containe a Go string flag to output the `arch` in the URI tree.
+`packagesUriTemplate` is a string that contains the URI path to the packages folder, starting from the root URL of the mirror (as defined in `mirror.url`).
+
+#### Templating
+
+`packagesUriTemplate` field supports templates in the Go template format for annotations that refer to elements of the related distro's data structure (e.g. `distros.centos`).
+The supported element types are:
+- array of strings
+
+For example, it's possible to compile the packages URI from specified architectures, repository names, URI segments, and so on:
+
+```yaml
+distros:
+  centos:
+
+    new_repos:
+    - "BaseOS"
+    - "AppStream"
+
+    old_repos:
+    - "os"
+    - "updates"
+
+    packages_folder:
+    - "Packages"
+    - "pkgs"
+
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: https://archive.kernel.org/centos-vault/
+      repositories:
+      - name: old
+        packagesUriTemplate: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+    - url: https://mirrors.edge.kernel.org/centos/
+      repositories:
+      - name: new
+        packagesUriTemplate: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+```
 
 > Note: the URI format should start with a "/".
 
@@ -70,11 +108,10 @@ distros:
   centos:
     archs: ['aarch64', 'x86_64']
     versions: ['8-stream']
+    packages_folders: ['Packages']
     mirrors:
     - url: https://mirrors.kernel.org
       repositories:
       - name: AppStream
-        packageUriFormat: "/8-stream/AppStream/%s/os/Packages/"
+        packageUriTemplate: "/AppStream/{{ .archs }}/os/{{ .packages_folders }}/"
 ```
-
-The string flag (`%s`) will be replaced with each of the configured architectures, as for `distros.centos.archs` value.
