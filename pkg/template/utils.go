@@ -19,6 +19,7 @@ func generateTemplateRegex(variables []string) (string, error) {
 	return templateRegex, nil
 }
 
+// Return the variables that the template string expects.
 func GetSupportedVariables(templateString string) ([]string, error) {
 	return getVariablesFromTemplateString(templateString)
 }
