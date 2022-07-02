@@ -30,6 +30,13 @@ func MultiplexAndExecute(templateString string, input map[string]interface{}) ([
 		return nil, err
 	}
 
+	// If the template string does not contain variables
+	// return the template string directly.
+	if len(supportedVariables) == 0 {
+		return []string{templateString}, nil
+	}
+
+	// Populate the inventory.
 	// TODO: move into utility function or package.
 	inventory := make(map[string][]interface{})
 	for _, key := range supportedVariables {

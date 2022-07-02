@@ -28,9 +28,10 @@ func getVariablesFromTemplateString(templateString string) ([]string, error) {
 	rp := regexp.MustCompile(rs)
 
 	v := []string{}
+
 	ss := rp.FindAllStringSubmatch(templateString, -1)
 	if len(ss) < 1 {
-		return nil, fmt.Errorf("cannot find supported variables")
+		return []string{}, nil
 	}
 
 	for _, s := range ss {
