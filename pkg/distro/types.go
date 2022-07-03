@@ -1,21 +1,29 @@
 package distro
 
 type Config struct {
-	// A list of Mirrors to scrape
+	// A list of Mirrors to scrape.
 	Mirrors []Mirror
 
-	// A list of architecture for to which scrape packages
+	// The mirrored repositories.
+	Repositories []Repository
+
+	// A list of architecture for to which scrape packages.
 	Archs []Arch
 
-	// A list of Distro versions
+	// A list of Distro versions.
 	Versions []Version
 }
 
 type Arch string
 
 type Distro interface {
-	Configure(Config) error
-	GetPackages(Filter, map[string]interface{}) ([]Package, error)
+	// Configure expects distro.Config and arbitrary variables
+	// for config fields that support templating.
+	Configure(Config, map[string]interface{}) error
+
+	// GetPackages should return a slice of Package based on
+	// the provided Filter-type filter.
+	GetPackages(Filter) ([]Package, error)
 }
 
 type Version string
@@ -26,13 +34,6 @@ type Mirror struct {
 	// The base URL of the package mirror
 	// (e.g. https://mirrors.kernel.org/<distribution>)
 	URL string
-
-	// The mirrored repositories
-	//
-	// TODO: actually we scrape all repositories for all mirrors,
-	// independently.
-	// Evaluate to decouple Repository from Mirror.
-	Repositories []Repository
 }
 
 type Repository struct {
