@@ -11,19 +11,19 @@ distros:
 
       # Distribution version dependent (i.e. CentOS < 8)
       - name: base
-        packagesUriFormat: "/os/%s/Packages/" # Compiles with the specified architectures (i.e. []string{"/BaseOS/x86_64/os/Packages/"})
+        packagesUriTemplate: "/os/{{ .archs }}/Packages/"
 
       - name: updates
-        packagesUriFormat: "/updates/%s/Packages/"
+        packagesUriTemplate: "/updates/{{ .archs }}/Packages/"
 
     - url: https://mirrors.edge.kernel.org/centos/
       repositories:
 
       # Distribution version dependent (i.e. CentOS >= 8)
       - name: BaseOS
-        packagesUriFormat: "/BaseOS/%s/os/Packages/"
+        packagesUriTemplate: "/BaseOS/{{ .archs }}/os/Packages/"
 
       # This is a completely new repository for CentOS >= 8
       # (https://docs.centos.org/en-US/8-docs/managing-userspace-components/assembly_using-appstream/#packaging-methods-in-rhel-8_using-appstream)
       - name: AppStream
-        packagesUriFormat: "/AppStream/%s/os/Packages/"
+        packagesUriTemplate: "/AppStream/{{ .archs }}/os/Packages/"

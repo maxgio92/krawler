@@ -17,11 +17,12 @@ package cmd
 
 import (
 	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
+	"github.com/spf13/cobra"
+	v "github.com/spf13/viper"
+
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
-	"github.com/maxgio92/krawler/pkg/scrape"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	d "github.com/maxgio92/krawler/pkg/distro"
 )
 
 // centosCmd represents the centos command.
@@ -36,6 +37,7 @@ var centosCmd = &cobra.Command{
 			Output, err = format.Encode(Output, kernelReleases, format.Type(outputFormat))
 			cobra.CheckErr(err)
 		} else {
+			//nolint:errcheck
 			Output.WriteString("No releases found.\n")
 		}
 
@@ -48,30 +50,37 @@ func init() {
 }
 
 func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
-
 	// A representation of a Linux distribution package scraper.
-	distro, err := scrape.Factory(scrape.CentosType)
+	distro, err := d.NewDistro(d.CentosType)
 	if err != nil {
 		return nil, err
 	}
 
 	// The filter for filter packages.
-	packagePrefix := "kernel-devel"
-	filter := scrape.Filter(packagePrefix)
+	packagePrefix := KernelHeadersPackageName
+	filter := d.Filter(packagePrefix)
 
-	// The scraping configuration.
-	var config scrape.Config
-	distroConfig := viper.Sub(ConfigDistrosRoot)
-	if distroConfig != nil {
-		var err error
-		config, err = utils.GetScrapeConfigFromViper(string(scrape.CentosType), viper.Sub(ConfigDistrosRoot))
-		if err != nil {
-			return []kernelrelease.KernelRelease{}, err
+	// The distro configuration.
+	var config d.Config
+
+	// The distro all settings from Viper
+	var allsettings map[string]interface{}
+
+	distros := v.Sub(ConfigDistrosRoot)
+	if distros != nil {
+		centos := distros.Sub(string(d.CentosType))
+		if centos != nil {
+			err = centos.Unmarshal(&config)
+			if err != nil {
+				return []kernelrelease.KernelRelease{}, err
+			}
+
+			allsettings = centos.AllSettings()
 		}
 	}
 
 	// Scrape mirrors for packeges by filter.
-	packages, err := distro.GetPackages(config, filter)
+	packages, err := distro.GetPackages(config, filter, allsettings)
 	if err != nil {
 		return []kernelrelease.KernelRelease{}, err
 	}

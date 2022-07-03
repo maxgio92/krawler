@@ -1,4 +1,4 @@
-package scrape
+package distro
 
 import (
 	"net/url"
@@ -6,7 +6,7 @@ import (
 
 func repositorySliceContains(s []Repository, e Repository) bool {
 	for _, v := range s {
-		if v.PackagesURIFormat == e.PackagesURIFormat {
+		if v.PackagesURITemplate == e.PackagesURITemplate {
 			return true
 		}
 	}

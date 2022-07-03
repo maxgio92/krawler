@@ -1,4 +1,4 @@
-package scrape
+package distro
 
 import (
 	"fmt"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/gocolly/colly"
 	d "github.com/gocolly/colly/debug"
+
+	"github.com/maxgio92/krawler/pkg/template"
 )
 
 func init() {
@@ -19,25 +21,38 @@ type Centos struct{}
 
 // For each mirror, for each distro version, for each repository,
 // for each architecture, scrape.
-func (c *Centos) GetPackages(userConfig Config, filter Filter) ([]Package, error) {
-
+func (c *Centos) GetPackages(userConfig Config, filter Filter, vars map[string]interface{}) ([]Package, error) {
 	var packages []Package
 
 	// Merge custom config with default config.
-	config, _ := c.buildConfig(CentosDefaultConfig, userConfig)
+	config, err := c.buildConfig(CentosDefaultConfig, userConfig)
+	if err != nil {
+		return nil, err
+	}
 
 	// Get distro versions for which to search packages.
-	versions, _ := c.buildVersions(config.Mirrors, config.Versions)
-	versionsUrls, _ := c.buildVersionsUrls(config.Mirrors, versions)
+	versions, err := c.buildVersions(config.Mirrors, config.Versions)
+	if err != nil {
+		return nil, err
+	}
+
+	versionsUrls, err := c.buildVersionsUrls(config.Mirrors, versions)
+	if err != nil {
+		return nil, err
+	}
 
 	// Apply repository packages URI for each provided architecture.
-	repositoriesUris, _ := c.buildRepositoriesUris(config.Mirrors, config.Archs)
+	repositoriesUris, err := c.buildRepositoriesUris(config.Mirrors, vars)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, root := range versionsUrls {
+		//nolint:revive,stylecheck
 		for _, repositoryUri := range repositoriesUris {
-
 			// Get repository URL from URI.
-			repositoryUrl, err := url.Parse(string(root.String() + repositoryUri))
+			//nolint:revive,stylecheck
+			repositoryUrl, err := url.Parse(root.String() + repositoryUri)
 			if err != nil {
 				return nil, err
 			}
@@ -67,26 +82,28 @@ func (c *Centos) buildConfig(def Config, user Config) (Config, error) {
 }
 
 // Returns the final configuration by merging the default with the user provided.
+//nolint:unparam
 func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 	if len(config.Archs) < 1 {
 		config.Archs = def.Archs
 	} else {
-
 		for _, arch := range config.Archs {
 			if arch == "" {
 				config.Archs = def.Archs
+
 				break
 			}
 		}
 	}
 
+	//nolint:nestif
 	if len(config.Mirrors) < 1 {
 		config.Mirrors = def.Mirrors
 	} else {
-
 		for i, mirror := range config.Mirrors {
 			if mirror.Url == "" {
 				config.Mirrors = def.Mirrors
+
 				break
 			}
 
@@ -94,8 +111,9 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 				config.Mirrors[i].Repositories = c.getDefaultRepositories()
 			} else {
 				for _, repository := range mirror.Repositories {
-					if repository.PackagesURIFormat == "" {
+					if repository.PackagesURITemplate == "" {
 						config.Mirrors[i].Repositories = c.getDefaultRepositories()
+
 						break
 					}
 				}
@@ -107,6 +125,7 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 }
 
 // Returns the final configuration by overriding the default.
+//nolint:unparam,unused
 func (c *Centos) overrideConfig(def Config, override Config) (Config, error) {
 	if len(override.Mirrors) > 0 {
 		if override.Mirrors[0].Url != "" {
@@ -119,12 +138,12 @@ func (c *Centos) overrideConfig(def Config, override Config) (Config, error) {
 
 // Returns a list of distro versions, considering the user-provided configuration,
 // and if not, the ones available on configured mirrors.
-func (c *Centos) buildVersions(mirrors []Mirror, staticVersions []DistroVersion) ([]DistroVersion, error) {
+func (c *Centos) buildVersions(mirrors []Mirror, staticVersions []Version) ([]Version, error) {
 	if staticVersions != nil {
 		return staticVersions, nil
 	}
 
-	var dynamicVersions []DistroVersion
+	var dynamicVersions []Version
 
 	dynamicVersions, err := c.crawlVersions(mirrors, debugScrape)
 	if err != nil {
@@ -135,13 +154,12 @@ func (c *Centos) buildVersions(mirrors []Mirror, staticVersions []DistroVersion)
 }
 
 // Returns the list of version-specific mirror URLs.
-func (c *Centos) buildVersionsUrls(mirrors []Mirror, versions []DistroVersion) ([]*url.URL, error) {
+func (c *Centos) buildVersionsUrls(mirrors []Mirror, versions []Version) ([]*url.URL, error) {
 	if (len(versions) > 0) && (len(mirrors) > 0) {
 		var versionRoots []*url.URL
 
 		for _, mirror := range mirrors {
 			for _, version := range versions {
-
 				versionRoot, err := url.Parse(mirror.Url + string(version))
 				if err != nil {
 					return nil, err
@@ -154,18 +172,17 @@ func (c *Centos) buildVersionsUrls(mirrors []Mirror, versions []DistroVersion) (
 		return versionRoots, nil
 	}
 
-	return nil, fmt.Errorf("no versions specified")
+	return nil, errNoDistroVersionSpecified
 }
 
 // Returns the list of the current available distro versions, by scraping
 // the specified mirrors, dynamically.
-func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]DistroVersion, error) {
-
-	var versions []DistroVersion
+func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]Version, error) {
+	var versions []Version
 
 	versionPattern := regexp.MustCompile(CentosMirrorsDistroVersionRegex)
 
-	var roots []string
+	roots := make([]string, 0, len(mirrors))
 	for _, mirror := range mirrors {
 		roots = append(roots, mirror.Url)
 	}
@@ -185,10 +202,10 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]DistroVersion, e
 		coOptions = append(coOptions, colly.Debugger(&d.LogDebugger{}))
 	}
 
-	// Create the collector
+	// Create the collector.
 	co := colly.NewCollector(coOptions...)
 
-	// Visit each distro version-specific folder
+	// Visit each distro version-specific folder.
 	co.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		distroVersionFolderMatch := versionPattern.FindStringSubmatch(e.Attr("href"))
 
@@ -198,14 +215,14 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]DistroVersion, e
 		}
 	})
 
-	// Collect all the version folder names
+	// Collect all the version folder names.
 	co.OnRequest(func(r *colly.Request) {
 		if !stringSliceContains(roots, r.URL.String()) {
-			versions = append(versions, DistroVersion(path.Base(r.URL.Path)))
+			versions = append(versions, Version(path.Base(r.URL.Path)))
 		}
 	})
 
-	// Visit each mirror root folder
+	// Visit each mirror root folder.
 	for _, root := range roots {
 		err := co.Visit(root)
 		if err != nil {
@@ -217,18 +234,27 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]DistroVersion, e
 }
 
 // Returns the list of repositories URLs, for each specified architecture.
-func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch) ([]string, error) {
+//
+// TODO: the return of this method should compose the actual Scrape Config,
+// which would consists of root URLs (of which below the URI segments)
+// to scrape for pre-defined filters, i.e. package name.
+func (c *Centos) buildRepositoriesUris(mirrors []Mirror, vars map[string]interface{}) ([]string, error) {
 	uris := []string{}
 
 	for _, mirror := range mirrors {
 		for _, repository := range mirror.Repositories {
-			for _, arch := range archs {
-				uris = append(uris, fmt.Sprintf(string(repository.PackagesURIFormat), string(arch)))
+			if repository.PackagesURITemplate != "" {
+				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), vars)
+				if err != nil {
+					return nil, err
+				}
+
+				uris = append(uris, result...)
 			}
 		}
 	}
 
-	// Scrape for all possible repositories
+	// Scrape for all possible repositories.
 	if len(uris) < 1 {
 		uris = append(uris, "/")
 	}
@@ -236,7 +262,7 @@ func (c *Centos) buildRepositoriesUris(mirrors []Mirror, archs []Arch) ([]string
 	return uris, nil
 }
 
-// Returns the list of default repositories from the default config
+// Returns the list of default repositories from the default config.
 func (c *Centos) getDefaultRepositories() []Repository {
 	var repositories []Repository
 
@@ -253,6 +279,8 @@ func (c *Centos) getDefaultRepositories() []Repository {
 
 // Returns a list of packages found on each page URL,
 // filtered by filter.
+// TODO: abstract this from distribution.
+//nolint:funlen,revive,stylecheck
 func (c *Centos) crawlPackages(seedUrl *url.URL, filter Filter, debug bool) ([]Package, error) {
 	var packages []Package
 
@@ -318,6 +346,7 @@ func (c *Centos) crawlPackages(seedUrl *url.URL, filter Filter, debug bool) ([]P
 		}
 	})
 
+	//nolint:errcheck
 	co.Visit(seedUrl.String())
 
 	return packages, nil

@@ -10,19 +10,26 @@ linters-settings:
     sections:
       - standard # Captures all standard packages if they do not match another section.
       - default # Contains all imports that could not be matched to another section type.
-      - prefix(github.com\/maxgio92\/krawler) # Groups all imports with the specified Prefix.
+      - prefix(github.com/maxgio92/krawler) # Groups all imports with the specified Prefix.
 
 linters:
   enable-all: true
   disable:
     - interfacer
+    - godox
     - golint
     - scopelint
     - maligned
     - gochecknoglobals
     - gochecknoinits
     - exhaustivestruct
+    - exhaustruct
     - ireturn
     - lll
     - wrapcheck
     - varnamelen
+
+run:
+  skip-dirs:
+    - pkg/matrix
+    - pkg/template
