@@ -1,4 +1,4 @@
-bins := go cobra golangci-lint
+bins := go cobra golangci-lint gofumpt
 commands := version list
 
 define declare_binpaths
@@ -16,6 +16,10 @@ lint: golangci-lint
 .PHONY: golangci-lint
 golangci-lint:
 	@$(go) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+
+.PHONY: gofumpt
+gofumpt:
+	@$(go) install mvdan.cc/gofumpt@v0.3.1
 
 $(foreach bin,$(bins),\
 	$(eval $(call declare_binpaths,$(bin)))\

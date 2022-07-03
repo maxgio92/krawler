@@ -1,8 +1,8 @@
 package distro
 
-var DistroByType = map[DistroType]Distro{}
+var DistroByType = map[Type]Distro{}
 
-func NewDistro(distroType DistroType) (Distro, error) {
+func NewDistro(distroType Type) (Distro, error) {
 	distro, ok := DistroByType[distroType]
 
 	if !ok {

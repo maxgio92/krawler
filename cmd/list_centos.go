@@ -16,13 +16,13 @@ limitations under the License.
 package cmd
 
 import (
-	"github.com/maxgio92/krawler/internal/format"
-	"github.com/maxgio92/krawler/internal/utils"
-	d "github.com/maxgio92/krawler/pkg/distro"
-
 	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/spf13/cobra"
 	v "github.com/spf13/viper"
+
+	"github.com/maxgio92/krawler/internal/format"
+	"github.com/maxgio92/krawler/internal/utils"
+	d "github.com/maxgio92/krawler/pkg/distro"
 )
 
 // centosCmd represents the centos command.
@@ -37,6 +37,7 @@ var centosCmd = &cobra.Command{
 			Output, err = format.Encode(Output, kernelReleases, format.Type(outputFormat))
 			cobra.CheckErr(err)
 		} else {
+			//nolint:errcheck
 			Output.WriteString("No releases found.\n")
 		}
 
@@ -49,7 +50,6 @@ func init() {
 }
 
 func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
-
 	// A representation of a Linux distribution package scraper.
 	distro, err := d.NewDistro(d.CentosType)
 	if err != nil {
@@ -62,18 +62,19 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 
 	// The distro configuration.
 	var config d.Config
+
+	// The distro all settings from Viper
 	var allsettings map[string]interface{}
 
 	distros := v.Sub(ConfigDistrosRoot)
 	if distros != nil {
-
 		centos := distros.Sub(string(d.CentosType))
 		if centos != nil {
-
-			err := centos.Unmarshal(&config)
+			err = centos.Unmarshal(&config)
 			if err != nil {
 				return []kernelrelease.KernelRelease{}, err
 			}
+
 			allsettings = centos.AllSettings()
 		}
 	}

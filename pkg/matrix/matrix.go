@@ -9,6 +9,7 @@ package matrix
 // |	A	1	X
 // ---------------> x (abscissa)
 
+//nolint:godot
 // Provided the sample scenario above, this function
 // should return something like this:
 // A + 1 + X
@@ -47,7 +48,6 @@ func GetColumnOrderedCombinationRows(columns []Column) ([]string, error) {
 }
 
 func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Column, columns []Column, completed *bool) error {
-
 	ssp, ok := column.Points.([]string)
 	if !ok {
 		return NewErrUnsopportedPointType()
@@ -87,7 +87,6 @@ func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Co
 }
 
 func scrollDownPrevColumnPoint(column *Column, columns []Column, abscissaIndex int, completed *bool) error {
-
 	ssp, ok := column.Points.([]string)
 	if !ok {
 		return NewErrUnsopportedPointType()
@@ -95,7 +94,6 @@ func scrollDownPrevColumnPoint(column *Column, columns []Column, abscissaIndex i
 
 	if column.OrdinateIndex+1 < len(ssp) {
 		column.OrdinateIndex++
-
 	} else {
 		column.OrdinateIndex = 0
 		abscissaIndex--

@@ -1,7 +1,6 @@
 package distro
 
 type Config struct {
-
 	// A list of Mirrors to scrape
 	Mirrors []Mirror
 
@@ -9,7 +8,7 @@ type Config struct {
 	Archs []Arch
 
 	// A list of Distro versions
-	Versions []DistroVersion
+	Versions []Version
 }
 
 type Arch string
@@ -18,14 +17,14 @@ type Distro interface {
 	GetPackages(Config, Filter, map[string]interface{}) ([]Package, error)
 }
 
-type DistroVersion string
+type Version string
 
-type DistroType string
+type Type string
 
 type Mirror struct {
-
 	// The base URL of the package mirror
 	// (e.g. https://mirrors.kernel.org/<distribution>)
+	//nolint:revive,stylecheck
 	Url string
 
 	// The mirrored repositories
@@ -45,5 +44,5 @@ type PackagesURITemplate string
 
 type Package string
 
-// A package filter string prefix
+// A package filter string prefix.
 type Filter string
