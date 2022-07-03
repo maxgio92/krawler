@@ -7,23 +7,22 @@ distros:
 
     mirrors:
     - url: https://archive.kernel.org/centos-vault/
-      repositories:
-
-      # Distribution version dependent (i.e. CentOS < 8)
-      - name: base
-        uri: "/os/{{ .archs }}/Packages/"
-
-      - name: updates
-        uri: "/updates/{{ .archs }}/Packages/"
-
     - url: https://mirrors.edge.kernel.org/centos/
-      repositories:
 
-      # Distribution version dependent (i.e. CentOS >= 8)
-      - name: BaseOS
-        uri: "/BaseOS/{{ .archs }}/os/Packages/"
+    repositories:
 
-      # This is a completely new repository for CentOS >= 8
-      # (https://docs.centos.org/en-US/8-docs/managing-userspace-components/assembly_using-appstream/#packaging-methods-in-rhel-8_using-appstream)
-      - name: AppStream
+    # Distribution version dependent (i.e. CentOS < 8)
+    - name: base
+      uri: "/os/{{ .archs }}/Packages/"
+
+    - name: updates
+      uri: "/updates/{{ .archs }}/Packages/"
+
+    # Distribution version dependent (i.e. CentOS >= 8)
+    - name: BaseOS
+      uri: "/BaseOS/{{ .archs }}/os/Packages/"
+
+    # This is a completely new repository for CentOS >= 8
+    # (https://docs.centos.org/en-US/8-docs/managing-userspace-components/assembly_using-appstream/#packaging-methods-in-rhel-8_using-appstream)
+    - name: AppStream
         uri: "/AppStream/{{ .archs }}/os/Packages/"

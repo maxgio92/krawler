@@ -19,16 +19,18 @@ func init() {
 
 type Centos struct {
 	config Config
+	vars   map[string]interface{}
 }
 
-func (c *Centos) Configure(config Config) error {
+func (c *Centos) Configure(config Config, vars map[string]interface{}) error {
 	c.config = config
+	c.vars = vars
 	return nil
 }
 
 // For each mirror, for each distro version, for each repository,
 // for each architecture, scrape.
-func (c *Centos) GetPackages(filter Filter, vars map[string]interface{}) ([]Package, error) {
+func (c *Centos) GetPackages(filter Filter) ([]Package, error) {
 	var packages []Package
 
 	// Merge custom config with default config.
@@ -49,7 +51,8 @@ func (c *Centos) GetPackages(filter Filter, vars map[string]interface{}) ([]Pack
 	}
 
 	// Apply repository packages URI for each provided architecture.
-	repositoriesUris, err := c.buildRepositoriesUris(config.Mirrors, vars)
+	//repositoriesUris, err := c.buildRepositoriesUris(config.Repositories, vars)
+	repositoriesUris, err := c.buildRepositoriesUris(config.Repositories, c.vars)
 	if err != nil {
 		return nil, err
 	}
@@ -135,23 +138,23 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 	if len(config.Mirrors) < 1 {
 		config.Mirrors = def.Mirrors
 	} else {
-		for i, mirror := range config.Mirrors {
+		for _, mirror := range config.Mirrors {
 			if mirror.URL == "" {
 				config.Mirrors = def.Mirrors
 
 				break
 			}
+		}
+	}
 
-			if len(mirror.Repositories) < 1 {
-				config.Mirrors[i].Repositories = c.getDefaultRepositories()
-			} else {
-				for _, repository := range mirror.Repositories {
-					if repository.URI == "" {
-						config.Mirrors[i].Repositories = c.getDefaultRepositories()
+	if len(config.Repositories) < 1 {
+		config.Repositories = c.getDefaultRepositories()
+	} else {
+		for _, repository := range config.Repositories {
+			if repository.URI == "" {
+				config.Repositories = c.getDefaultRepositories()
 
-						break
-					}
-				}
+				break
 			}
 		}
 	}
@@ -273,19 +276,17 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]Version, error) 
 // TODO: the return of this method should compose the actual Scrape Config,
 // which would consists of root URLs (of which below the URI segments)
 // to scrape for pre-defined filters, i.e. package name.
-func (c *Centos) buildRepositoriesUris(mirrors []Mirror, vars map[string]interface{}) ([]string, error) {
+func (c *Centos) buildRepositoriesUris(repositories []Repository, vars map[string]interface{}) ([]string, error) {
 	uris := []string{}
 
-	for _, mirror := range mirrors {
-		for _, repository := range mirror.Repositories {
-			if repository.URI != "" {
-				result, err := template.MultiplexAndExecute(string(repository.URI), vars)
-				if err != nil {
-					return nil, err
-				}
-
-				uris = append(uris, result...)
+	for _, repository := range repositories {
+		if repository.URI != "" {
+			result, err := template.MultiplexAndExecute(string(repository.URI), vars)
+			if err != nil {
+				return nil, err
 			}
+
+			uris = append(uris, result...)
 		}
 	}
 
@@ -301,11 +302,9 @@ func (c *Centos) buildRepositoriesUris(mirrors []Mirror, vars map[string]interfa
 func (c *Centos) getDefaultRepositories() []Repository {
 	var repositories []Repository
 
-	for _, mirror := range CentosDefaultConfig.Mirrors {
-		for _, repository := range mirror.Repositories {
-			if !repositorySliceContains(repositories, repository) {
-				repositories = append(repositories, repository)
-			}
+	for _, repository := range CentosDefaultConfig.Repositories {
+		if !repositorySliceContains(repositories, repository) {
+			repositories = append(repositories, repository)
 		}
 	}
 

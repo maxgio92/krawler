@@ -17,11 +17,11 @@ distros:
     - "aarch64"
 
     mirrors:
-    - url: https://archive.kernel.org/centos-vault/
-      repositories:
-      - name: old
-        uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+    - url: https://archive.kernel.org/centos-vault
     - url: https://mirrors.edge.kernel.org/centos
-      repositories:
-      - name: new
-        uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+
+    repositories:
+    - name: old
+      uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+    - name: new
+      uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
