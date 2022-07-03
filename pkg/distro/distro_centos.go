@@ -78,7 +78,35 @@ func (c *Centos) buildConfig(def Config, user Config) (Config, error) {
 		return Config{}, err
 	}
 
+	err = c.sanitizeConfig(&config)
+	if err != nil {
+		return Config{}, err
+	}
+
 	return config, nil
+}
+
+func (c *Centos) sanitizeConfig(config *Config) error {
+	err := c.sanitizeMirrors(&config.Mirrors)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Centos) sanitizeMirrors(mirrors *[]Mirror) error {
+	for i, mirror := range *mirrors {
+		if !strings.HasSuffix(mirror.URL, "/") {
+			(*mirrors)[i].URL = mirror.URL + "/"
+		}
+
+		_, err := url.Parse(mirror.URL)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Returns the final configuration by merging the default with the user provided.
@@ -101,7 +129,7 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 		config.Mirrors = def.Mirrors
 	} else {
 		for i, mirror := range config.Mirrors {
-			if mirror.Url == "" {
+			if mirror.URL == "" {
 				config.Mirrors = def.Mirrors
 
 				break
@@ -111,7 +139,7 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 				config.Mirrors[i].Repositories = c.getDefaultRepositories()
 			} else {
 				for _, repository := range mirror.Repositories {
-					if repository.PackagesURITemplate == "" {
+					if repository.URI == "" {
 						config.Mirrors[i].Repositories = c.getDefaultRepositories()
 
 						break
@@ -128,7 +156,7 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 //nolint:unparam,unused
 func (c *Centos) overrideConfig(def Config, override Config) (Config, error) {
 	if len(override.Mirrors) > 0 {
-		if override.Mirrors[0].Url != "" {
+		if override.Mirrors[0].URL != "" {
 			return override, nil
 		}
 	}
@@ -160,7 +188,7 @@ func (c *Centos) buildVersionsUrls(mirrors []Mirror, versions []Version) ([]*url
 
 		for _, mirror := range mirrors {
 			for _, version := range versions {
-				versionRoot, err := url.Parse(mirror.Url + string(version))
+				versionRoot, err := url.Parse(mirror.URL + string(version))
 				if err != nil {
 					return nil, err
 				}
@@ -184,7 +212,7 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]Version, error) 
 
 	roots := make([]string, 0, len(mirrors))
 	for _, mirror := range mirrors {
-		roots = append(roots, mirror.Url)
+		roots = append(roots, mirror.URL)
 	}
 
 	allowedDomains, err := getHostnamesFromURLs(roots)
@@ -243,8 +271,8 @@ func (c *Centos) buildRepositoriesUris(mirrors []Mirror, vars map[string]interfa
 
 	for _, mirror := range mirrors {
 		for _, repository := range mirror.Repositories {
-			if repository.PackagesURITemplate != "" {
-				result, err := template.MultiplexAndExecute(string(repository.PackagesURITemplate), vars)
+			if repository.URI != "" {
+				result, err := template.MultiplexAndExecute(string(repository.URI), vars)
 				if err != nil {
 					return nil, err
 				}

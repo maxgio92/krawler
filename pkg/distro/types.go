@@ -24,8 +24,7 @@ type Type string
 type Mirror struct {
 	// The base URL of the package mirror
 	// (e.g. https://mirrors.kernel.org/<distribution>)
-	//nolint:revive,stylecheck
-	Url string
+	URL string
 
 	// The mirrored repositories
 	//
@@ -36,11 +35,11 @@ type Mirror struct {
 }
 
 type Repository struct {
-	Name                string
-	PackagesURITemplate PackagesURITemplate
+	Name string
+	URI  URITemplate
 }
 
-type PackagesURITemplate string
+type URITemplate string
 
 type Package string
 

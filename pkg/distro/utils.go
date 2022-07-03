@@ -6,7 +6,7 @@ import (
 
 func repositorySliceContains(s []Repository, e Repository) bool {
 	for _, v := range s {
-		if v.PackagesURITemplate == e.PackagesURITemplate {
+		if v.URI == e.URI {
 			return true
 		}
 	}
