@@ -21,18 +21,18 @@ var (
 	CentosDefaultConfig = Config{
 		Mirrors: []Mirror{
 			{
-				Url: "https://mirrors.edge.kernel.org/centos/",
+				URL: "https://mirrors.edge.kernel.org/centos/",
 				Repositories: []Repository{
-					{Name: "BaseOS", PackagesURITemplate: PackagesURITemplate("/BaseOS/" + DefaultArch + "/os/Packages/")},
-					{Name: "AppStream", PackagesURITemplate: PackagesURITemplate("/AppStream/" + DefaultArch + "/os/Packages/")},
-					{Name: "Devel", PackagesURITemplate: PackagesURITemplate("/Devel/" + DefaultArch + "/os/Packages/")},
+					{Name: "BaseOS", URI: URITemplate("/BaseOS/" + DefaultArch + "/os/Packages/")},
+					{Name: "AppStream", URI: URITemplate("/AppStream/" + DefaultArch + "/os/Packages/")},
+					{Name: "Devel", URI: URITemplate("/Devel/" + DefaultArch + "/os/Packages/")},
 				},
 			},
 			{
-				Url: "https://archive.kernel.org/centos-vault/",
+				URL: "https://archive.kernel.org/centos-vault/",
 				Repositories: []Repository{
-					{Name: "base", PackagesURITemplate: PackagesURITemplate("/os/" + DefaultArch + "/Packages/")},
-					{Name: "updates", PackagesURITemplate: PackagesURITemplate("/updates/" + DefaultArch + "/Packages/")},
+					{Name: "base", URI: URITemplate("/os/" + DefaultArch + "/Packages/")},
+					{Name: "updates", URI: URITemplate("/updates/" + DefaultArch + "/Packages/")},
 				},
 			},
 		},
