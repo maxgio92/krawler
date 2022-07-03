@@ -46,4 +46,6 @@ type URITemplate string
 type Package string
 
 // A package filter string prefix.
-type Filter string
+type Filter Prefix
+
+type Prefix string
