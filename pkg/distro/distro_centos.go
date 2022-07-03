@@ -17,15 +17,22 @@ func init() {
 	DistroByType[CentosType] = &Centos{}
 }
 
-type Centos struct{}
+type Centos struct {
+	config Config
+}
+
+func (c *Centos) Configure(config Config) error {
+	c.config = config
+	return nil
+}
 
 // For each mirror, for each distro version, for each repository,
 // for each architecture, scrape.
-func (c *Centos) GetPackages(userConfig Config, filter Filter, vars map[string]interface{}) ([]Package, error) {
+func (c *Centos) GetPackages(filter Filter, vars map[string]interface{}) ([]Package, error) {
 	var packages []Package
 
 	// Merge custom config with default config.
-	config, err := c.buildConfig(CentosDefaultConfig, userConfig)
+	config, err := c.buildConfig(CentosDefaultConfig, c.config)
 	if err != nil {
 		return nil, err
 	}
