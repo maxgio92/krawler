@@ -38,4 +38,8 @@ bin
 .idea/
 *.iml
 
+# Default binary object
 /krawler
+
+# Visual Studio Code stuff
+/.vscode
