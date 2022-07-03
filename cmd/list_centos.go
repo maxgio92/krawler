@@ -79,8 +79,13 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 		}
 	}
 
+	err = distro.Configure(config)
+	if err != nil {
+		return []kernelrelease.KernelRelease{}, err
+	}
+
 	// Scrape mirrors for packeges by filter.
-	packages, err := distro.GetPackages(config, filter, allsettings)
+	packages, err := distro.GetPackages(filter, allsettings)
 	if err != nil {
 		return []kernelrelease.KernelRelease{}, err
 	}
