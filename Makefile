@@ -1,38 +1,29 @@
-bins := go cobra
+bins := go cobra golangci-lint
 commands := version list
 
-AUTHOR := 
-LICENSE := 
-
-COBRA_FLAGS :=
+define declare_binpaths
+$(1) = $(shell command -v 2>/dev/null $(1))
+endef
 
 .PHONY: build
 build:
 	@$(go) build .
 
-.PHONY: init
-init:
-	@$(go) mod init krawler
-	@$(cobra) init $(COBRA_FLAGS)
-
 .PHONY: lint
-lint:
-	@golangci-lint run ./...
+lint: golangci-lint
+	@$(golangci-lint) run ./...
 
-define declare_binpaths
-$(1) := $(shell command -v 2>/dev/null $(1))
-endef
-
-define declare_command_build_targets
-.PHONY: cmd/$(1)
-cmd/$(1):
-	@test -f cmd/$(1).go || $(cobra) add $(COBRA_FLAGS) $(1)
-endef
+.PHONY: golangci-lint
+golangci-lint:
+	@$(go) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
 
 $(foreach bin,$(bins),\
 	$(eval $(call declare_binpaths,$(bin)))\
 )
 
-$(foreach command,$(commands),\
-	$(eval $(call declare_command_build_targets,$(command)))\
-)
+.PHONY: help
+help: list
+
+.PHONY: list
+list:
+	@LC_ALL=C $(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
