@@ -15,13 +15,13 @@ krawler [options] <command>
 
 ## Commands
 
-### `list`
+### `list`|`ls`
 
 List available kernel releases with distributed headers, by Linux distribution.
 It returns a list of `kernelRelease` objects. The output format can be specified by flag parameter.
 
 ```
-krawler [options] list <distribution> [-o <format>] 
+krawler [options] list|ls <distribution> [-o <format>] 
 ```
 
 ### Parameters
@@ -35,7 +35,7 @@ Available distributions:
 
 ### Output
 
-The `list` command prints on standard ouput a is a list of kernel release objects of type [`KernelRelease`](https://github.com/falcosecurity/driverkit/blob/master/pkg/kernelrelease/kernelrelease.go#L13).
+The `list`|`ls` command prints on standard ouput a is a list of kernel release objects of type [`KernelRelease`](https://github.com/falcosecurity/driverkit/blob/master/pkg/kernelrelease/kernelrelease.go#L13).
 
 An example of a `yaml`-formatted result entry:
 
@@ -50,31 +50,22 @@ fullextraversion: -348.2.1.el8_5.x86_64
 
 ## Configuration
 
-A configuration lets you configure parameters for the scraping, like the mirrors to scrape for the kernel headers packages. The file is automatically read at the path `$HOME/.krawler.yaml`. Otherwise you can specify the path with the `--config` option.
-The configuration follows the structure that you can see below:
+A configuration lets you configure parameters for the crawling, like the mirrors to scrape.
 
-```yaml
-distros:
-  <Distribution name>:
-      versions: ["<Distribution version>"]
-      archs: ["<Architecture ID>"]
-      mirrors:
-      - url: "<Mirror root URL>"
-        repositories:
-          name: "<Package repository name label>"
-          packagesUriFormat: "<Packages URI Go string-format>"
-```
+The default configuration file path is `$HOME/.krawler.yaml`. You can specify a custom path with the `--config` option.
 
-All fields are optional. When not specified [default configurations](./pkg/scrape/defaults.go) for repositories are used. For the configuration reference see [docs/reference/config.md](docs/reference/CONFIG.md).
+When a configuration is not present, the [default configurations](./pkg/scrape/defaults.go) for repositories are used.
 
-Example configurations are available in [config/samples](./config/samples).
+For more info please see the [reference](docs/reference/CONFIG.md).
+
+Moreover, Example configurations are available [here](./config/samples).
 
 ## Getting started
 
 Let's imagine you want to list the available CentOS kernel releases, scraping default mirrors. You do it by running:
 
 ```
-krawler list centos -o yaml
+krawler ls centos -o yaml
 ```
 
 ## VNEXT
