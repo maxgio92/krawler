@@ -14,7 +14,7 @@ distros:
     versions: [""]
     archs: [""]
     mirrors: [{url: "", }]
-    repositories: [{name: "", URI: ""}}]
+    repositories: [{name: "", uri: ""}}]
 ```
 
 > All `versions`, `archs`, `mirrors` are optional fields of the distro configuration.
@@ -35,6 +35,7 @@ distros:
     archs: []
     mirrors: []
     repositories: []
+    vars: []
 ```
 
 ### Distro.Versions
@@ -63,10 +64,10 @@ centos:
 
 ### Distro.Repositories
 
-`repositories` is an array of `repository` structure, which in turn is a map of `name` and `URI`.
+`repositories` is an array of `repository` structure, which in turn is a map of `name` and `uri`.
 
 - `name` is a string label for the name of the repository (e.g. [*AppStream*](http://mirrors.edge.kernel.org/centos/8-stream/AppStream/) for Centos). Please note that this is a label, the value does not have side effects in the crawling flow.
-- `URI` is a string that contains the URI path to the packages folder, starting from the root URL of the mirror. Note that the URI format should start with a "/".
+- `uri` is a string that contains the uri path to the packages folder, starting from the root URL of the mirror. Note that the uri format should start with a "/".
 
 ##### Example
 
@@ -74,14 +75,26 @@ centos:
 centos:
   repositories:
   - name: AppStream
-    URI: /AppStream/x86_64/os/Packages/
+    uri: /AppStream/x86_64/os/Packages/
 ```
 
 ### Repositories Templating
 
-`URI` field supports templates in the Go template format for annotations that refer to elements of the related distro's data structure (e.g. `distros.centos`). These elements can be both system-declared and user-declared data structures.
+`uri` field supports templates in the Go template format for annotations that refer to elements of the related distro's data structure (e.g. `distros.centos`). These elements can be both system-declared and user-declared data structures.
+
+##### Supported data types
+
 The supported element types are:
 - array of strings
+
+#### System declared variables
+
+- `Distro.Archs`
+- `Distro.Versions`
+
+#### User declared variables
+
+You can define your declared variables in `Distro.Vars` structure, which is expected at `distros.<distro>.vars` path.
 
 **Example**
 
@@ -91,17 +104,18 @@ For example, to configure both old and new Centos repositories, given both the a
 distros:
   centos:
     archs: ["aarch64", "x86_64"]
-    new_repos: ["BaseOS", "AppStream"]
-    old_repos: ["os", "updates"]
-    packages_folder: ["Packages"]
     mirrors:
     - url: https://archive.kernel.org/centos-vault/
     - url: https://mirrors.edge.kernel.org/centos/
     repositories:
     - name: old
-      URI: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+      uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
     - name: new
-      URI: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+      uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+    vars:
+      new_repos: ["BaseOS", "AppStream"]
+      old_repos: ["os", "updates"]
+      packages_folder: ["Packages"]
 ```
 
 As you can see both system-declared (e.g. `archs`) and user-declared (e.g. `new_repos`) data structure can be referenced in the template string.
