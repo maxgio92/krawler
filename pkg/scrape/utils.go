@@ -2,17 +2,22 @@ package scrape
 
 import "net/url"
 
-func getHostnamesFromURLs(urls []string) ([]string, error) {
+func getHostnamesFromURLs(urls []*url.URL) ([]string, error) {
 	hostnames := []string{}
 
 	for _, v := range urls {
-		url, err := url.Parse(v)
-		if err != nil {
-			return nil, errDomainsFromSeedUrls
-		}
-
-		hostnames = append(hostnames, url.Host)
+		hostnames = append(hostnames, v.Host)
 	}
 
 	return hostnames, nil
+}
+
+func urlSliceContains(us []*url.URL, u *url.URL) bool {
+	for _, v := range us {
+		if v == u {
+			return true
+		}
+	}
+
+	return false
 }

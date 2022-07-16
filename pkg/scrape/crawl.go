@@ -10,8 +10,7 @@ import (
 	d "github.com/gocolly/colly/debug"
 )
 
-// Returns a list of files found on each page URL, filtered by filename regex.
-//nolint:funlen,revive,stylecheck
+// Returns a list of file names found from the seed URL, filtered by file name regex.
 func CrawlFiles(seedUrl *url.URL, exactFileRegex string, debug bool) ([]string, error) {
 	var files []string
 
@@ -22,7 +21,7 @@ func CrawlFiles(seedUrl *url.URL, exactFileRegex string, debug bool) ([]string, 
 	fileRegex := strings.TrimPrefix(exactFileRegex, "^")
 	filePattern := regexp.MustCompile(fileRegex)
 
-	allowedDomains, err := getHostnamesFromURLs([]string{seedUrl.String()})
+	allowedDomains, err := getHostnamesFromURLs([]*url.URL{seedUrl})
 	if err != nil {
 		return nil, err
 	}
@@ -79,4 +78,56 @@ func CrawlFiles(seedUrl *url.URL, exactFileRegex string, debug bool) ([]string, 
 	co.Visit(seedUrl.String())
 
 	return files, nil
+}
+
+// Returns a list of folder names found from each seed URL, filtered by folder name regex.
+func CrawlFolders(seedUrls []*url.URL, regex string, debug bool) ([]string, error) {
+	var versions []string
+
+	versionPattern := regexp.MustCompile(regex)
+
+	allowedDomains, err := getHostnamesFromURLs(seedUrls)
+	if err != nil || len(allowedDomains) < 1 {
+		return nil, err
+	}
+
+	// Create the collector settings
+	coOptions := []func(*colly.Collector){
+		colly.AllowedDomains(allowedDomains...),
+		colly.Async(false),
+	}
+
+	if debug {
+		coOptions = append(coOptions, colly.Debugger(&d.LogDebugger{}))
+	}
+
+	// Create the collector.
+	co := colly.NewCollector(coOptions...)
+
+	// Visit each distro version-specific folder.
+	co.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		distroVersionFolderMatch := versionPattern.FindStringSubmatch(e.Attr("href"))
+
+		if len(distroVersionFolderMatch) > 0 {
+			//nolint:errcheck
+			co.Visit(e.Request.AbsoluteURL(e.Attr("href")))
+		}
+	})
+
+	// Collect all the version folder names.
+	co.OnRequest(func(r *colly.Request) {
+		if !urlSliceContains(seedUrls, r.URL) {
+			versions = append(versions, path.Base(r.URL.Path))
+		}
+	})
+
+	// Visit each mirror root folder.
+	for _, root := range seedUrls {
+		err := co.Visit(root.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return versions, nil
 }
