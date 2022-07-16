@@ -1,17 +1,6 @@
 distros:
   centos:
 
-    new_repos:
-    - "BaseOS"
-    - "AppStream"
-
-    old_repos:
-    - "os"
-    - "updates"
-
-    packages_folder:
-    - "Packages"
-
     archs:
     - "x86_64"
     - "aarch64"
@@ -25,3 +14,13 @@ distros:
       uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
     - name: new
       uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+
+    vars:
+      new_repos:
+      - "BaseOS"
+      - "AppStream"
+      old_repos:
+      - "os"
+      - "updates"
+      packages_folder:
+      - "Packages"
