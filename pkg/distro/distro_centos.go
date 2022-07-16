@@ -1,7 +1,6 @@
 package distro
 
 import (
-	"fmt"
 	"net/url"
 	"path"
 	"regexp"
@@ -10,6 +9,7 @@ import (
 	"github.com/gocolly/colly"
 	d "github.com/gocolly/colly/debug"
 
+	"github.com/maxgio92/krawler/pkg/scrape"
 	"github.com/maxgio92/krawler/pkg/template"
 )
 
@@ -313,75 +313,18 @@ func (c *Centos) getDefaultRepositories() []Repository {
 
 // Returns a list of packages found on each page URL,
 // filtered by filter.
-// TODO: abstract this from distribution.
 //nolint:funlen,revive,stylecheck
 func (c *Centos) crawlPackages(seedUrl *url.URL, filter Filter, debug bool) ([]Package, error) {
-	var packages []Package
-
-	folderRegex := `.+\/$`
-	folderPattern := regexp.MustCompile(folderRegex)
-
-	packageRegex := fmt.Sprintf(`.+\.%s$`, CentosPackageFileExtension)
-	packagePattern := regexp.MustCompile(packageRegex)
 
 	filteredPackageRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
-	filteredPackagePattern := regexp.MustCompile(filteredPackageRegex)
-
-	allowedDomains, err := getHostnamesFromURLs([]string{seedUrl.String()})
+	packageNames, err := scrape.CrawlFiles(seedUrl, filteredPackageRegex, debug)
 	if err != nil {
-		return nil, err
+		return []Package{}, err
 	}
-
-	// Create the collector settings
-	coOptions := []func(*colly.Collector){
-		colly.AllowedDomains(allowedDomains...),
-		colly.Async(false),
+	var packages []Package
+	for _, v := range packageNames {
+		packages = append(packages, Package(v))
 	}
-
-	if debug {
-		coOptions = append(coOptions, colly.Debugger(&d.LogDebugger{}))
-	}
-
-	// Create the collector.
-	co := colly.NewCollector(coOptions...)
-
-	// Add the callback to Visit the linked resource, for each HTML element found
-	co.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		link := e.Attr("href")
-
-		// Do not traverse the hierarchy in reverse order.
-		if !(strings.Contains(link, "../")) {
-			//nolint:errcheck
-			co.Visit(e.Request.AbsoluteURL(link))
-		}
-	})
-
-	// Add the analysis callback to find package URLs, for each Visit call
-	co.OnRequest(func(r *colly.Request) {
-		folderMatch := folderPattern.FindStringSubmatch(r.URL.String())
-
-		// If the URL is not of a folder.
-		if len(folderMatch) == 0 {
-			packageMatch := packagePattern.FindStringSubmatch(r.URL.String())
-
-			// If the URL is of a package file.
-			if len(packageMatch) > 0 {
-				packageName := path.Base(r.URL.String())
-				packageNameMatch := filteredPackagePattern.FindStringSubmatch(packageName)
-
-				// If the URL matches the package filter regex.
-				if len(packageNameMatch) > 0 {
-					packages = append(packages, Package(packageName))
-				}
-			}
-
-			// Otherwise abort the request.
-			r.Abort()
-		}
-	})
-
-	//nolint:errcheck
-	co.Visit(seedUrl.String())
 
 	return packages, nil
 }

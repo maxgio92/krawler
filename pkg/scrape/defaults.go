@@ -1,0 +1,5 @@
+package scrape
+
+const (
+	folderRegex = `.+\/$`
+)
