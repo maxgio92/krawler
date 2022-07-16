@@ -1,16 +1,16 @@
 distros:
   centos:
+    vars:
+      new_repos:
+      - "BaseOS"
+      - "AppStream"
 
-    new_repos:
-    - "BaseOS"
-    - "AppStream"
+      old_repos:
+      - "os"
+      - "updates"
 
-    old_repos:
-    - "os"
-    - "updates"
-
-    packages_folder:
-    - "Packages"
+      packages_folder:
+      - "Packages"
 
     versions:
     - "7"
