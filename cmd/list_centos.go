@@ -60,26 +60,12 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 	packagePrefix := KernelHeadersPackageName
 	filter := d.Filter(packagePrefix)
 
-	// The distro configuration.
-	var config d.Config
-
-	// The distro all settings from Viper
-	var allsettings map[string]interface{}
-
-	distros := v.Sub(ConfigDistrosRoot)
-	if distros != nil {
-		centos := distros.Sub(string(d.CentosType))
-		if centos != nil {
-			err = centos.Unmarshal(&config)
-			if err != nil {
-				return []kernelrelease.KernelRelease{}, err
-			}
-
-			allsettings = centos.AllSettings()
-		}
+	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
+	if err != nil {
+		return []kernelrelease.KernelRelease{}, err
 	}
 
-	err = distro.Configure(config, allsettings)
+	err = distro.Configure(config, vars)
 	if err != nil {
 		return []kernelrelease.KernelRelease{}, err
 	}
