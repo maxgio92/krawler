@@ -2,12 +2,7 @@ package distro
 
 import (
 	"net/url"
-	"path"
-	"regexp"
 	"strings"
-
-	"github.com/gocolly/colly"
-	d "github.com/gocolly/colly/debug"
 
 	"github.com/maxgio92/krawler/pkg/scrape"
 	"github.com/maxgio92/krawler/pkg/template"
@@ -80,8 +75,49 @@ func (c *Centos) GetPackages(filter Filter) ([]Package, error) {
 	return packages, nil
 }
 
-// Returns the final configuration, considering a default and a user-provided
-// configuration.
+// Returns a list of packages found on each page URL, filtered by filter.
+//nolint:funlen,revive,stylecheck
+func (c *Centos) crawlPackages(seedUrl *url.URL, filter Filter, debug bool) ([]Package, error) {
+
+	filteredPackageRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
+	packageNames, err := scrape.CrawlFiles(seedUrl, filteredPackageRegex, debug)
+	if err != nil {
+		return []Package{}, err
+	}
+	var packages []Package
+	for _, v := range packageNames {
+		packages = append(packages, Package(v))
+	}
+
+	return packages, nil
+}
+
+// Returns the list of the current available distro versions, by scraping
+// the specified mirrors, dynamically.
+func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]Version, error) {
+	var versions []Version
+
+	seedUrls := make([]*url.URL, 0, len(mirrors))
+	for _, mirror := range mirrors {
+		u, err := url.Parse(mirror.URL)
+		if err != nil {
+			return []Version{}, err
+		}
+		seedUrls = append(seedUrls, u)
+	}
+
+	folderNames, err := scrape.CrawlFolders(seedUrls, CentosMirrorsDistroVersionRegex, debug)
+	if err != nil {
+		return []Version{}, err
+	}
+
+	for _, v := range folderNames {
+		versions = append(versions, Version(v))
+	}
+
+	return versions, nil
+}
+
 func (c *Centos) buildConfig(def Config, user Config) (Config, error) {
 	config, err := c.mergeConfig(def, user)
 	if err != nil {
@@ -94,29 +130,6 @@ func (c *Centos) buildConfig(def Config, user Config) (Config, error) {
 	}
 
 	return config, nil
-}
-
-func (c *Centos) sanitizeConfig(config *Config) error {
-	err := c.sanitizeMirrors(&config.Mirrors)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Centos) sanitizeMirrors(mirrors *[]Mirror) error {
-	for i, mirror := range *mirrors {
-		if !strings.HasSuffix(mirror.URL, "/") {
-			(*mirrors)[i].URL = mirror.URL + "/"
-		}
-
-		_, err := url.Parse(mirror.URL)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 // Returns the final configuration by merging the default with the user provided.
@@ -213,64 +226,6 @@ func (c *Centos) buildVersionsUrls(mirrors []Mirror, versions []Version) ([]*url
 	return nil, errNoDistroVersionSpecified
 }
 
-// Returns the list of the current available distro versions, by scraping
-// the specified mirrors, dynamically.
-func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]Version, error) {
-	var versions []Version
-
-	versionPattern := regexp.MustCompile(CentosMirrorsDistroVersionRegex)
-
-	roots := make([]string, 0, len(mirrors))
-	for _, mirror := range mirrors {
-		roots = append(roots, mirror.URL)
-	}
-
-	allowedDomains, err := getHostnamesFromURLs(roots)
-	if err != nil || len(allowedDomains) < 1 {
-		return nil, err
-	}
-
-	// Create the collector settings
-	coOptions := []func(*colly.Collector){
-		colly.AllowedDomains(allowedDomains...),
-		colly.Async(false),
-	}
-
-	if debug {
-		coOptions = append(coOptions, colly.Debugger(&d.LogDebugger{}))
-	}
-
-	// Create the collector.
-	co := colly.NewCollector(coOptions...)
-
-	// Visit each distro version-specific folder.
-	co.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		distroVersionFolderMatch := versionPattern.FindStringSubmatch(e.Attr("href"))
-
-		if len(distroVersionFolderMatch) > 0 {
-			//nolint:errcheck
-			co.Visit(e.Request.AbsoluteURL(e.Attr("href")))
-		}
-	})
-
-	// Collect all the version folder names.
-	co.OnRequest(func(r *colly.Request) {
-		if !stringSliceContains(roots, r.URL.String()) {
-			versions = append(versions, Version(path.Base(r.URL.Path)))
-		}
-	})
-
-	// Visit each mirror root folder.
-	for _, root := range roots {
-		err := co.Visit(root)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return versions, nil
-}
-
 // Returns the list of repositories URLs, for each specified architecture.
 //
 // TODO: the return of this method should compose the actual Scrape Config,
@@ -311,20 +266,25 @@ func (c *Centos) getDefaultRepositories() []Repository {
 	return repositories
 }
 
-// Returns a list of packages found on each page URL,
-// filtered by filter.
-//nolint:funlen,revive,stylecheck
-func (c *Centos) crawlPackages(seedUrl *url.URL, filter Filter, debug bool) ([]Package, error) {
-
-	filteredPackageRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
-	packageNames, err := scrape.CrawlFiles(seedUrl, filteredPackageRegex, debug)
+func (c *Centos) sanitizeConfig(config *Config) error {
+	err := c.sanitizeMirrors(&config.Mirrors)
 	if err != nil {
-		return []Package{}, err
-	}
-	var packages []Package
-	for _, v := range packageNames {
-		packages = append(packages, Package(v))
+		return err
 	}
 
-	return packages, nil
+	return nil
+}
+
+func (c *Centos) sanitizeMirrors(mirrors *[]Mirror) error {
+	for i, mirror := range *mirrors {
+		if !strings.HasSuffix(mirror.URL, "/") {
+			(*mirrors)[i].URL = mirror.URL + "/"
+		}
+
+		_, err := url.Parse(mirror.URL)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
