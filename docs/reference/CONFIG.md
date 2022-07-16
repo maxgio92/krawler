@@ -118,13 +118,13 @@ distros:
     url: https://mirrors.edge.kernel.org/centos/
     repositories:
     - name: old
-      uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+      uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folders }}/"
     - name: new
-      uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+      uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folders }}/"
     vars:
       new_repos: ["BaseOS", "AppStream"]
       old_repos: ["os", "updates"]
-      packages_folder: ["Packages"]
+      packages_folders: ["Packages"]
 ```
 
 As you can see both system-declared (e.g. `archs`) and user-declared (e.g. `new_repos`) data structure can be referenced in the template string.
