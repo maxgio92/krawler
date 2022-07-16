@@ -11,7 +11,8 @@ import (
 )
 
 // Returns a list of file names found from the seed URL, filtered by file name regex.
-func CrawlFiles(seedUrl *url.URL, exactFileRegex string, debug bool) ([]string, error) {
+//nolint:funlen
+func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]string, error) {
 	var files []string
 
 	folderPattern := regexp.MustCompile(folderRegex)
@@ -21,7 +22,7 @@ func CrawlFiles(seedUrl *url.URL, exactFileRegex string, debug bool) ([]string, 
 	fileRegex := strings.TrimPrefix(exactFileRegex, "^")
 	filePattern := regexp.MustCompile(fileRegex)
 
-	allowedDomains, err := getHostnamesFromURLs([]*url.URL{seedUrl})
+	allowedDomains, err := getHostnamesFromURLs(seedURLs)
 	if err != nil {
 		return nil, err
 	}
@@ -74,19 +75,22 @@ func CrawlFiles(seedUrl *url.URL, exactFileRegex string, debug bool) ([]string, 
 		}
 	})
 
-	//nolint:errcheck
-	co.Visit(seedUrl.String())
+	// Visit each mirror root folder.
+	for _, seedURL := range seedURLs {
+		//nolint:errcheck
+		co.Visit(seedURL.String())
+	}
 
 	return files, nil
 }
 
 // Returns a list of folder names found from each seed URL, filtered by folder name regex.
-func CrawlFolders(seedUrls []*url.URL, regex string, debug bool) ([]string, error) {
+func CrawlFolders(seedURLs []*url.URL, regex string, debug bool) ([]string, error) {
 	var versions []string
 
 	versionPattern := regexp.MustCompile(regex)
 
-	allowedDomains, err := getHostnamesFromURLs(seedUrls)
+	allowedDomains, err := getHostnamesFromURLs(seedURLs)
 	if err != nil || len(allowedDomains) < 1 {
 		return nil, err
 	}
@@ -116,14 +120,14 @@ func CrawlFolders(seedUrls []*url.URL, regex string, debug bool) ([]string, erro
 
 	// Collect all the version folder names.
 	co.OnRequest(func(r *colly.Request) {
-		if !urlSliceContains(seedUrls, r.URL) {
+		if !urlSliceContains(seedURLs, r.URL) {
 			versions = append(versions, path.Base(r.URL.Path))
 		}
 	})
 
 	// Visit each mirror root folder.
-	for _, root := range seedUrls {
-		err := co.Visit(root.String())
+	for _, seedURL := range seedURLs {
+		err := co.Visit(seedURL.String())
 		if err != nil {
 			return nil, err
 		}

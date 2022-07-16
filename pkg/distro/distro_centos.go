@@ -33,49 +33,32 @@ func (c *Centos) GetPackages(filter Filter) ([]Package, error) {
 		return nil, err
 	}
 
-	// Get distro versions for which to search packages.
-	versions, err := c.buildVersions(config.Mirrors, config.Versions)
-	if err != nil {
-		return nil, err
-	}
-
-	versionsUrls, err := c.buildVersionsUrls(config.Mirrors, versions)
+	perVersionMirrorUrls, err := c.buildPerVersionMirrorUrls(config.Mirrors, config.Versions)
 	if err != nil {
 		return nil, err
 	}
 
 	// Apply repository packages URI for each provided architecture.
-	//repositoriesUris, err := c.buildRepositoriesUris(config.Repositories, vars)
-	repositoriesUris, err := c.buildRepositoriesUris(config.Repositories, c.vars)
+	repositoriesUrls, err := c.buildRepositoriesUrls(perVersionMirrorUrls, config.Repositories, c.vars)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, root := range versionsUrls {
-		//nolint:revive,stylecheck
-		for _, repositoryUri := range repositoriesUris {
-			// Get repository URL from URI.
-			//nolint:revive,stylecheck
-			repositoryUrl, err := url.Parse(root.String() + repositoryUri)
-			if err != nil {
-				return nil, err
-			}
-
-			// Crawl packages based on filter.
-			p, err := c.crawlPackages(repositoryUrl, filter, debugScrape)
-			if err != nil {
-				return nil, err
-			}
-
-			packages = append(packages, p...)
-		}
+	packages, err = c.crawlPackages(repositoriesUrls, filter, debugScrape)
+	if err != nil {
+		return nil, err
 	}
 
 	return packages, nil
 }
 
 // Returns the list of version-specific mirror URLs.
-func (c *Centos) buildVersionsUrls(mirrors []Mirror, versions []Version) ([]*url.URL, error) {
+func (c *Centos) buildPerVersionMirrorUrls(mirrors []Mirror, versions []Version) ([]*url.URL, error) {
+	versions, err := c.buildVersions(mirrors, versions)
+	if err != nil {
+		return []*url.URL{}, err
+	}
+
 	if (len(versions) > 0) && (len(mirrors) > 0) {
 		var versionRoots []*url.URL
 
@@ -139,11 +122,32 @@ func (c *Centos) crawlVersions(mirrors []Mirror, debug bool) ([]Version, error) 
 	return versions, nil
 }
 
-// Returns the list of repositories URLs, for each specified architecture.
-//
-// TODO: the return of this method should compose the actual Scrape Config,
-// which would consists of root URLs (of which below the URI segments)
-// to scrape for pre-defined filters, i.e. package name.
+// Returns the list of repositories URLs.
+func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []Repository, vars map[string]interface{}) ([]*url.URL, error) {
+	var urls []*url.URL
+
+	uris, err := c.buildRepositoriesUris(repositories, vars)
+	if err != nil {
+		return []*url.URL{}, err
+	}
+
+	for _, root := range roots {
+		//nolint:revive,stylecheck
+		for _, uri := range uris {
+			// Get repository URL from URI.
+			//nolint:revive,stylecheck
+			repositoryUrl, err := url.Parse(root.String() + uri)
+			if err != nil {
+				return nil, err
+			}
+
+			urls = append(urls, repositoryUrl)
+		}
+	}
+
+	return urls, nil
+}
+
 func (c *Centos) buildRepositoriesUris(repositories []Repository, vars map[string]interface{}) ([]string, error) {
 	uris := []string{}
 
@@ -180,17 +184,15 @@ func (c *Centos) getDefaultRepositories() []Repository {
 }
 
 // Returns a list of packages found on each page URL, filtered by filter.
-//nolint:funlen,revive,stylecheck
-func (c *Centos) crawlPackages(seedUrl *url.URL, filter Filter, debug bool) ([]Package, error) {
-
-	filteredPackageRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
-	packageNames, err := scrape.CrawlFiles(seedUrl, filteredPackageRegex, debug)
+func (c *Centos) crawlPackages(seedUrls []*url.URL, filter Filter, debug bool) ([]Package, error) {
+	filenameRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
+	filenames, err := scrape.CrawlFiles(seedUrls, filenameRegex, debug)
 	if err != nil {
 		return []Package{}, err
 	}
 	var packages []Package
-	for _, v := range packageNames {
-		packages = append(packages, Package(v))
+	for _, filename := range filenames {
+		packages = append(packages, Package(filename))
 	}
 
 	return packages, nil
