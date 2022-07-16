@@ -22,10 +22,12 @@ distros:
 
     mirrors:
     - url: https://archive.kernel.org/centos-vault
+      name: Archive
     - url: https://mirrors.edge.kernel.org/centos
+      name: Edge
 
     repositories:
-    - name: old
-      uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
-    - name: new
-      uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+    - uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+      name: Old
+    - uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+      name: New

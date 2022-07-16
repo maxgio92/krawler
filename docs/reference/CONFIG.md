@@ -15,6 +15,7 @@ distros:
     archs: [""]
     mirrors: [{url: "", }]
     repositories: [{name: "", uri: ""}}]
+    vars: []
 ```
 
 > All `versions`, `archs`, `mirrors` are optional fields of the distro configuration.
@@ -50,7 +51,10 @@ For example *x86_64*, *aarch86*, *ppc64le*.
 ### Distro.Mirrors
 
 `mirrors` is an array of `mirror` structure, which is a map of:
+- `name` (optional)
 - `url`
+
+`name` is a string label for the name of the mirror (e.g. [*Edge*](http://mirrors.edge.kernel.org)). Please note that this is a label, the value does not have side effects in the crawling flow.
 
 `url` is the root URL of the mirror (e.g. *https://mirrors.kernel.org/centos*).
 
@@ -64,10 +68,13 @@ centos:
 
 ### Distro.Repositories
 
-`repositories` is an array of `repository` structure, which in turn is a map of `name` and `uri`.
+`repositories` is an array of `repository` structure, which in turn is a map of:
+- `name` (optional)
+- `uri`
 
-- `name` is a string label for the name of the repository (e.g. [*AppStream*](http://mirrors.edge.kernel.org/centos/8-stream/AppStream/) for Centos). Please note that this is a label, the value does not have side effects in the crawling flow.
-- `uri` is a string that contains the uri path to the packages folder, starting from the root URL of the mirror. Note that the uri format should start with a "/".
+`name` is a string label for the name of the repository (e.g. [*AppStream*](http://mirrors.edge.kernel.org/centos/8-stream/AppStream/) for Centos). Please note that this is a label, the value does not have side effects in the crawling flow.
+
+`uri` is a string that contains the uri path to the packages folder, starting from the root URL of the mirror. Note that the uri format should start with a "/".
 
 ##### Example
 
@@ -92,7 +99,7 @@ The supported element types are:
 - `Distro.Archs`
 - `Distro.Versions`
 
-#### User declared variables
+#### Distro.Vars: User declared variables
 
 You can define your declared variables in `Distro.Vars` structure, which is expected at `distros.<distro>.vars` path.
 
@@ -105,8 +112,10 @@ distros:
   centos:
     archs: ["aarch64", "x86_64"]
     mirrors:
-    - url: https://archive.kernel.org/centos-vault/
-    - url: https://mirrors.edge.kernel.org/centos/
+    - name: archive
+      url: https://archive.kernel.org/centos-vault/
+    - name: edge
+    url: https://mirrors.edge.kernel.org/centos/
     repositories:
     - name: old
       uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"

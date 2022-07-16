@@ -7,7 +7,9 @@ distros:
 
     mirrors:
     - url: https://archive.kernel.org/centos-vault
+      name: Archive
     - url: https://mirrors.edge.kernel.org/centos
+      name: Edge
 
     repositories:
     - name: old

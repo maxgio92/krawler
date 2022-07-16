@@ -31,6 +31,7 @@ type Version string
 type Type string
 
 type Mirror struct {
+	Name string
 	// The base URL of the package mirror
 	// (e.g. https://mirrors.kernel.org/<distribution>)
 	URL string
