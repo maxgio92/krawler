@@ -8,3 +8,4 @@ distros:
 
     mirrors:
     - url: https://mirrors.edge.kernel.org/centos/
+      name: Edge
