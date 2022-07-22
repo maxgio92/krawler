@@ -1,4 +1,6 @@
-# [UNDER DEVELOPMENT] Krawler: a kernel releases crawler
+# Krawler: a kernel releases crawler
+
+> UNDER DEVELOPMENT
 
 ![ci workflow](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)
 
