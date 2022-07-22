@@ -14,7 +14,7 @@ distros:
     versions: [""]
     archs: [""]
     mirrors: [{url: "", }]
-    repositories: [{name: "", uri: ""}}]
+    repositories: [{name: "", uri: ""}]
     vars: []
 ```
 
