@@ -1,16 +1,5 @@
 distros:
   centos:
-    vars:
-      new_repos:
-      - "BaseOS"
-      - "AppStream"
-
-      old_repos:
-      - "os"
-      - "updates"
-
-      packages_folder:
-      - "Packages"
 
     versions:
     - "7"
@@ -31,3 +20,13 @@ distros:
       name: Old
     - uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
       name: New
+
+    vars:
+      new_repos:
+      - "BaseOS"
+      - "AppStream"
+      old_repos:
+      - "os"
+      - "updates"
+      packages_folder:
+      - "Packages"
