@@ -2,7 +2,6 @@ package scrape
 
 import "net/url"
 
-//nolint:unparam
 func getHostnamesFromURLs(urls []*url.URL) ([]string, error) {
 	hostnames := []string{}
 

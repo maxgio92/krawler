@@ -1,6 +1,6 @@
 module github.com/maxgio92/krawler
 
-go 1.17
+go 1.19
 
 require (
 	github.com/falcosecurity/driverkit v0.5.0

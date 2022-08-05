@@ -1,8 +1,10 @@
 # Krawler: a kernel releases crawler
 
-> UNDER DEVELOPMENT
+> Under development
 
-![ci workflow](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)
+[![Latest](https://img.shields.io/github/v/release/maxgio92/krawler)](https://github.com/maxgio92/krawler/releases/latest)
+[![CI](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml)
+[![Release](https://github.com/maxgio92/krawler/actions/workflows/release.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/release.yaml)
 
 A crawler for kernel releases distributed by the major Linux distributions.
 It works by scraping mirrors for published kernel headers packages on package mirrors.
