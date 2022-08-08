@@ -72,9 +72,10 @@ For a detailed overview see the [**reference**](docs/reference/CONFIG.md).
 
 Moreover, sample configurations are available [here](./config/samples).
 
-## VNEXT
+## Roadmap
 
 - Support new distributions (Debian, Ubuntu, Fedora, Amazon Linux)
+- Provide GCC versions
 
 ## Thanks
 
