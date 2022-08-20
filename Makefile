@@ -1,4 +1,9 @@
-bins := go cobra golangci-lint gofumpt
+app := krawler
+version := 0.1.0
+
+oci_image := quay.io/maxgio92/$(app)
+
+bins := go golangci-lint gofumpt
 commands := version list
 
 define declare_binpaths
@@ -8,6 +13,10 @@ endef
 .PHONY: build
 build:
 	@$(go) build .
+
+.PHONY: test
+test:
+	@go test -v -cover -gcflags=-l ./...
 
 .PHONY: lint
 lint: golangci-lint
@@ -24,6 +33,18 @@ gofumpt:
 $(foreach bin,$(bins),\
 	$(eval $(call declare_binpaths,$(bin)))\
 )
+
+.PHONY: oci/build
+oci/build:
+	@docker build . -t $(oci_image):$(version) -f Containerfile
+
+.PHONY: oci/push
+oci/push: oci/build
+	@docker push $(oci_image):$(version)
+
+.PHONY: clean
+clean:
+	@rm -f $(app)
 
 .PHONY: help
 help: list
