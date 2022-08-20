@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,7 @@ import (
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
 	d "github.com/maxgio92/krawler/pkg/distro"
+	"github.com/maxgio92/krawler/pkg/distro/centos"
 )
 
 // centosCmd represents the centos command.
@@ -50,11 +51,7 @@ func init() {
 }
 
 func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
-	// A representation of a Linux distribution package scraper.
-	distro, err := d.NewDistro(d.CentosType)
-	if err != nil {
-		return nil, err
-	}
+	distro := &centos.Centos{}
 
 	// The filter for filter packages.
 	packagePrefix := KernelHeadersPackageName

@@ -1,27 +1,30 @@
-package distro
+package centos
 
 import (
 	"net/url"
 	"strings"
+
+	"github.com/maxgio92/krawler/pkg/distro"
 )
 
-func (c *Centos) buildConfig(def Config, user Config) (Config, error) {
+func (c *Centos) buildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
 	config, err := c.mergeConfig(def, user)
 	if err != nil {
-		return Config{}, err
+		return distro.Config{}, err
 	}
 
 	err = c.sanitizeConfig(&config)
 	if err != nil {
-		return Config{}, err
+		return distro.Config{}, err
 	}
 
 	return config, nil
 }
 
 // Returns the final configuration by merging the default with the user provided.
+//
 //nolint:unparam
-func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
+func (c *Centos) mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
 	if len(config.Archs) < 1 {
 		config.Archs = def.Archs
 	} else {
@@ -63,8 +66,9 @@ func (c *Centos) mergeConfig(def Config, config Config) (Config, error) {
 }
 
 // Returns the final configuration by overriding the default.
+//
 //nolint:unparam,unused
-func (c *Centos) overrideConfig(def Config, override Config) (Config, error) {
+func (c *Centos) overrideConfig(def distro.Config, override distro.Config) (distro.Config, error) {
 	if len(override.Mirrors) > 0 {
 		if override.Mirrors[0].URL != "" {
 			return override, nil
@@ -74,7 +78,7 @@ func (c *Centos) overrideConfig(def Config, override Config) (Config, error) {
 	return def, nil
 }
 
-func (c *Centos) sanitizeConfig(config *Config) error {
+func (c *Centos) sanitizeConfig(config *distro.Config) error {
 	err := c.sanitizeMirrors(&config.Mirrors)
 	if err != nil {
 		return err
@@ -83,7 +87,7 @@ func (c *Centos) sanitizeConfig(config *Config) error {
 	return nil
 }
 
-func (c *Centos) sanitizeMirrors(mirrors *[]Mirror) error {
+func (c *Centos) sanitizeMirrors(mirrors *[]distro.Mirror) error {
 	for i, mirror := range *mirrors {
 		if !strings.HasSuffix(mirror.URL, "/") {
 			(*mirrors)[i].URL = mirror.URL + "/"

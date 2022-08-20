@@ -4,7 +4,7 @@ import (
 	"net/url"
 )
 
-func repositorySliceContains(s []Repository, e Repository) bool {
+func RepositorySliceContains(s []Repository, e Repository) bool {
 	for _, v := range s {
 		if v.URI == e.URI {
 			return true
@@ -30,7 +30,7 @@ func getHostnamesFromURLs(urls []string) ([]string, error) {
 	for _, v := range urls {
 		url, err := url.Parse(v)
 		if err != nil {
-			return nil, errDomainsFromMirrorUrls
+			return nil, ErrDomainsFromMirrorUrls
 		}
 
 		hostnames = append(hostnames, url.Host)
