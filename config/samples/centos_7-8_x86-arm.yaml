@@ -2,8 +2,8 @@ distros:
   centos:
 
     versions:
-    - "7"
-    - "8"
+    - "7.0.1406"
+    - "8-stream"
 
     archs:
     - "x86_64"
@@ -16,9 +16,9 @@ distros:
       name: Edge
 
     repositories:
-    - uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+    - uri: "/{{ .old_repos }}/{{ .archs }}/"
       name: Old
-    - uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+    - uri: "/{{ .new_repos }}/{{ .archs }}/os/"
       name: New
 
     vars:
@@ -28,5 +28,3 @@ distros:
       old_repos:
       - "os"
       - "updates"
-      packages_folder:
-      - "Packages"
