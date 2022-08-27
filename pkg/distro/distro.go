@@ -1,11 +1,15 @@
 package distro
 
+import (
+	"github.com/maxgio92/krawler/pkg/packages"
+)
+
 type Config struct {
 	// A list of Mirrors to scrape.
-	Mirrors []Mirror
+	Mirrors []packages.Mirror
 
 	// The mirrored repositories.
-	Repositories []Repository
+	Repositories []packages.Repository
 
 	// A list of architecture for to which scrape packages.
 	Archs []Arch
@@ -23,30 +27,9 @@ type Distro interface {
 
 	// GetPackages should return a slice of Package based on
 	// the provided Filter-type filter.
-	GetPackages(Filter) ([]Package, error)
+	GetPackages(packages.Filter) ([]packages.Package, error)
 }
 
 type Version string
 
 type Type string
-
-type Mirror struct {
-	Name string
-	// The base URL of the package mirror
-	// (e.g. https://mirrors.kernel.org/<distribution>)
-	URL string
-}
-
-type Repository struct {
-	Name string
-	URI  URITemplate
-}
-
-type URITemplate string
-
-type Package string
-
-// A package filter string prefix.
-type Filter Prefix
-
-type Prefix string
