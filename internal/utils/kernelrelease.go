@@ -4,8 +4,7 @@ import (
 	"strings"
 
 	kr "github.com/falcosecurity/driverkit/pkg/kernelrelease"
-
-	"github.com/maxgio92/krawler/pkg/distro"
+	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
 func KernelReleaseFromPackageName(packageName string, packagePrefix string) string {
@@ -30,11 +29,11 @@ func UniqueKernelReleases(kernelReleases []kr.KernelRelease) []kr.KernelRelease 
 	return krs
 }
 
-func GetKernelReleaseListFromPackageList(packages []distro.Package, packagePrefix string) ([]kr.KernelRelease, error) {
+func GetKernelReleaseListFromPackageList(packages []p.Package, packagePrefix string) ([]kr.KernelRelease, error) {
 	kernelReleases := []kr.KernelRelease{}
 
 	for _, v := range packages {
-		s := KernelReleaseFromPackageName(string(v), packagePrefix)
+		s := KernelReleaseFromPackageName(v.(string), packagePrefix)
 		r := kr.FromString(s)
 		kernelReleases = append(kernelReleases, r)
 	}

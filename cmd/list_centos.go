@@ -22,8 +22,8 @@ import (
 
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
-	d "github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/distro/centos"
+	"github.com/maxgio92/krawler/pkg/packages"
 )
 
 // centosCmd represents the centos command.
@@ -55,7 +55,7 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 
 	// The filter for filter packages.
 	packagePrefix := KernelHeadersPackageName
-	filter := d.Filter(packagePrefix)
+	filter := packages.Filter(packagePrefix)
 
 	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
 	if err != nil {
