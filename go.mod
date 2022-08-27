@@ -3,6 +3,7 @@ module github.com/maxgio92/krawler
 go 1.19
 
 require (
+	github.com/antchfx/xmlquery v1.3.9
 	github.com/falcosecurity/driverkit v0.5.0
 	github.com/gocolly/colly v1.2.0
 	github.com/olekukonko/tablewriter v0.0.6-0.20210304033056-74c60be0ef68
@@ -16,7 +17,6 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/antchfx/htmlquery v1.2.4 // indirect
-	github.com/antchfx/xmlquery v1.3.9 // indirect
 	github.com/antchfx/xpath v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect

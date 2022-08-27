@@ -4,6 +4,7 @@ import (
 	"net/url"
 
 	"github.com/maxgio92/krawler/pkg/distro"
+	"github.com/maxgio92/krawler/pkg/packages/rpm"
 	"github.com/maxgio92/krawler/pkg/scrape"
 	"github.com/maxgio92/krawler/pkg/template"
 )
@@ -41,7 +42,7 @@ func (c *Centos) GetPackages(filter distro.Filter) ([]distro.Package, error) {
 		return nil, err
 	}
 
-	packages, err = c.crawlPackages(repositoriesUrls, filter, debugScrape)
+	packages, err = rpm.GetPackagesFromRepositories(repositoriesUrls, string(filter), debugScrape)
 	if err != nil {
 		return nil, err
 	}
