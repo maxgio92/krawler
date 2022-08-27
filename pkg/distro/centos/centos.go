@@ -4,6 +4,7 @@ import (
 	"net/url"
 
 	"github.com/maxgio92/krawler/pkg/distro"
+	p "github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/packages/rpm"
 	"github.com/maxgio92/krawler/pkg/scrape"
 	"github.com/maxgio92/krawler/pkg/template"
@@ -22,8 +23,8 @@ func (c *Centos) Configure(config distro.Config, vars map[string]interface{}) er
 
 // For each mirror, for each distro version, for each repository,
 // for each architecture, get packages.
-func (c *Centos) GetPackages(filter distro.Filter) ([]distro.Package, error) {
-	var packages []distro.Package
+func (c *Centos) GetPackages(filter p.Filter) ([]p.Package, error) {
+	var packages []p.Package
 
 	// Merge custom config with default config.
 	config, err := c.buildConfig(CentosDefaultConfig, c.config)
@@ -51,7 +52,7 @@ func (c *Centos) GetPackages(filter distro.Filter) ([]distro.Package, error) {
 }
 
 // Returns the list of version-specific mirror URLs.
-func (c *Centos) buildPerVersionMirrorUrls(mirrors []distro.Mirror, versions []distro.Version) ([]*url.URL, error) {
+func (c *Centos) buildPerVersionMirrorUrls(mirrors []p.Mirror, versions []distro.Version) ([]*url.URL, error) {
 	versions, err := c.buildVersions(mirrors, versions)
 	if err != nil {
 		return []*url.URL{}, err
@@ -79,7 +80,7 @@ func (c *Centos) buildPerVersionMirrorUrls(mirrors []distro.Mirror, versions []d
 
 // Returns a list of distro versions, considering the user-provided configuration,
 // and if not, the ones available on configured mirrors.
-func (c *Centos) buildVersions(mirrors []distro.Mirror, staticVersions []distro.Version) ([]distro.Version, error) {
+func (c *Centos) buildVersions(mirrors []p.Mirror, staticVersions []distro.Version) ([]distro.Version, error) {
 	if staticVersions != nil {
 		return staticVersions, nil
 	}
@@ -96,7 +97,7 @@ func (c *Centos) buildVersions(mirrors []distro.Mirror, staticVersions []distro.
 
 // Returns the list of the current available distro versions, by scraping
 // the specified mirrors, dynamically.
-func (c *Centos) crawlVersions(mirrors []distro.Mirror, debug bool) ([]distro.Version, error) {
+func (c *Centos) crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version, error) {
 	var versions []distro.Version
 
 	seedUrls := make([]*url.URL, 0, len(mirrors))
@@ -121,7 +122,7 @@ func (c *Centos) crawlVersions(mirrors []distro.Mirror, debug bool) ([]distro.Ve
 }
 
 // Returns the list of repositories URLs.
-func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []distro.Repository, vars map[string]interface{}) ([]*url.URL, error) {
+func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []p.Repository, vars map[string]interface{}) ([]*url.URL, error) {
 	var urls []*url.URL
 
 	uris, err := c.buildRepositoriesUris(repositories, vars)
@@ -146,7 +147,7 @@ func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []distro.R
 	return urls, nil
 }
 
-func (c *Centos) buildRepositoriesUris(repositories []distro.Repository, vars map[string]interface{}) ([]string, error) {
+func (c *Centos) buildRepositoriesUris(repositories []p.Repository, vars map[string]interface{}) ([]string, error) {
 	uris := []string{}
 
 	for _, repository := range repositories {
@@ -169,8 +170,8 @@ func (c *Centos) buildRepositoriesUris(repositories []distro.Repository, vars ma
 }
 
 // Returns the list of default repositories from the default config.
-func (c *Centos) getDefaultRepositories() []distro.Repository {
-	var repositories []distro.Repository
+func (c *Centos) getDefaultRepositories() []p.Repository {
+	var repositories []p.Repository
 
 	for _, repository := range CentosDefaultConfig.Repositories {
 		if !distro.RepositorySliceContains(repositories, repository) {
@@ -182,17 +183,17 @@ func (c *Centos) getDefaultRepositories() []distro.Repository {
 }
 
 // Returns a list of packages found on each page URL, filtered by filter.
-func (c *Centos) crawlPackages(seedUrls []*url.URL, filter distro.Filter, debug bool) ([]distro.Package, error) {
+func (c *Centos) crawlPackages(seedUrls []*url.URL, filter p.Filter, debug bool) ([]p.Package, error) {
 	filenameRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
 
 	filenames, err := scrape.CrawlFiles(seedUrls, filenameRegex, debug)
 	if err != nil {
-		return []distro.Package{}, err
+		return []p.Package{}, err
 	}
 
-	var packages []distro.Package
+	var packages []p.Package
 	for _, filename := range filenames {
-		packages = append(packages, distro.Package(filename))
+		packages = append(packages, p.Package(filename))
 	}
 
 	return packages, nil

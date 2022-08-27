@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/maxgio92/krawler/pkg/distro"
+	"github.com/maxgio92/krawler/pkg/packages"
 )
 
 func (c *Centos) buildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
@@ -87,7 +88,7 @@ func (c *Centos) sanitizeConfig(config *distro.Config) error {
 	return nil
 }
 
-func (c *Centos) sanitizeMirrors(mirrors *[]distro.Mirror) error {
+func (c *Centos) sanitizeMirrors(mirrors *[]packages.Mirror) error {
 	for i, mirror := range *mirrors {
 		if !strings.HasSuffix(mirror.URL, "/") {
 			(*mirrors)[i].URL = mirror.URL + "/"
