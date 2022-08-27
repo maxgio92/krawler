@@ -74,7 +74,7 @@ centos:
 
 `name` is a string label for the name of the repository (e.g. [*AppStream*](http://mirrors.edge.kernel.org/centos/8-stream/AppStream/) for Centos). Please note that this is a label, the value does not have side effects in the crawling flow.
 
-`uri` is a string that contains the uri path to the packages folder, starting from the root URL of the mirror. Note that the uri format should start with a "/".
+`uri` is a string that contains the uri path to the repository root folder, starting from the root URL of the mirror. Note that the uri format should start with a "/".
 
 ##### Example
 
@@ -82,7 +82,7 @@ centos:
 centos:
   repositories:
   - name: AppStream
-    uri: /AppStream/x86_64/os/Packages/
+    uri: /AppStream/x86_64/os/
 ```
 
 ### Repositories Templating
@@ -118,13 +118,12 @@ distros:
     url: https://mirrors.edge.kernel.org/centos/
     repositories:
     - name: old
-      uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folders }}/"
+      uri: "/{{ .old_repos }}/{{ .archs }}/"
     - name: new
-      uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folders }}/"
+      uri: "/{{ .new_repos }}/{{ .archs }}/os/"
     vars:
       new_repos: ["BaseOS", "AppStream"]
       old_repos: ["os", "updates"]
-      packages_folders: ["Packages"]
 ```
 
 As you can see both system-declared (e.g. `archs`) and user-declared (e.g. `new_repos`) data structure can be referenced in the template string.

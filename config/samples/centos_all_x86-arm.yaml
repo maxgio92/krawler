@@ -13,9 +13,9 @@ distros:
 
     repositories:
     - name: old
-      uri: "/{{ .old_repos }}/{{ .archs }}/{{ .packages_folder }}/"
+      uri: "/{{ .old_repos }}/{{ .archs }}/"
     - name: new
-      uri: "/{{ .new_repos }}/{{ .archs }}/os/{{ .packages_folder }}/"
+      uri: "/{{ .new_repos }}/{{ .archs }}/os/"
 
     vars:
       new_repos:
@@ -24,5 +24,3 @@ distros:
       old_repos:
       - "os"
       - "updates"
-      packages_folder:
-      - "Packages"
