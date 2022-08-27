@@ -18,14 +18,14 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, name string, debug boo
 	var packages []p.Package
 
 	for _, repoURL := range repositoryURLs {
-		DBs, err := getDBsFromRepoMetaDataURL(repoURL.String() + "/" + repoMetadataURI)
+		DBs, err := getDBsFromRepoMDURL(repoURL.String() + "/" + repoMetadataURI)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, v := range DBs {
 			DBURL := repoURL.String() + v.Location.Href
-			rpmPackages, err := getPackagesFromRepoXMLDBURL(DBURL, name)
+			rpmPackages, err := getPackagesFromRepoXMLDB(DBURL, name)
 			if err != nil {
 				return nil, err
 			}
@@ -39,7 +39,7 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, name string, debug boo
 	return packages, nil
 }
 
-func getDBsFromRepoMetaDataURL(url string) (DBs []Data, err error) {
+func getDBsFromRepoMDURL(url string) (DBs []Data, err error) {
 	u, err := u.Parse(url)
 	if err != nil {
 		return nil, err
@@ -77,8 +77,8 @@ func getDBsFromRepoMetaDataURL(url string) (DBs []Data, err error) {
 	return
 }
 
-func getPackagesFromRepoXMLDBURL(us string, packageName string) (packages []Package, err error) {
-	u, err := u.Parse(us)
+func getPackagesFromRepoXMLDB(repoURL string, packageName string) (packages []Package, err error) {
+	u, err := u.Parse(repoURL)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +110,8 @@ func getPackagesFromRepoXMLDBURL(us string, packageName string) (packages []Pack
 	return
 }
 
-func getGzipReaderFromURL(us string) (*gzip.Reader, error) {
-	u, err := u.Parse(us)
+func getGzipReaderFromURL(url string) (*gzip.Reader, error) {
+	u, err := u.Parse(url)
 	if err != nil {
 		return nil, err
 	}
