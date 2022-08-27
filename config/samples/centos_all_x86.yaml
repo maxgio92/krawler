@@ -27,4 +27,4 @@ distros:
     # This is a completely new repository for CentOS >= 8
     # (https://docs.centos.org/en-US/8-docs/managing-userspace-components/assembly_using-appstream/#packaging-methods-in-rhel-8_using-appstream)
     - name: AppStream
-        uri: "/AppStream/{{ .archs }}/os/Packages/"
+      uri: "/AppStream/{{ .archs }}/os/Packages/"
