@@ -21,7 +21,7 @@ func (c *Centos) Configure(config distro.Config, vars map[string]interface{}) er
 }
 
 // For each mirror, for each distro version, for each repository,
-// for each architecture, scrape.
+// for each architecture, get packages.
 func (c *Centos) GetPackages(filter distro.Filter) ([]distro.Package, error) {
 	var packages []distro.Package
 
@@ -184,10 +184,12 @@ func (c *Centos) getDefaultRepositories() []distro.Repository {
 // Returns a list of packages found on each page URL, filtered by filter.
 func (c *Centos) crawlPackages(seedUrls []*url.URL, filter distro.Filter, debug bool) ([]distro.Package, error) {
 	filenameRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
+
 	filenames, err := scrape.CrawlFiles(seedUrls, filenameRegex, debug)
 	if err != nil {
 		return []distro.Package{}, err
 	}
+
 	var packages []distro.Package
 	for _, filename := range filenames {
 		packages = append(packages, distro.Package(filename))
