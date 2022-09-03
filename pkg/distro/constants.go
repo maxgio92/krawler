@@ -7,7 +7,3 @@ const (
 	DefaultArch = X86_64Arch
 	CentosType  = "centos"
 )
-
-var (
-	debugScrape = true
-)
