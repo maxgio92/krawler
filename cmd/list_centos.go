@@ -16,6 +16,8 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/spf13/cobra"
 	v "github.com/spf13/viper"
@@ -54,8 +56,7 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 	distro := &centos.Centos{}
 
 	// The filter for filter packages.
-	packagePrefix := KernelHeadersPackageName
-	filter := packages.Filter(packagePrefix)
+	filter := packages.Filter(KernelHeadersPackageName)
 
 	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
 	if err != nil {
@@ -74,7 +75,8 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 	}
 
 	// Get kernel releases from kernel header packages.
-	kernelReleases, err := utils.GetKernelReleaseListFromPackageList(packages, packagePrefix)
+	prefix := fmt.Sprintf("%s-", KernelHeadersPackageName)
+	kernelReleases, err := utils.GetKernelReleaseListFromPackageList(packages, prefix)
 	if err != nil {
 		return []kernelrelease.KernelRelease{}, err
 	}
