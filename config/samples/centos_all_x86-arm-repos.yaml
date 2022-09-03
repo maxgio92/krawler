@@ -1,0 +1,26 @@
+distros:
+  centos:
+
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: https://archive.kernel.org/centos-vault
+      name: Archive
+    - url: https://mirrors.edge.kernel.org/centos
+      name: Edge
+
+    repositories:
+    - name: old
+      uri: "/{{ .old_repos }}/{{ .archs }}/"
+    - name: new
+      uri: "/{{ .new_repos }}/{{ .archs }}/os/"
+
+    vars:
+      new_repos:
+      - "BaseOS"
+      - "AppStream"
+      old_repos:
+      - "os"
+      - "updates"
