@@ -22,7 +22,8 @@ type KernelRelease struct {
 	FullExtraversion string `json:"full_extra_version"`
 	Architecture     Arch   `json:"architecture"`
 	PackageName      string `json:"package_name"`
-	PackageURI       string `json:"package_uri"`
+	PackageURL       string `json:"package_url"`
+	CompilerVersion  string `json:"compiler_version"`
 }
 
 var (
@@ -31,7 +32,7 @@ var (
 
 func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	k.PackageName = pkg.GetName()
-	k.PackageURI = pkg.GetLocation()
+	k.PackageURL = pkg.URL()
 	k.Architecture = Arch(pkg.GetArch())
 
 	prefix := fmt.Sprintf("%s-", pkg.GetName())
@@ -64,6 +65,12 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 			}
 		}
 	}
+
+	compilerVersion, err := GetCompilerVersionFromRPMPackageURL(pkg.URL())
+	if err != nil {
+		k.CompilerVersion = ""
+	}
+	k.CompilerVersion = compilerVersion
 
 	return nil
 }

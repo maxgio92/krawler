@@ -3,6 +3,7 @@ package rpm
 import (
 	"encoding/xml"
 	"fmt"
+	"io"
 )
 
 type Package struct {
@@ -13,11 +14,11 @@ type Package struct {
 	Summary     string          `xml:"summary"`
 	Description string          `xml:"description"`
 	Packager    string          `xml:"packager"`
-	URL         string          `xml:"url"`
 	Time        PackageTime     `xml:"time"`
 	Size        PackageSize     `xml:"size"`
 	Location    PackageLocation `xml:"location"`
 	Format      PackageFormat   `xml:"format"`
+	url         string
 }
 
 func (p *Package) GetName() string {
@@ -44,6 +45,11 @@ func (p *Package) GetLocation() string {
 	return p.Location.Href
 }
 
-func (p *Package) Unpack() ([]byte, error) {
-	return []byte{}, nil
+// Unpack returns a list of readers.
+func (p *Package) Unpack() ([]*io.Reader, error) {
+	return []*io.Reader{}, nil
+}
+
+func (p *Package) URL() string {
+	return p.url
 }

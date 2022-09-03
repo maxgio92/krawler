@@ -1,5 +1,7 @@
 package packages
 
+import "io"
+
 type Package interface {
 	GetName() string
 	GetVersion() string
@@ -7,7 +9,11 @@ type Package interface {
 	GetArch() string
 	GetLocation() string
 	String() string
-	Unpack() ([]byte, error)
+
+	// Unpack returns a list of readers.
+	Unpack() ([]*io.Reader, error)
+
+	URL() string
 }
 
 type Filter string

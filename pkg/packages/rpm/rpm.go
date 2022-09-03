@@ -23,9 +23,7 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, name string, debug boo
 		}
 
 		for _, v := range DBs {
-			DBURL := repoURL.String() + v.GetLocation()
-
-			rpmPackages, err := getPackagesFromRepoXMLDB(DBURL, name)
+			rpmPackages, err := getPackagesFromRepoXMLDB(repoURL.String(), v.GetLocation(), name)
 			if err != nil {
 				return nil, err
 			}
@@ -78,8 +76,10 @@ func getDBsFromRepoMDURL(url string) (dbs []Data, err error) {
 	return
 }
 
-func getPackagesFromRepoXMLDB(repoURL string, packageName string) (packages []Package, err error) {
-	u, err := u.Parse(repoURL)
+func getPackagesFromRepoXMLDB(repoURL string, DBURI string, packageName string) (packages []Package, err error) {
+	DBURL := repoURL + DBURI
+
+	u, err := u.Parse(DBURL)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +106,7 @@ func getPackagesFromRepoXMLDB(repoURL string, packageName string) (packages []Pa
 		if err != nil {
 			return
 		}
+		p.url = repoURL + p.GetLocation()
 
 		packages = append(packages, *p)
 	}
