@@ -1,6 +1,24 @@
 package rpm
 
-import "fmt"
+import (
+	"encoding/xml"
+	"fmt"
+)
+
+type Package struct {
+	XMLName     xml.Name        `xml:"package"`
+	Name        string          `xml:"name"`
+	Arch        string          `xml:"arch"`
+	Version     PackageVersion  `xml:"version"`
+	Summary     string          `xml:"summary"`
+	Description string          `xml:"description"`
+	Packager    string          `xml:"packager"`
+	URL         string          `xml:"url"`
+	Time        PackageTime     `xml:"time"`
+	Size        PackageSize     `xml:"size"`
+	Location    PackageLocation `xml:"location"`
+	Format      PackageFormat   `xml:"format"`
+}
 
 func (p *Package) GetName() string {
 	return p.Name
