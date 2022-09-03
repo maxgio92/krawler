@@ -7,13 +7,6 @@ import (
 	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
-func KernelReleaseFromPackageName(packageName string, packagePrefix string) string {
-	ss := strings.Split(packageName, ".")
-	ss = strings.Split(strings.Split(packageName, "."+ss[len(ss)-1])[0], packagePrefix+"-")
-
-	return ss[1]
-}
-
 func UniqueKernelReleases(kernelReleases []kr.KernelRelease) []kr.KernelRelease {
 	krs := make([]kr.KernelRelease, 0, len(kernelReleases))
 	m := make(map[kr.KernelRelease]bool)
@@ -29,14 +22,15 @@ func UniqueKernelReleases(kernelReleases []kr.KernelRelease) []kr.KernelRelease 
 	return krs
 }
 
-func GetKernelReleaseListFromPackageList(packages []p.Package, packagePrefix string) ([]kr.KernelRelease, error) {
-	kernelReleases := []kr.KernelRelease{}
+func GetKernelReleaseListFromPackageList(packages []p.Package, prefix string) ([]kr.KernelRelease, error) {
+	releases := []kr.KernelRelease{}
 
-	for _, v := range packages {
-		s := KernelReleaseFromPackageName(v.String(), packagePrefix)
-		r := kr.FromString(s)
-		kernelReleases = append(kernelReleases, r)
+	for _, pkg := range packages {
+		version := strings.TrimPrefix(pkg.String(), prefix)
+
+		r := kr.FromString(version)
+		releases = append(releases, r)
 	}
 
-	return UniqueKernelReleases(kernelReleases), nil
+	return UniqueKernelReleases(releases), nil
 }
