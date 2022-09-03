@@ -10,33 +10,9 @@ type RepositoryMetadata struct {
 	Data     []Data   `xml:"data"`
 }
 
-type Data struct {
-	Type     string   `xml:"type,attr"`
-	Location Location `xml:"location"`
-}
-
-type Location struct {
-	Href string `xml:"href,attr"`
-}
-
 type PrimaryRepositoryMetadata struct {
 	XMLName  xml.Name  `xml:"metadata"`
 	Packages []Package `xml:"package"`
-}
-
-type Package struct {
-	XMLName     xml.Name        `xml:"package"`
-	Name        string          `xml:"name"`
-	Arch        string          `xml:"arch"`
-	Version     PackageVersion  `xml:"version"`
-	Summary     string          `xml:"summary"`
-	Description string          `xml:"description"`
-	Packager    string          `xml:"packager"`
-	URL         string          `xml:"url"`
-	Time        PackageTime     `xml:"time"`
-	Size        PackageSize     `xml:"size"`
-	Location    PackageLocation `xml:"location"`
-	Format      PackageFormat   `xml:"format"`
 }
 
 type PackageVersion struct {

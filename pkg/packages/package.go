@@ -5,6 +5,7 @@ type Package interface {
 	GetVersion() string
 	GetRelease() string
 	GetArch() string
+	GetLocation() string
 	String() string
 	Unpack() ([]byte, error)
 }

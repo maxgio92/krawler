@@ -16,15 +16,13 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/falcosecurity/driverkit/pkg/kernelrelease"
 	"github.com/spf13/cobra"
 	v "github.com/spf13/viper"
 
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/internal/utils"
 	"github.com/maxgio92/krawler/pkg/distro/centos"
+	kr "github.com/maxgio92/krawler/pkg/kernelrelease"
 	"github.com/maxgio92/krawler/pkg/packages"
 )
 
@@ -52,7 +50,7 @@ func init() {
 	listCmd.AddCommand(centosCmd)
 }
 
-func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
+func getKernelReleases() ([]kr.KernelRelease, error) {
 	distro := &centos.Centos{}
 
 	// The filter for filter packages.
@@ -60,25 +58,25 @@ func getKernelReleases() ([]kernelrelease.KernelRelease, error) {
 
 	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
 	if err != nil {
-		return []kernelrelease.KernelRelease{}, err
+		return []kr.KernelRelease{}, err
 	}
 
 	err = distro.Configure(config, vars)
 	if err != nil {
-		return []kernelrelease.KernelRelease{}, err
+		return []kr.KernelRelease{}, err
 	}
 
 	// Scrape mirrors for packeges by filter.
 	packages, err := distro.GetPackages(filter)
 	if err != nil {
-		return []kernelrelease.KernelRelease{}, err
+		return []kr.KernelRelease{}, err
 	}
 
 	// Get kernel releases from kernel header packages.
-	prefix := fmt.Sprintf("%s-", KernelHeadersPackageName)
-	kernelReleases, err := utils.GetKernelReleaseListFromPackageList(packages, prefix)
+	//prefix := fmt.Sprintf("%s-", KernelHeadersPackageName)
+	kernelReleases, err := kr.GetKernelReleaseListFromPackageList(packages, KernelHeadersPackageName)
 	if err != nil {
-		return []kernelrelease.KernelRelease{}, err
+		return []kr.KernelRelease{}, err
 	}
 
 	return kernelReleases, nil
