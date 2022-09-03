@@ -32,7 +32,7 @@ type Package struct {
 	Summary     string          `xml:"summary"`
 	Description string          `xml:"description"`
 	Packager    string          `xml:"packager"`
-	Url         string          `xml:"url"`
+	URL         string          `xml:"url"`
 	Time        PackageTime     `xml:"time"`
 	Size        PackageSize     `xml:"size"`
 	Location    PackageLocation `xml:"location"`

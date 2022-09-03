@@ -1,22 +1,22 @@
 package utils
 
 import (
-	d "github.com/maxgio92/krawler/pkg/distro"
-
 	v "github.com/spf13/viper"
+
+	d "github.com/maxgio92/krawler/pkg/distro"
 )
 
 func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, map[string]interface{}, error) {
-
 	// The distro configuration.
 	var config d.Config
 
 	// The distro all settings from Viper
 	var allsettings map[string]interface{}
+
+	// The distro config variables from Viper
 	var varsSettings map[string]interface{}
 
-	distros := v.Sub("distros")
-	if distros != nil {
+	if distros := v.Sub("distros"); distros != nil {
 		centos := distros.Sub(string(d.CentosType))
 		if centos != nil {
 			err := centos.Unmarshal(&config)
@@ -29,6 +29,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, map[string]inter
 	}
 
 	if _, ok := allsettings["vars"].(map[string]interface{}); ok {
+		//nolint:forcetypeassert
 		varsSettings = allsettings["vars"].(map[string]interface{})
 	}
 

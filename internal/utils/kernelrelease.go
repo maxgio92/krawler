@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	kr "github.com/falcosecurity/driverkit/pkg/kernelrelease"
+
 	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
