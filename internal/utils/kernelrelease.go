@@ -33,7 +33,7 @@ func GetKernelReleaseListFromPackageList(packages []p.Package, packagePrefix str
 	kernelReleases := []kr.KernelRelease{}
 
 	for _, v := range packages {
-		s := KernelReleaseFromPackageName(v.(string), packagePrefix)
+		s := KernelReleaseFromPackageName(v.String(), packagePrefix)
 		r := kr.FromString(s)
 		kernelReleases = append(kernelReleases, r)
 	}

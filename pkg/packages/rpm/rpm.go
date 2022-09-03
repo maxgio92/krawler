@@ -7,15 +7,14 @@ import (
 	u "net/url"
 
 	"github.com/antchfx/xmlquery"
-	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
 const (
 	repoMetadataURI = "repodata/repomd.xml"
 )
 
-func GetPackagesFromRepositories(repositoryURLs []*u.URL, name string, debug bool) ([]p.Package, error) {
-	var packages []p.Package
+func GetPackagesFromRepositories(repositoryURLs []*u.URL, name string, debug bool) ([]Package, error) {
+	var packages []Package
 
 	for _, repoURL := range repositoryURLs {
 		DBs, err := getDBsFromRepoMDURL(repoURL.String() + "/" + repoMetadataURI)
@@ -24,15 +23,13 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, name string, debug boo
 		}
 
 		for _, v := range DBs {
-			DBURL := repoURL.String() + v.Location.Href
+			DBURL := repoURL.String() + v.GetLocation()
 			rpmPackages, err := getPackagesFromRepoXMLDB(DBURL, name)
 			if err != nil {
 				return nil, err
 			}
 
-			for _, v := range rpmPackages {
-				packages = append(packages, p.Package(v.Name+"-"+v.Version.Ver+"-"+v.Version.Rel+"."+v.Arch+".rpm"))
-			}
+			packages = append(packages, rpmPackages...)
 		}
 	}
 

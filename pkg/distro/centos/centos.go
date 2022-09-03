@@ -24,8 +24,6 @@ func (c *Centos) Configure(config distro.Config, vars map[string]interface{}) er
 // For each mirror, for each distro version, for each repository,
 // for each architecture, get packages.
 func (c *Centos) GetPackages(filter p.Filter) ([]p.Package, error) {
-	var packages []p.Package
-
 	// Merge custom config with default config.
 	config, err := c.buildConfig(CentosDefaultConfig, c.config)
 	if err != nil {
@@ -43,9 +41,15 @@ func (c *Centos) GetPackages(filter p.Filter) ([]p.Package, error) {
 		return nil, err
 	}
 
-	packages, err = rpm.GetPackagesFromRepositories(repositoriesUrls, string(filter), debugScrape)
+	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoriesUrls, string(filter), debugScrape)
 	if err != nil {
 		return nil, err
+	}
+
+	packages := make([]p.Package, len(rpmPackages))
+	for i, v := range rpmPackages {
+		v := v
+		packages[i] = p.Package(&v)
 	}
 
 	return packages, nil
@@ -180,21 +184,4 @@ func (c *Centos) getDefaultRepositories() []p.Repository {
 	}
 
 	return repositories
-}
-
-// Returns a list of packages found on each page URL, filtered by filter.
-func (c *Centos) crawlPackages(seedUrls []*url.URL, filter p.Filter, debug bool) ([]p.Package, error) {
-	filenameRegex := `^` + string(filter) + `.+.` + CentosPackageFileExtension
-
-	filenames, err := scrape.CrawlFiles(seedUrls, filenameRegex, debug)
-	if err != nil {
-		return []p.Package{}, err
-	}
-
-	var packages []p.Package
-	for _, filename := range filenames {
-		packages = append(packages, p.Package(filename))
-	}
-
-	return packages, nil
 }
