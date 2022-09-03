@@ -90,7 +90,7 @@ func getPackagesFromRepoXMLDB(repoURL string, packageName string) (packages []Pa
 
 	doc, err := xmlquery.Parse(gr)
 	if err != nil {
-		return
+		return nil, nil
 	}
 
 	packagesXML, err := xmlquery.QueryAll(doc, "//package[name='"+packageName+"']")
