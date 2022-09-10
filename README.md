@@ -74,9 +74,6 @@ Moreover, sample configurations are available [here](./config/samples).
 
 ## Roadmap
 
-- Support new distributions (Debian, Ubuntu, Fedora, Amazon Linux)
-- Provide GCC versions
+- [ ] Provide GCC versions
+- [ ] Support new distributions (Debian, Ubuntu, Fedora, Amazon Linux)
 
-## Thanks
-
-- Falco [driverkit](https://github.com/falcosecurity/driverkit)
