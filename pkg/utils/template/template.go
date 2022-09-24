@@ -8,7 +8,7 @@ import (
 
 	t "html/template"
 
-	"github.com/maxgio92/krawler/pkg/matrix"
+	"github.com/maxgio92/krawler/pkg/utils/matrix"
 )
 
 // Returns a list of strings of executed templates from a template string
@@ -23,7 +23,7 @@ import (
 //
 // The result is multiple templates from a single template string and multiple
 // arbitrary variable values.
-//func MultiplexAndExecute(templateString string, inventory map[string][]interface{}) ([]string, error) {
+// func MultiplexAndExecute(templateString string, inventory map[string][]interface{}) ([]string, error) {
 func MultiplexAndExecute(templateString string, input map[string]interface{}) ([]string, error) {
 	supportedVariables, err := GetSupportedVariables(templateString)
 	if err != nil {

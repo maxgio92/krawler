@@ -9,11 +9,22 @@ type Package interface {
 	GetArch() string
 	GetLocation() string
 	String() string
-
-	// Unpack returns a list of readers.
-	Unpack() ([]*io.Reader, error)
-
 	URL() string
+	FileReaders() []io.Reader
 }
 
-type Filter string
+type Filter struct {
+	packageName      string
+	packageFileNames []string
+}
+
+func NewFilter(packageName string, packageFileNames ...string) *Filter {
+	return &Filter{
+		packageName:      packageName,
+		packageFileNames: packageFileNames,
+	}
+}
+
+func (f *Filter) String() string {
+	return f.packageName
+}

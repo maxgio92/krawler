@@ -3,7 +3,7 @@ package template
 import (
 	t "html/template"
 
-	"github.com/maxgio92/krawler/pkg/matrix"
+	"github.com/maxgio92/krawler/pkg/utils/matrix"
 )
 
 type TemplatePart struct {

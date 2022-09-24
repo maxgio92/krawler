@@ -1,0 +1,26 @@
+distros:
+  centos:
+
+    versions:
+    - "8-stream"
+
+    archs:
+    - "x86_64"
+
+    mirrors:
+    - url: https://mirrors.edge.kernel.org/centos
+      name: Edge
+
+    repositories:
+    - uri: "/{{ .old_repos }}/{{ .archs }}/"
+      name: Old
+    - uri: "/{{ .new_repos }}/{{ .archs }}/os/"
+      name: New
+
+    vars:
+      new_repos:
+      - "BaseOS"
+      - "AppStream"
+      old_repos:
+      - "os"
+      - "updates"
