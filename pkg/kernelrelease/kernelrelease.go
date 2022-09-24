@@ -66,7 +66,7 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 		}
 	}
 
-	compilerVersion, err := GetCompilerVersionFromRPMPackageURL(pkg.URL())
+	compilerVersion, err := GetCompilerVersionFromKernelPackage(pkg)
 	if err != nil {
 		k.CompilerVersion = ""
 	}

@@ -54,7 +54,7 @@ func getKernelReleases() ([]kr.KernelRelease, error) {
 	distro := &centos.Centos{}
 
 	// The filter for filter packages.
-	filter := packages.Filter(KernelHeadersPackageName)
+	filter := packages.NewFilter(KernelHeadersPackageName, ".config")
 
 	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
 	if err != nil {
@@ -67,13 +67,12 @@ func getKernelReleases() ([]kr.KernelRelease, error) {
 	}
 
 	// Scrape mirrors for packeges by filter.
-	packages, err := distro.GetPackages(filter)
+	packages, err := distro.GetPackages(*filter)
 	if err != nil {
 		return []kr.KernelRelease{}, err
 	}
 
 	// Get kernel releases from kernel header packages.
-	//prefix := fmt.Sprintf("%s-", KernelHeadersPackageName)
 	kernelReleases, err := kr.GetKernelReleaseListFromPackageList(packages, KernelHeadersPackageName)
 	if err != nil {
 		return []kr.KernelRelease{}, err

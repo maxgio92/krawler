@@ -66,19 +66,6 @@ func (c *Centos) mergeConfig(def distro.Config, config distro.Config) (distro.Co
 	return config, nil
 }
 
-// Returns the final configuration by overriding the default.
-//
-//nolint:unparam,unused
-func (c *Centos) overrideConfig(def distro.Config, override distro.Config) (distro.Config, error) {
-	if len(override.Mirrors) > 0 {
-		if override.Mirrors[0].URL != "" {
-			return override, nil
-		}
-	}
-
-	return def, nil
-}
-
 func (c *Centos) sanitizeConfig(config *distro.Config) error {
 	err := c.sanitizeMirrors(&config.Mirrors)
 	if err != nil {

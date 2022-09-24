@@ -7,7 +7,7 @@ import (
 	p "github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/packages/rpm"
 	"github.com/maxgio92/krawler/pkg/scrape"
-	"github.com/maxgio92/krawler/pkg/template"
+	"github.com/maxgio92/krawler/pkg/utils/template"
 )
 
 type Centos struct {
@@ -41,7 +41,7 @@ func (c *Centos) GetPackages(filter p.Filter) ([]p.Package, error) {
 		return nil, err
 	}
 
-	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoriesUrls, string(filter), debugScrape)
+	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoriesUrls, filter.String(), ".config")
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,11 @@ func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []p.Reposi
 		for _, uri := range uris {
 			// Get repository URL from URI.
 			//nolint:revive,stylecheck
-			repositoryUrl, err := url.Parse(root.String() + uri)
+			us, err := url.JoinPath(root.String(), uri)
+			if err != nil {
+				return nil, err
+			}
+			repositoryUrl, err := url.Parse(us)
 			if err != nil {
 				return nil, err
 			}

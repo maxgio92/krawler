@@ -1,70 +1,54 @@
 package kernelrelease
 
 import (
+	"bufio"
 	"io"
-	"net/http"
-	"net/url"
-	"path/filepath"
 	"strings"
+	"unicode"
 
-	"github.com/sassoftware/go-rpmutils"
+	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
 const (
-	CONFIG_GCC_VERSION = "CONFIG_GCC_VERSION"
-	CONFIG_DIR         = ".config"
+	CONFIG_COMPILER_VERSION = "CONFIG_GCC_VERSION"
 )
 
-// TODO: Provide abstraction like GetCompilerVersionFromPackageArchive
-func GetCompilerVersionFromRPMPackageURL(packageURL string) (gccVersion string, err error) {
-	bufferSize := 64
+func GetCompilerVersionFromKernelPackage(pkg p.Package) (string, error) {
+	return getCompilerVersionFromFileReaders(pkg.FileReaders())
+}
 
-	u, err := url.Parse(packageURL)
-	if err != nil {
-		return
-	}
+func getCompilerVersionFromFileReaders(files []io.Reader) (string, error) {
+	for _, r := range files {
+		fileScanner := bufio.NewScanner(r)
+		fileScanner.Split(bufio.ScanLines)
 
-	resp, err := http.Get(u.String())
-	if err != nil {
-		return
-	}
+		for fileScanner.Scan() {
+			line := fileScanner.Text()
+			if strings.Contains(line, CONFIG_COMPILER_VERSION) {
 
-	rpm, err := rpmutils.ReadRpm(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	payload, err := rpm.PayloadReaderExtended()
-
-	for {
-		fileInfo, err := payload.Next()
-		if err == io.EOF {
-			break
-		}
-
-		if filepath.Base(fileInfo.Name()) == CONFIG_DIR {
-
-			for {
-				bytes := make([]byte, bufferSize)
-				_, err := payload.Read(bytes)
-
-				if strings.Contains(string(bytes), CONFIG_GCC_VERSION) {
-					lines := strings.Split(string(bytes), "\n")
-
-					for _, l := range lines {
-						if strings.Contains(l, CONFIG_GCC_VERSION) {
-							gccVersion = strings.Split(l, "=")[1]
-						}
-					}
+				compilerVersion, err := parseConfig(line, CONFIG_COMPILER_VERSION)
+				if err == nil {
+					return compilerVersion, nil
 				}
-				if err == io.EOF {
-					break
-				}
+				return "", err
 			}
-
-			goto exit
+		}
+		err := fileScanner.Err()
+		if err != nil {
+			return "", err
 		}
 	}
-exit:
-	return
+
+	return "", ErrKernelCompilerVersionNotFound
+}
+
+func parseConfig(line string, key string) (string, error) {
+	tokens := strings.FieldsFunc(line, func(c rune) bool {
+		return unicode.Is(unicode.Space, c) || unicode.Is(unicode.Sm, c)
+	})
+	if len(tokens) > 1 {
+		return tokens[len(tokens)-1], nil
+	}
+
+	return "", ErrKernelConfigValueNotFound
 }

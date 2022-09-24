@@ -19,6 +19,7 @@ type Package struct {
 	Location    PackageLocation `xml:"location"`
 	Format      PackageFormat   `xml:"format"`
 	url         string
+	fileReaders []io.Reader
 }
 
 func (p *Package) GetName() string {
@@ -45,11 +46,10 @@ func (p *Package) GetLocation() string {
 	return p.Location.Href
 }
 
-// Unpack returns a list of readers.
-func (p *Package) Unpack() ([]*io.Reader, error) {
-	return []*io.Reader{}, nil
-}
-
 func (p *Package) URL() string {
 	return p.url
+}
+
+func (p *Package) FileReaders() []io.Reader {
+	return p.fileReaders
 }
