@@ -3,7 +3,6 @@ package rpm
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
 	u "net/url"
@@ -11,11 +10,24 @@ import (
 
 	"github.com/antchfx/xmlquery"
 	"github.com/sassoftware/go-rpmutils"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
 	metadataURI = "repodata/repomd.xml"
 )
+
+var (
+	logger = log.New()
+)
+
+func init() {
+	logger.SetLevel(log.DebugLevel)
+	logger.SetFormatter(&log.TextFormatter{
+		ForceColors:      true,
+		DisableTimestamp: true,
+	})
+}
 
 // GetPackagesFromRepositories returns a list of package of type Package with specified name,
 // searching in the specified repositories.
@@ -23,8 +35,7 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, pa
 	var packages []Package
 
 	for _, repoURL := range repositoryURLs {
-
-		fmt.Printf("Analysing repository %s\n", repoURL)
+		logger.WithField("url", repoURL).Info("Analysing repository")
 
 		metadataURL, err := u.JoinPath(repoURL.String(), metadataURI)
 		if err != nil {
@@ -37,14 +48,9 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, pa
 		}
 
 		for _, db := range dbs {
+			logger.WithField("type", db.Type).Info("Analysing DB")
 
-			fmt.Printf("Analysing DB %s\n", db.Type)
-
-			p, err := getPackagesFromDB(repoURL.String(), db.GetLocation(), packageName, packageFileNames...)
-			if err != nil {
-				return nil, err
-			}
-
+			p, _ := getPackagesFromDB(repoURL.String(), db.GetLocation(), packageName, packageFileNames...)
 			packages = append(packages, p...)
 		}
 	}
@@ -117,7 +123,7 @@ func getPackagesFromXMLDB(repoURL string, dbURI string, packageName string, file
 		return nil, err
 	}
 
-	fmt.Printf("Querying DB for package %s\n", packageName)
+	logger.WithField("package", packageName).Info("Querying DB")
 
 	packagesXML, err := xmlquery.QueryAll(doc, "//package[name='"+packageName+"']")
 	if err != nil {
@@ -145,7 +151,7 @@ func buildPackagesFromXML(nodes []*xmlquery.Node, repositoryURL string, fileName
 
 		p.url = repositoryURL + p.GetLocation()
 
-		fmt.Printf("Opening package %s\n", filepath.Base(p.GetLocation()))
+		logger.WithField("fullname", filepath.Base(p.GetLocation())).Info("Opening package")
 
 		fileReaders, err := getFileReadersFromPackageURL(p.url, fileNames...)
 		if err != nil {
@@ -214,7 +220,7 @@ func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader
 		}
 
 		if fileName == "" || filepath.Base(fileInfo.Name()) == fileName {
-			fmt.Printf("found %s file\n", fileName)
+			logger.WithField("name", fileName).Debug("Found file")
 
 			buf, err := io.ReadAll(payload)
 			if err != nil {
