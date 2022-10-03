@@ -35,17 +35,14 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, pa
 	var packages []Package
 
 	for _, repoURL := range repositoryURLs {
-		logger.WithField("url", repoURL).Info("Analysing repository")
-
 		metadataURL, err := u.JoinPath(repoURL.String(), metadataURI)
 		if err != nil {
 			return nil, err
 		}
 
-		dbs, err := getDBsFromMetadataURL(metadataURL)
-		if err != nil {
-			return nil, err
-		}
+		logger.WithField("url", repoURL).Info("Analysing repository")
+
+		dbs, _ := getDBsFromMetadataURL(metadataURL)
 
 		for _, db := range dbs {
 			logger.WithField("type", db.Type).Info("Analysing DB")
@@ -69,10 +66,19 @@ func getDBsFromMetadataURL(url string) (dbs []Data, err error) {
 		return nil, err
 	}
 
+	if resp.StatusCode == http.StatusNotFound {
+		logger.Debug("skipping")
+		return
+	}
+
+	logger.Debug("Parsing repository metadata")
+
 	doc, err := xmlquery.Parse(resp.Body)
 	if err != nil {
 		return
 	}
+
+	logger.Debug("Getting repository DBs")
 
 	DatasXML, err := xmlquery.QueryAll(doc, "//repomd/data")
 	if err != nil {
@@ -113,10 +119,14 @@ func getPackagesFromXMLDB(repoURL string, dbURI string, packageName string, file
 		return nil, err
 	}
 
+	logger.WithField("url", u.String()).Debug("Downloading DB")
+
 	gr, err := getGzipReaderFromURL(u.String())
 	if err != nil {
 		return nil, err
 	}
+
+	logger.WithField("uri", filepath.Base(dbURI)).Debug("Parsing DB")
 
 	doc, err := xmlquery.Parse(gr)
 	if err != nil {
@@ -185,13 +195,21 @@ func getRPMUtilFromPackageURL(packageURL string) (*rpmutils.Rpm, error) {
 		return nil, err
 	}
 
+	logger.WithField("url", u.String()).Debug("Downloading package")
+
 	resp, err := http.Get(u.String())
 	if err != nil {
+		logger.WithError(err).Debug("Error downloading package")
+
 		return nil, err
 	}
 
+	logger.Debug("Parsing package")
+
 	rpm, err := rpmutils.ReadRpm(resp.Body)
 	if err != nil {
+		logger.WithError(err).Debug("Error parsing package")
+
 		return nil, err
 	}
 
