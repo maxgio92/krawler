@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	CONFIG_COMPILER_VERSION = "CONFIG_GCC_VERSION"
+	ConfigCompilerVersion = "CONFIG_GCC_VERSION"
 )
 
 func GetCompilerVersionFromKernelPackage(pkg p.Package) (string, error) {
@@ -24,9 +24,9 @@ func getCompilerVersionFromFileReaders(files []io.Reader) (string, error) {
 
 		for fileScanner.Scan() {
 			line := fileScanner.Text()
-			if strings.Contains(line, CONFIG_COMPILER_VERSION) {
+			if strings.Contains(line, ConfigCompilerVersion) {
 
-				compilerVersion, err := parseConfig(line, CONFIG_COMPILER_VERSION)
+				compilerVersion, err := parseConfig(line, ConfigCompilerVersion)
 				if err == nil {
 					return compilerVersion, nil
 				}
