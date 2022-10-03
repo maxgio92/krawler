@@ -35,6 +35,7 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, pa
 	var packages []Package
 
 	for _, repoURL := range repositoryURLs {
+		//nolint:typecheck
 		metadataURL, err := u.JoinPath(repoURL.String(), metadataURI)
 		if err != nil {
 			return nil, err
@@ -109,6 +110,7 @@ func getPackagesFromDB(repoURL string, dbURI string, packageName string, fileNam
 }
 
 func getPackagesFromXMLDB(repoURL string, dbURI string, packageName string, fileNames ...string) (packages []Package, err error) {
+	//nolint:typecheck
 	dbURL, err := u.JoinPath(repoURL, dbURI)
 	if err != nil {
 		return nil, err

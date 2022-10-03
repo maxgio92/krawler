@@ -25,7 +25,6 @@ func getCompilerVersionFromFileReaders(files []io.Reader) (string, error) {
 		for fileScanner.Scan() {
 			line := fileScanner.Text()
 			if strings.Contains(line, ConfigCompilerVersion) {
-
 				compilerVersion, err := parseConfig(line, ConfigCompilerVersion)
 				if err == nil {
 					return compilerVersion, nil
