@@ -138,7 +138,7 @@ func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []p.Reposi
 		//nolint:revive,stylecheck
 		for _, uri := range uris {
 			// Get repository URL from URI.
-			//nolint:revive,stylecheck
+			//nolint:revive,stylecheck,typecheck
 			us, err := url.JoinPath(root.String(), uri)
 			if err != nil {
 				return nil, err
