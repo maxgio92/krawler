@@ -49,34 +49,42 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, pa
 
 		repoURL := r.String()
 		go func() {
+			defer repoWorkers.Done()
+
 			metadataURL, err := u.JoinPath(repoURL, metadataURI)
 			if err != nil {
 				errCh <- err
-			} else {
-				logger.WithField("url", repoURL).Info("Analysing repository")
+				return
+			}
+			logger.WithField("url", repoURL).Info("Analysing repository")
 
-				dbs, _ := getDBsFromMetadataURL(metadataURL)
+			dbs, _ := getDBsFromMetadataURL(metadataURL)
+			for _, db := range dbs {
+				logger.WithField("type", db.Type).Info("Analysing DB")
 
-				for _, db := range dbs {
-					logger.WithField("type", db.Type).Info("Analysing DB")
-
-					getPackagesFromDB(packagesCh, repoURL, db.GetLocation(), packageName, packageFileNames...)
+				err = getPackagesFromDB(packagesCh, repoURL, db.GetLocation(), packageName, packageFileNames...)
+				if err != nil {
+					errCh <- err
 				}
 			}
-			repoWorkers.Done()
 		}()
 	}
 
 	// Acquire packages.
 	go func() {
-		for p := range packagesCh {
-			packages = append(packages, p)
-		}
-	}()
+		for errCh != nil {
+			select {
+			case p := <-packagesCh:
+				packages = append(packages, p)
+			case e, ok := <-errCh:
 
-	go func() {
-		for e := range errCh {
-			logger.WithError(e).Debug()
+				// When the workers are done.
+				if !ok {
+					errCh = nil
+					continue
+				}
+				logger.WithError(e).Debug()
+			}
 		}
 	}()
 
@@ -136,11 +144,11 @@ func getDBsFromMetadataURL(url string) (dbs []Data, err error) {
 	return
 }
 
-func getPackagesFromDB(packages chan<- Package, repoURL string, dbURI string, packageName string, fileNames ...string) error {
+func getPackagesFromDB(packages chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) error {
 	return getPackagesFromXMLDB(packages, repoURL, dbURI, packageName, fileNames...)
 }
 
-func getPackagesFromXMLDB(packages chan<- Package, repoURL string, dbURI string, packageName string, fileNames ...string) (err error) {
+func getPackagesFromXMLDB(packages chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) (err error) {
 	//nolint:typecheck
 	dbURL, err := u.JoinPath(repoURL, dbURI)
 	if err != nil {
@@ -167,10 +175,10 @@ func getPackagesFromXMLDB(packages chan<- Package, repoURL string, dbURI string,
 	defer resp.Body.Close()
 
 	gr, err := gzip.NewReader(resp.Body)
-	defer gr.Close()
 	if err != nil {
 		return err
 	}
+	defer gr.Close()
 
 	logger.WithField("uri", filepath.Base(dbURI)).Debug("Parsing DB")
 
@@ -194,7 +202,7 @@ func getPackagesFromXMLDB(packages chan<- Package, repoURL string, dbURI string,
 	return nil
 }
 
-func buildPackagesFromXML(packages chan<- Package, nodes []*xmlquery.Node, repositoryURL string, fileNames ...string) error {
+func buildPackagesFromXML(packages chan Package, nodes []*xmlquery.Node, repositoryURL string, fileNames ...string) error {
 	pkgWorkers := sync.WaitGroup{}
 	pkgWorkers.Add(len(nodes))
 
@@ -206,11 +214,14 @@ func buildPackagesFromXML(packages chan<- Package, nodes []*xmlquery.Node, repos
 		v := node
 
 		go func() {
+			defer pkgWorkers.Done()
+
 			p := &Package{}
 
 			err := xml.Unmarshal([]byte(v.OutputXML(true)), p)
 			if err != nil {
 				errCh <- err
+				return
 			}
 
 			p.url = repositoryURL + p.GetLocation()
@@ -220,14 +231,28 @@ func buildPackagesFromXML(packages chan<- Package, nodes []*xmlquery.Node, repos
 			fileReaders, err := getFileReadersFromPackageURL(p.url, fileNames...)
 			if err != nil {
 				errCh <- err
+				return
 			}
 			p.fileReaders = fileReaders
 
 			packages <- *p
-
-			pkgWorkers.Done()
 		}()
 	}
+
+	go func() {
+		for errCh != nil {
+			select {
+			case err, ok := <-errCh:
+				if !ok {
+					errCh = nil
+					continue
+				}
+				logger.WithError(err).Infof("Error found when getting readers from package URL")
+			case <-packages:
+				logger.Info("New package found")
+			}
+		}
+	}()
 
 	pkgWorkers.Wait()
 
@@ -235,20 +260,6 @@ func buildPackagesFromXML(packages chan<- Package, nodes []*xmlquery.Node, repos
 }
 
 func getFileReadersFromPackageURL(packageURL string, fileNames ...string) ([]io.Reader, error) {
-	util, err := getRPMUtilFromPackageURL(packageURL)
-	if err != nil {
-		return nil, err
-	}
-
-	fileReaders, err := getFileReadersFromRPMUtil(util, fileNames...)
-	if err != nil {
-		return nil, err
-	}
-
-	return fileReaders, nil
-}
-
-func getRPMUtilFromPackageURL(packageURL string) (*rpmutils.Rpm, error) {
 	u, err := u.Parse(packageURL)
 	if err != nil {
 		return nil, err
@@ -279,7 +290,14 @@ func getRPMUtilFromPackageURL(packageURL string) (*rpmutils.Rpm, error) {
 		return nil, err
 	}
 
-	return rpm, nil
+	logger.Debug("Package parsed")
+
+	fileReaders, err := getFileReadersFromRPMUtil(rpm, fileNames...)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileReaders, nil
 }
 
 func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader, error) {
@@ -292,6 +310,8 @@ func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader
 
 	fileName := ""
 	limited := len(names) > 0
+
+	logger.WithField("files", names).Debug("Looking for files")
 
 	for {
 		fileInfo, err := payload.Next()
@@ -308,11 +328,9 @@ func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader
 
 			var buf bytes.Buffer
 			_, err = io.Copy(&buf, payload)
-			//buf, err := io.ReadAll(payload)
 			if err != nil {
 				return nil, err
 			}
-			//r := bytes.NewReader(buf)
 			r := bytes.NewReader(buf.Bytes())
 			r.Seek(0, io.SeekStart)
 
