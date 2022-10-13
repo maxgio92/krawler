@@ -74,11 +74,12 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, pa
 	go func() {
 		for errCh != nil {
 			select {
-			case p := <-packagesCh:
-				packages = append(packages, p)
+			case p, ok := <-packagesCh:
+				if ok {
+					packages = append(packages, p)
+					logger.WithField("name", p.Name).WithField("version", p.Version.Ver).WithField("release", p.Version.Rel).Info("New package found")
+				}
 			case e, ok := <-errCh:
-
-				// When the workers are done.
 				if !ok {
 					errCh = nil
 					continue
@@ -182,16 +183,20 @@ func getPackagesFromXMLDB(packages chan Package, repoURL string, dbURI string, p
 
 	logger.WithField("uri", filepath.Base(dbURI)).Debug("Parsing DB")
 
-	doc, err := xmlquery.Parse(gr)
+	packagesXML := []*xmlquery.Node{}
+
+	logger.WithField("package", packageName).Debug("Querying DB")
+
+	sp, err := xmlquery.CreateStreamParser(gr, "//package", "//package[name='"+packageName+"']")
 	if err != nil {
 		return err
 	}
-
-	logger.WithField("package", packageName).Info("Querying DB")
-
-	packagesXML, err := xmlquery.QueryAll(doc, "//package[name='"+packageName+"']")
-	if err != nil {
-		return err
+	for {
+		n, err := sp.Read()
+		if err != nil {
+			break
+		}
+		packagesXML = append(packagesXML, n)
 	}
 
 	err = buildPackagesFromXML(packages, packagesXML, repoURL, fileNames...)
@@ -226,7 +231,7 @@ func buildPackagesFromXML(packages chan Package, nodes []*xmlquery.Node, reposit
 
 			p.url = repositoryURL + p.GetLocation()
 
-			logger.WithField("fullname", filepath.Base(p.GetLocation())).Info("Opening package")
+			logger.WithField("fullname", filepath.Base(p.GetLocation())).Debug("Opening package")
 
 			fileReaders, err := getFileReadersFromPackageURL(p.url, fileNames...)
 			if err != nil {
@@ -248,8 +253,6 @@ func buildPackagesFromXML(packages chan Package, nodes []*xmlquery.Node, reposit
 					continue
 				}
 				logger.WithError(err).Infof("Error found when getting readers from package URL")
-			case <-packages:
-				logger.Info("New package found")
 			}
 		}
 	}()
