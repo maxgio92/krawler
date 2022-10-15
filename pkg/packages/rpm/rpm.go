@@ -100,7 +100,9 @@ func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *url.URL, 
 	return nil
 }
 
-func getDBsFromMetadataURL(metadataURL string) (dbs []Data, err error) {
+func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
+	var dbs []Data
+
 	u, err := url.Parse(metadataURL)
 	if err != nil {
 		return nil, err
@@ -121,13 +123,13 @@ func getDBsFromMetadataURL(metadataURL string) (dbs []Data, err error) {
 
 	doc, err := xmlquery.Parse(resp.Body)
 	if err != nil {
-		return
+		return nil, err
 	}
 	logger.Debug("Getting repository DBs")
 
 	datasXML, err := xmlquery.QueryAll(doc, metadataDataXPath)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	for _, v := range datasXML {
@@ -135,7 +137,7 @@ func getDBsFromMetadataURL(metadataURL string) (dbs []Data, err error) {
 
 		err = xml.Unmarshal([]byte(v.OutputXML(true)), data)
 		if err != nil {
-			return
+			return nil, err
 		}
 
 		switch data.Type {
@@ -145,8 +147,7 @@ func getDBsFromMetadataURL(metadataURL string) (dbs []Data, err error) {
 		}
 	}
 
-	//nolint:nakedret
-	return
+	return dbs, nil
 }
 
 func getPackagesFromDB(packagesCh chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) error {
@@ -154,7 +155,6 @@ func getPackagesFromDB(packagesCh chan Package, repoURL string, dbURI string, pa
 }
 
 func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) (err error) {
-	//nolint:typecheck
 	dbURL, err := url.JoinPath(repoURL, dbURI)
 	if err != nil {
 		return err
