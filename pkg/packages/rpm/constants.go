@@ -9,6 +9,4 @@ const (
 	primary           = "primary"
 )
 
-var (
-	logger = log.New()
-)
+var logger = log.New()
