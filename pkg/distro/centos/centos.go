@@ -18,6 +18,7 @@ type Centos struct {
 func (c *Centos) Configure(config distro.Config, vars map[string]interface{}) error {
 	c.config = config
 	c.vars = vars
+
 	return nil
 }
 
@@ -47,6 +48,7 @@ func (c *Centos) GetPackages(filter p.Filter) ([]p.Package, error) {
 	}
 
 	packages := make([]p.Package, len(rpmPackages))
+
 	for i, v := range rpmPackages {
 		v := v
 		packages[i] = p.Package(&v)
@@ -105,11 +107,13 @@ func (c *Centos) crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version
 	var versions []distro.Version
 
 	seedUrls := make([]*url.URL, 0, len(mirrors))
+
 	for _, mirror := range mirrors {
 		u, err := url.Parse(mirror.URL)
 		if err != nil {
 			return []distro.Version{}, err
 		}
+
 		seedUrls = append(seedUrls, u)
 	}
 
@@ -138,11 +142,12 @@ func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []p.Reposi
 		//nolint:revive,stylecheck
 		for _, uri := range uris {
 			// Get repository URL from URI.
-			//nolint:revive,stylecheck,typecheck
+			//nolint:revive,stylecheck
 			us, err := url.JoinPath(root.String(), uri)
 			if err != nil {
 				return nil, err
 			}
+
 			repositoryUrl, err := url.Parse(us)
 			if err != nil {
 				return nil, err

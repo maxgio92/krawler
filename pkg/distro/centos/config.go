@@ -38,7 +38,6 @@ func (c *Centos) mergeConfig(def distro.Config, config distro.Config) (distro.Co
 		}
 	}
 
-	//nolint:nestif
 	if len(config.Mirrors) < 1 {
 		config.Mirrors = def.Mirrors
 	} else {
@@ -86,5 +85,6 @@ func (c *Centos) sanitizeMirrors(mirrors *[]packages.Mirror) error {
 			return err
 		}
 	}
+
 	return nil
 }

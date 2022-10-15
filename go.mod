@@ -6,6 +6,7 @@ require (
 	github.com/antchfx/xmlquery v1.3.9
 	github.com/gocolly/colly v1.2.0
 	github.com/olekukonko/tablewriter v0.0.6-0.20210304033056-74c60be0ef68
+	github.com/pkg/errors v0.9.1
 	github.com/sassoftware/go-rpmutils v0.2.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0

@@ -1,6 +1,7 @@
 package scrape
 
 import (
+	"fmt"
 	"net/url"
 	"path"
 	"regexp"
@@ -11,6 +12,7 @@ import (
 )
 
 // Returns a list of file names found from the seed URL, filtered by file name regex.
+//
 //nolint:funlen
 func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]string, error) {
 	var files []string
@@ -22,10 +24,7 @@ func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]strin
 	fileRegex := strings.TrimPrefix(exactFileRegex, "^")
 	filePattern := regexp.MustCompile(fileRegex)
 
-	allowedDomains, err := getHostnamesFromURLs(seedURLs)
-	if err != nil {
-		return nil, err
-	}
+	allowedDomains := getHostnamesFromURLs(seedURLs)
 
 	// Create the collector settings
 	coOptions := []func(*colly.Collector){
@@ -90,9 +89,10 @@ func CrawlFolders(seedURLs []*url.URL, regex string, debug bool) ([]string, erro
 
 	versionPattern := regexp.MustCompile(regex)
 
-	allowedDomains, err := getHostnamesFromURLs(seedURLs)
-	if err != nil || len(allowedDomains) < 1 {
-		return nil, err
+	allowedDomains := getHostnamesFromURLs(seedURLs)
+	if len(allowedDomains) < 1 {
+		//nolint:goerr113
+		return nil, fmt.Errorf("invalid seed urls")
 	}
 
 	// Create the collector settings

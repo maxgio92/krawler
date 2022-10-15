@@ -25,13 +25,15 @@ func getCompilerVersionFromFileReaders(files []io.Reader) (string, error) {
 		for fileScanner.Scan() {
 			line := fileScanner.Text()
 			if strings.Contains(line, ConfigCompilerVersion) {
-				compilerVersion, err := parseConfig(line, ConfigCompilerVersion)
+				compilerVersion, err := parseConfig(line)
 				if err == nil {
 					return compilerVersion, nil
 				}
+
 				return "", err
 			}
 		}
+
 		err := fileScanner.Err()
 		if err != nil {
 			return "", err
@@ -41,7 +43,7 @@ func getCompilerVersionFromFileReaders(files []io.Reader) (string, error) {
 	return "", ErrKernelCompilerVersionNotFound
 }
 
-func parseConfig(line string, key string) (string, error) {
+func parseConfig(line string) (string, error) {
 	tokens := strings.FieldsFunc(line, func(c rune) bool {
 		return unicode.Is(unicode.Space, c) || unicode.Is(unicode.Sm, c)
 	})
