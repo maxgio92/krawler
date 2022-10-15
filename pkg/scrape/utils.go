@@ -2,14 +2,14 @@ package scrape
 
 import "net/url"
 
-func getHostnamesFromURLs(urls []*url.URL) ([]string, error) {
+func getHostnamesFromURLs(urls []*url.URL) []string {
 	hostnames := []string{}
 
 	for _, v := range urls {
 		hostnames = append(hostnames, v.Host)
 	}
 
-	return hostnames, nil
+	return hostnames
 }
 
 func urlSliceContains(us []*url.URL, u *url.URL) bool {

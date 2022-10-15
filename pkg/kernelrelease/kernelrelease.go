@@ -42,7 +42,9 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	for i, name := range kernelVersionPattern.SubexpNames() {
 		if i > 0 && i <= len(match) {
 			var err error
+
 			identifiers[name] = match[i]
+
 			switch name {
 			case "fullversion":
 				k.Fullversion = match[i]
@@ -68,6 +70,7 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	if err != nil {
 		k.CompilerVersion = ""
 	}
+
 	k.CompilerVersion = compilerVersion
 
 	return nil
@@ -93,6 +96,7 @@ func GetKernelReleaseListFromPackageList(packages []p.Package, prefix string) ([
 
 	for _, pkg := range packages {
 		kr := &KernelRelease{}
+
 		err := kr.BuildFromPackage(pkg)
 		if err != nil {
 			return []KernelRelease{}, err

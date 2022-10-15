@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/antchfx/xmlquery"
+	"github.com/pkg/errors"
 	rpmutils "github.com/sassoftware/go-rpmutils"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,6 +29,7 @@ func init() {
 // searching in the specified repositories.
 func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
 	var packages []Package
+
 	packagesCh := make(chan Package)
 	defer close(packagesCh)
 
@@ -40,6 +41,7 @@ func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, 
 
 	for _, r := range repositoryURLs {
 		repoURL := r
+
 		go func() {
 			defer repoWorkers.Done()
 
@@ -47,6 +49,7 @@ func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, 
 			if err != nil {
 				errCh <- err
 				logger.WithError(err).WithField("repository", repoURL).Error("error found getting packages from repository")
+
 				return
 			}
 		}()
@@ -64,8 +67,10 @@ func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, 
 			case e, ok := <-errCh:
 				if !ok {
 					errCh = nil
+
 					continue
 				}
+
 				logger.WithError(e).Debug()
 			}
 		}
@@ -84,12 +89,14 @@ func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *url.URL, 
 	if err != nil {
 		return err
 	}
+
 	logger.WithField("url", repoURL).Info("Analysing repository")
 
 	dbs, err := getDBsFromMetadataURL(metadataURL)
 	if err != nil {
 		return err
 	}
+
 	for _, db := range dbs {
 		logger.WithField("type", db.Type).Info("Analysing DB")
 
@@ -98,6 +105,7 @@ func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *url.URL, 
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -113,23 +121,28 @@ func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
+
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("metadata url %s not valid", metadataURL)
+		return nil, errors.Wrap(metadataUrlNotValidErr, metadataURL)
 	}
+
 	if resp.Body == nil {
-		return nil, fmt.Errorf("metadata url returned an invalid response")
+		return nil, metadataInvalidResponseErr
 	}
 	defer resp.Body.Close()
+
 	logger.Debug("Parsing repository metadata")
 
 	doc, err := xmlquery.Parse(resp.Body)
 	if err != nil {
 		return nil, err
 	}
+
 	logger.Debug("Getting repository DBs")
 
 	datasXML, err := xmlquery.QueryAll(doc, metadataDataXPath)
@@ -169,21 +182,25 @@ func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string,
 	if err != nil {
 		return err
 	}
+
 	logger.WithField("url", u.String()).Debug("Downloading DB")
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u.String(), nil)
 	if err != nil {
 		return err
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
+
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("repository url %s not valid", u.String())
+		return errors.Wrap(repositoryUrlNotValidErr, u.String())
 	}
+
 	if resp.Body == nil {
-		return fmt.Errorf("repository url returned an invalid response")
+		return repositoryInvalidResponseErr
 	}
 	defer resp.Body.Close()
 
@@ -192,6 +209,7 @@ func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string,
 		return err
 	}
 	defer gr.Close()
+
 	logger.WithField("uri", filepath.Base(dbURI)).Debug("Parsing DB")
 
 	var packagesXML []*xmlquery.Node
@@ -200,12 +218,15 @@ func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string,
 	if err != nil {
 		return err
 	}
+
 	logger.WithField("package", packageName).Debug("Querying DB")
+
 	for {
 		n, err := sp.Read()
 		if err != nil {
 			break
 		}
+
 		packagesXML = append(packagesXML, n)
 	}
 
@@ -230,6 +251,7 @@ func buildPackagesFromXMLNodes(packages chan Package, nodes []*xmlquery.Node, re
 			p, err := buildPackageFromXML(node, repositoryURL, fileNames...)
 			if err != nil {
 				errCh <- err
+
 				return
 			}
 			packages <- *p
@@ -264,6 +286,7 @@ func buildPackageFromXML(node *xmlquery.Node, repositoryURL string, fileNames ..
 	if err != nil {
 		return nil, err
 	}
+
 	p.fileReaders = fileReaders
 
 	return p, nil
@@ -281,23 +304,27 @@ func getFileReadersFromPackageURL(packageURL string, fileNames ...string) ([]io.
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logger.WithError(err).Debug("Error downloading package")
+
 		return nil, err
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("package url not found")
+		return nil, packageUrlNotFoundErr
 	}
+
 	if resp.Body == nil {
-		return nil, fmt.Errorf("packge url returned an invalid response")
+		return nil, packageUrlInvalidResponseErr
 	}
 	defer resp.Body.Close()
 
 	rpm, err := rpmutils.ReadRpm(resp.Body)
 	if err != nil {
 		logger.WithError(err).Debug("Error parsing package")
+
 		return nil, err
 	}
 
@@ -324,7 +351,7 @@ func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader
 
 	for {
 		fileInfo, err := payload.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
@@ -336,10 +363,12 @@ func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader
 			logger.WithField("name", fileName).Debug("Found file")
 
 			var buf bytes.Buffer
+
 			_, err = io.Copy(&buf, payload)
 			if err != nil {
 				return nil, err
 			}
+
 			r := bytes.NewReader(buf.Bytes())
 			r.Seek(0, io.SeekStart)
 

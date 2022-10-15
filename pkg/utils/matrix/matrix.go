@@ -9,7 +9,6 @@ package matrix
 // |	A	1	X
 // ---------------> x (abscissa)
 
-//nolint:godot
 // Provided the sample scenario above, this function
 // should return something like this:
 // A + 1 + X
@@ -18,6 +17,8 @@ package matrix
 // A + 2 + X
 // ...
 // B + 4 + Z
+//
+//nolint:godot
 func GetColumnOrderedCombinationRows(columns []Column) ([]string, error) {
 	rows := []string{}
 	row := ""
