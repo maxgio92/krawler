@@ -7,22 +7,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	u "net/url"
+	"net/url"
 	"path/filepath"
 	"sync"
 
 	"github.com/antchfx/xmlquery"
 	rpmutils "github.com/sassoftware/go-rpmutils"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	metadataPath = "repodata/repomd.xml"
-	primaryDB    = "primary"
-)
-
-var (
-	logger = log.New()
 )
 
 func init() {
@@ -35,7 +26,7 @@ func init() {
 
 // GetPackagesFromRepositories returns a list of package of type Package with specified name,
 // searching in the specified repositories.
-func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, packageFileNames ...string) ([]Package, error) {
+func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
 	var packages []Package
 	packagesCh := make(chan Package)
 	defer close(packagesCh)
@@ -85,10 +76,10 @@ func GetPackagesFromRepositories(repositoryURLs []*u.URL, packageName string, pa
 
 // GetPackagesFromRepository returns a list of package of type Package with specified name,
 // searching in the specified repository.
-func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *u.URL, packageName string, packageFileNames ...string) error {
+func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *url.URL, packageName string, packageFileNames ...string) error {
 	repoURL := repositoryURL.String()
 
-	metadataURL, err := u.JoinPath(repoURL, metadataPath)
+	metadataURL, err := url.JoinPath(repoURL, metadataPath)
 	if err != nil {
 		return err
 	}
@@ -109,8 +100,8 @@ func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *u.URL, pa
 	return nil
 }
 
-func getDBsFromMetadataURL(url string) (dbs []Data, err error) {
-	u, err := u.Parse(url)
+func getDBsFromMetadataURL(metadataURL string) (dbs []Data, err error) {
+	u, err := url.Parse(metadataURL)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +111,7 @@ func getDBsFromMetadataURL(url string) (dbs []Data, err error) {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("metadata url %s not valid", url)
+		return nil, fmt.Errorf("metadata url %s not valid", metadataURL)
 	}
 	if resp.Body == nil {
 		return nil, fmt.Errorf("metadata url returned an invalid response")
@@ -134,7 +125,7 @@ func getDBsFromMetadataURL(url string) (dbs []Data, err error) {
 	}
 	logger.Debug("Getting repository DBs")
 
-	datasXML, err := xmlquery.QueryAll(doc, "//repomd/data")
+	datasXML, err := xmlquery.QueryAll(doc, metadataDataXPath)
 	if err != nil {
 		return
 	}
@@ -148,7 +139,7 @@ func getDBsFromMetadataURL(url string) (dbs []Data, err error) {
 		}
 
 		switch data.Type {
-		case primaryDB:
+		case primary:
 			dbs = append(dbs, *data)
 		default:
 		}
@@ -164,12 +155,12 @@ func getPackagesFromDB(packagesCh chan Package, repoURL string, dbURI string, pa
 
 func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) (err error) {
 	//nolint:typecheck
-	dbURL, err := u.JoinPath(repoURL, dbURI)
+	dbURL, err := url.JoinPath(repoURL, dbURI)
 	if err != nil {
 		return err
 	}
 
-	u, err := u.Parse(dbURL)
+	u, err := url.Parse(dbURL)
 	if err != nil {
 		return err
 	}
@@ -196,7 +187,7 @@ func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string,
 
 	var packagesXML []*xmlquery.Node
 
-	sp, err := xmlquery.CreateStreamParser(gr, "//package", "//package[name='"+packageName+"']")
+	sp, err := xmlquery.CreateStreamParser(gr, dataPackageXPath, dataPackageXPath+"[name='"+packageName+"']")
 	if err != nil {
 		return err
 	}
@@ -253,7 +244,7 @@ func buildPackageFromXML(node *xmlquery.Node, repositoryURL string, fileNames ..
 		return nil, err
 	}
 
-	p.url, err = u.JoinPath(repositoryURL, p.GetLocation())
+	p.url, err = url.JoinPath(repositoryURL, p.GetLocation())
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +261,7 @@ func buildPackageFromXML(node *xmlquery.Node, repositoryURL string, fileNames ..
 }
 
 func getFileReadersFromPackageURL(packageURL string, fileNames ...string) ([]io.Reader, error) {
-	u, err := u.Parse(packageURL)
+	u, err := url.Parse(packageURL)
 	if err != nil {
 		return nil, err
 	}
