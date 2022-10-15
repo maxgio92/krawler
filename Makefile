@@ -24,7 +24,7 @@ lint: golangci-lint
 
 .PHONY: golangci-lint
 golangci-lint:
-	@$(go) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2
+	@$(go) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.50.0
 
 .PHONY: gofumpt
 gofumpt:
