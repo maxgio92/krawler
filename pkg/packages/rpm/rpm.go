@@ -3,6 +3,7 @@ package rpm
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -108,7 +109,11 @@ func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
 		return nil, err
 	}
 
-	resp, err := http.Get(u.String())
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +171,11 @@ func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string,
 	}
 	logger.WithField("url", u.String()).Debug("Downloading DB")
 
-	resp, err := http.Get(u.String())
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u.String(), nil)
+	if err != nil {
+		return err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -268,11 +277,16 @@ func getFileReadersFromPackageURL(packageURL string, fileNames ...string) ([]io.
 
 	logger.WithField("url", u.String()).Debug("Downloading package")
 
-	resp, err := http.Get(u.String())
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logger.WithError(err).Debug("Error downloading package")
 		return nil, err
 	}
+
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, fmt.Errorf("package url not found")
 	}
