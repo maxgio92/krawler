@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	logger.SetLevel(log.DebugLevel)
+	logger.SetLevel(log.InfoLevel)
 	logger.SetFormatter(&log.TextFormatter{
 		ForceColors:      true,
 		DisableTimestamp: true,
