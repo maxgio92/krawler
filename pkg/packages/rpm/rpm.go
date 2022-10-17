@@ -5,16 +5,15 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/xml"
+	"github.com/antchfx/xmlquery"
+	"github.com/pkg/errors"
+	rpmutils "github.com/sassoftware/go-rpmutils"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"sync"
-
-	"github.com/antchfx/xmlquery"
-	"github.com/pkg/errors"
-	rpmutils "github.com/sassoftware/go-rpmutils"
-	log "github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -25,76 +24,59 @@ func init() {
 	})
 }
 
-// GetPackagesFromRepositories returns a list of package of type Package with specified name,
-// searching in the specified repositories.
+// GetPackagesFromRepositories crawls packages from the specified repositories,
+// and returns a list of package of type Package with specified name,
 func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
 	var packages []Package
 
 	packagesCh := make(chan Package)
-	defer close(packagesCh)
 
-	repoWorkers := sync.WaitGroup{}
-	repoWorkers.Add(len(repositoryURLs))
+	producersWG := sync.WaitGroup{}
+	producersWG.Add(len(repositoryURLs))
 
 	errCh := make(chan error)
-	defer close(errCh)
 
+	consumersDoneCh := make(chan bool, 1)
+
+	// Run parallel packages producer workers.
 	for _, r := range repositoryURLs {
 		repoURL := r
 
-		go func() {
-			defer repoWorkers.Done()
-
-			err := GetPackagesFromRepository(packagesCh, repoURL, packageName, packageFileNames...)
-			if err != nil {
-				errCh <- err
-				logger.WithError(err).WithField("repository", repoURL).Error("error found getting packages from repository")
-
-				return
-			}
-		}()
+		go producePackagesFromRepository(&producersWG, packagesCh, errCh, repoURL, packageName, packageFileNames...)
 	}
 
-	// Acquire packages.
-	go func() {
-		for errCh != nil {
-			select {
-			case p, ok := <-packagesCh:
-				if ok {
-					packages = append(packages, p)
-					logger.WithField("name", p.Name).WithField("version", p.Version.Ver).WithField("release", p.Version.Rel).Info("New package found")
-				}
-			case e, ok := <-errCh:
-				if !ok {
-					errCh = nil
+	// Consume packages.
+	go consumePackages(consumersDoneCh, &packages, packagesCh, errCh)
 
-					continue
-				}
+	// Wait for producers.
+	producersWG.Wait()
+	close(packagesCh)
+	close(errCh)
 
-				logger.WithError(e).Debug()
-			}
-		}
-	}()
-	repoWorkers.Wait()
+	// Wait for consumers.
+	<-consumersDoneCh
 
 	return packages, nil
 }
 
-// GetPackagesFromRepository returns a list of package of type Package with specified name,
-// searching in the specified repository.
-func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *url.URL, packageName string, packageFileNames ...string) error {
+// producePackagesFromRepository crawls packages from specified repository as repositoryURL *URL,
+// sends them over a packagesCh Package channel and signals completion through a WaitGroup.
+// The waitGroup counter needs to be greater than zero.
+func producePackagesFromRepository(waitGroup *sync.WaitGroup, packagesCh chan Package, errCh chan error, repositoryURL *url.URL, packageName string, packageFileNames ...string) {
+	defer waitGroup.Done()
+
 	repoURL := repositoryURL.String()
 
 	metadataURL, err := url.JoinPath(repoURL, metadataPath)
 	if err != nil {
-		return err
+		errCh <- err
 	}
 
 	logger.WithField("url", repoURL).Info("Analysing repository")
 
 	dbs, err := getDBsFromMetadataURL(metadataURL)
 	if err != nil {
-		return err
+		errCh <- err
 	}
 
 	for _, db := range dbs {
@@ -102,11 +84,32 @@ func GetPackagesFromRepository(packagesCh chan Package, repositoryURL *url.URL, 
 
 		err = getPackagesFromDB(packagesCh, repoURL, db.GetLocation(), packageName, packageFileNames...)
 		if err != nil {
-			return err
+			errCh <- err
 		}
 	}
+}
 
-	return nil
+// consumePackages receives Package over a packagesCh Package channel,
+// and signals completion through a bool channel done.
+func consumePackages(done chan bool, packages *[]Package, packagesCh chan Package, errCh chan error) {
+	for errCh != nil || packagesCh != nil {
+		select {
+		case p, ok := <-packagesCh:
+			if ok {
+				*packages = append(*packages, p)
+				logger.WithField("name", p.Name).WithField("version", p.Version.Ver).WithField("release", p.Version.Rel).Info("New package found")
+				continue
+			}
+			packagesCh = nil
+		case e, ok := <-errCh:
+			if ok {
+				logger.WithError(e).Error()
+				continue
+			}
+			errCh = nil
+		}
+	}
+	done <- true
 }
 
 func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
@@ -240,7 +243,8 @@ func buildPackagesFromXMLNodes(packages chan Package, nodes []*xmlquery.Node, re
 	pkgWorkers.Add(len(nodes))
 
 	errCh := make(chan error)
-	defer close(errCh)
+
+	done := make(chan bool, 1)
 
 	for _, v := range nodes {
 		node := v
@@ -262,9 +266,13 @@ func buildPackagesFromXMLNodes(packages chan Package, nodes []*xmlquery.Node, re
 		for err := range errCh {
 			logger.WithError(err).Error("Error found building package from XML")
 		}
+		done <- true
 	}()
 
 	pkgWorkers.Wait()
+	close(errCh)
+
+	<-done
 }
 
 func buildPackageFromXML(node *xmlquery.Node, repositoryURL string, fileNames ...string) (*Package, error) {
