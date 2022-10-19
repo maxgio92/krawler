@@ -33,6 +33,7 @@ linters:
     - nonamedreturns
     - wrapcheck
     - varnamelen
+    - typecheck
 
 run:
   skip-dirs:
