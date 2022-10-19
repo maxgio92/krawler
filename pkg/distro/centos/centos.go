@@ -104,7 +104,7 @@ func (c *Centos) buildVersions(mirrors []p.Mirror, staticVersions []distro.Versi
 // Returns the list of the current available distro versions, by scraping
 // the specified mirrors, dynamically.
 func (c *Centos) crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version, error) {
-	var versions []distro.Version
+	versions := []distro.Version{}
 
 	seedUrls := make([]*url.URL, 0, len(mirrors))
 
