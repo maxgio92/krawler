@@ -1,5 +1,6 @@
 package distro
 
+//nolint:nosnakecase
 const (
 	X86_64Arch Arch = "x86_64"
 

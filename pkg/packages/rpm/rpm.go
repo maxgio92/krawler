@@ -5,15 +5,16 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/xml"
-	"github.com/antchfx/xmlquery"
-	"github.com/pkg/errors"
-	rpmutils "github.com/sassoftware/go-rpmutils"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"sync"
+
+	"github.com/antchfx/xmlquery"
+	"github.com/pkg/errors"
+	rpmutils "github.com/sassoftware/go-rpmutils"
+	log "github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -25,7 +26,7 @@ func init() {
 }
 
 // GetPackagesFromRepositories crawls packages from the specified repositories,
-// and returns a list of package of type Package with specified name,
+// and returns a list of package of type Package with specified name.
 func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
 	var packages []Package
 
@@ -98,20 +99,25 @@ func consumePackages(done chan bool, packages *[]Package, packagesCh chan Packag
 			if ok {
 				*packages = append(*packages, p)
 				logger.WithField("name", p.Name).WithField("version", p.Version.Ver).WithField("release", p.Version.Rel).Info("New package found")
+
 				continue
 			}
+
 			packagesCh = nil
 		case e, ok := <-errCh:
 			if ok {
 				logger.WithError(e).Error()
+
 				continue
 			}
+
 			errCh = nil
 		}
 	}
 	done <- true
 }
 
+//nolint:cyclop
 func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
 	var dbs []Data
 
@@ -131,11 +137,11 @@ func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Wrap(metadataUrlNotValidErr, metadataURL)
+		return nil, errors.Wrap(errMetadataURLNotValid, metadataURL)
 	}
 
 	if resp.Body == nil {
-		return nil, metadataInvalidResponseErr
+		return nil, errMetadataInvalidResponse
 	}
 	defer resp.Body.Close()
 
@@ -175,6 +181,7 @@ func getPackagesFromDB(packagesCh chan Package, repoURL string, dbURI string, pa
 	return getPackagesFromXMLDB(packagesCh, repoURL, dbURI, packageName, fileNames...)
 }
 
+//nolint:cyclop
 func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) (err error) {
 	dbURL, err := url.JoinPath(repoURL, dbURI)
 	if err != nil {
@@ -199,11 +206,11 @@ func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string,
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.Wrap(repositoryUrlNotValidErr, u.String())
+		return errors.Wrap(errRepositoryURLNotValid, u.String())
 	}
 
 	if resp.Body == nil {
-		return repositoryInvalidResponseErr
+		return errRepositoryInvalidResponse
 	}
 	defer resp.Body.Close()
 
@@ -321,11 +328,11 @@ func getFileReadersFromPackageURL(packageURL string, fileNames ...string) ([]io.
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, packageUrlNotFoundErr
+		return nil, errPackageURLNotFound
 	}
 
 	if resp.Body == nil {
-		return nil, packageUrlInvalidResponseErr
+		return nil, errPackageURLInvalidResponse
 	}
 	defer resp.Body.Close()
 
@@ -344,6 +351,7 @@ func getFileReadersFromPackageURL(packageURL string, fileNames ...string) ([]io.
 	return fileReaders, nil
 }
 
+//nolint:cyclop
 func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader, error) {
 	payload, err := util.PayloadReaderExtended()
 	if err != nil {
@@ -367,6 +375,7 @@ func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader
 			fileName = names[len(names)-1]
 		}
 
+		//nolint:nestif
 		if fileName == "" || filepath.Base(fileInfo.Name()) == fileName {
 			logger.WithField("name", fileName).Debug("Found file")
 
@@ -378,7 +387,11 @@ func getFileReadersFromRPMUtil(util *rpmutils.Rpm, names ...string) ([]io.Reader
 			}
 
 			r := bytes.NewReader(buf.Bytes())
-			r.Seek(0, io.SeekStart)
+
+			_, err := r.Seek(0, io.SeekStart)
+			if err != nil {
+				return nil, err
+			}
 
 			readers = append(readers, r)
 
