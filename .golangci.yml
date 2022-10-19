@@ -33,6 +33,11 @@ linters:
     - nonamedreturns
     - wrapcheck
     - varnamelen
+
+issues:
+  exclude-rules:
+  - path: /
+    linters:
     - typecheck
 
 run:
