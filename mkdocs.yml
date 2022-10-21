@@ -1,0 +1,27 @@
+site_name: Krawler
+repo_name: maxgio92/krawler
+repo_url: https://github.com/maxgio92/krawler
+site_url: https://krawler.io/
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.instant
+    - navigation.sections
+  include_sidebar: true
+  palette:
+    primary: 'blue grey'
+
+# Generate navigation bar
+nav:
+- 'Introduction': index.md
+- 'Getting started': getting-started.md
+- 'Reference':
+  - reference/index.md
+  - reference/cli.md
+  - reference/config.md
+- 'Roadmap': roadmap.md
