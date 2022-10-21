@@ -1,0 +1,2 @@
+- [CLI reference](/reference/cli)
+- [Configuration reference](/reference/config)
