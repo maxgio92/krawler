@@ -3,6 +3,7 @@
 ## Languages
 
 Configuration can be expressed in:
+
 - `json`
 - `yaml`
 
