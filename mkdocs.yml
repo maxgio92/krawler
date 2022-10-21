@@ -16,6 +16,10 @@ theme:
   palette:
     primary: 'blue grey'
 
+  font:
+    text: 'Ubuntu'
+    code: 'Ubuntu Mono'
+
 # Generate navigation bar
 nav:
 - 'Introduction': index.md
@@ -25,3 +29,7 @@ nav:
   - reference/cli.md
   - reference/config.md
 - 'Roadmap': roadmap.md
+
+extra:
+  generator: false
+
