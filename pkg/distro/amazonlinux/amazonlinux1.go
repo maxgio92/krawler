@@ -1,4 +1,4 @@
-package amazonlinux1
+package amazonlinux
 
 import (
 	"github.com/maxgio92/krawler/pkg/distro"
