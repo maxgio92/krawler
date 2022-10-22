@@ -25,6 +25,11 @@ func NewFilter(packageName string, packageFileNames ...string) *Filter {
 	}
 }
 
+// TODO: rename String to PackageName.
 func (f *Filter) String() string {
 	return f.packageName
+}
+
+func (f *Filter) PackageFileNames() []string {
+	return f.packageFileNames
 }
