@@ -1,4 +1,4 @@
-package amazonlinux1
+package amazonlinux2022
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 	"strings"
 )
 
-func (a *AmazonLinux1) dereferenceRepositoryURL(src *url.URL, arch distro.Arch) (*url.URL, error) {
+func (a *AmazonLinux2022) dereferenceRepositoryURL(src *url.URL, arch distro.Arch) (*url.URL, error) {
 	var dest *url.URL
 
-	mirrorListURL, err := url.JoinPath(src.String(), "mirror.list")
+	mirrorListURL, err := url.JoinPath(src.String(), string(arch), "mirror.list")
 	if err != nil {
 		return nil, err
 	}
@@ -30,11 +30,11 @@ func (a *AmazonLinux1) dereferenceRepositoryURL(src *url.URL, arch distro.Arch) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Amazon Linux 1 repository URL not valid to be dereferenced")
+		return nil, fmt.Errorf("Amazon Linux 2 repository URL not valid to be dereferenced")
 	}
 
 	if resp.Body == nil {
-		return nil, fmt.Errorf("empty response from Amazon Linux 1 repository reference URL")
+		return nil, fmt.Errorf("empty response from Amazon Linux 2 repository reference URL")
 	}
 
 	b, err := io.ReadAll(resp.Body)
@@ -43,7 +43,7 @@ func (a *AmazonLinux1) dereferenceRepositoryURL(src *url.URL, arch distro.Arch) 
 	}
 
 	// Get first repository URL available, no matter what the geolocation.
-	s := strings.Split(strings.ReplaceAll(string(b), "$basearch", string(arch)), "\n")[0]
+	s := strings.Split(string(b), "\n")[0]
 
 	dest, err = url.Parse(s)
 	if err != nil {
@@ -54,7 +54,7 @@ func (a *AmazonLinux1) dereferenceRepositoryURL(src *url.URL, arch distro.Arch) 
 }
 
 // Returns the list of default repositories from the default config.
-func (a *AmazonLinux1) getDefaultRepositories() []p.Repository {
+func (a *AmazonLinux2022) getDefaultRepositories() []p.Repository {
 	var repositories []p.Repository
 
 	for _, repository := range DefaultConfig.Repositories {

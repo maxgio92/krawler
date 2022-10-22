@@ -16,7 +16,12 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/maxgio92/krawler/internal/utils"
+	"github.com/maxgio92/krawler/pkg/distro"
+	kr "github.com/maxgio92/krawler/pkg/kernelrelease"
+	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/spf13/cobra"
+	v "github.com/spf13/viper"
 )
 
 var (
@@ -36,4 +41,33 @@ func init() {
 
 	// Bind the output format flag. Default is text.
 	listCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format (text, json, yaml)")
+}
+
+func getKernelReleases(distro distro.Distro) ([]kr.KernelRelease, error) {
+	// The filter for filter packages.
+	filter := packages.NewFilter(KernelHeadersPackageName, ".config")
+
+	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
+	if err != nil {
+		return []kr.KernelRelease{}, err
+	}
+
+	err = distro.Configure(config, vars)
+	if err != nil {
+		return []kr.KernelRelease{}, err
+	}
+
+	// Scrape mirrors for packeges by filter.
+	packages, err := distro.GetPackages(*filter)
+	if err != nil {
+		return []kr.KernelRelease{}, err
+	}
+
+	// Get kernel releases from kernel header packages.
+	kernelReleases, err := kr.GetKernelReleaseListFromPackageList(packages, KernelHeadersPackageName)
+	if err != nil {
+		return []kr.KernelRelease{}, err
+	}
+
+	return kernelReleases, nil
 }

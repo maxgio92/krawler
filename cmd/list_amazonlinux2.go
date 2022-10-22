@@ -17,16 +17,16 @@ package cmd
 
 import (
 	"github.com/maxgio92/krawler/internal/format"
-	"github.com/maxgio92/krawler/pkg/distro/centos"
+	"github.com/maxgio92/krawler/pkg/distro/amazonlinux2"
 	"github.com/spf13/cobra"
 )
 
-// centosCmd represents the centos command.
-var centosCmd = &cobra.Command{
-	Use:   "centos",
-	Short: "List CentOS kernel releases with headers available from mirrors",
+// amazonLinux2Cmd represents the centos command.
+var amazonLinux2Cmd = &cobra.Command{
+	Use:   "amazonlinux2",
+	Short: "List Amazon Linux kernel 2 releases with headers available from mirrors",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		kernelReleases, err := getKernelReleases(&centos.Centos{})
+		kernelReleases, err := getKernelReleases(&amazonlinux2.AmazonLinux2{})
 		cobra.CheckErr(err)
 
 		if len(kernelReleases) > 0 {
@@ -42,5 +42,5 @@ var centosCmd = &cobra.Command{
 }
 
 func init() {
-	listCmd.AddCommand(centosCmd)
+	listCmd.AddCommand(amazonLinux2Cmd)
 }
