@@ -21,7 +21,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version = "Krawler CLI v0.0.1"
+var version = "Krawler CLI v0.2.0"
 
 // versionCmd represents the version command.
 var versionCmd = &cobra.Command{
