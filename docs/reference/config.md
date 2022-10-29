@@ -25,6 +25,9 @@ distros:
 
 `distros` is a map of well-known supported distro structures. Supported keys are:
 - *centos*
+- *amazonlinux1*
+- *amazonlinux2*
+- *amazonlinux2022*
  
 `distro` structure is a map of `versions`, `archs`, `mirrors`, `repositories`.
 
