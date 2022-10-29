@@ -1,7 +1,7 @@
 /*
 Copyright © 2022 maxgio92 <me@maxgio.it>
 
-Licensed under the Apache License, Version 2.0 (the "License");
+Licensed under the Apache License, Version v2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -17,16 +17,16 @@ package cmd
 
 import (
 	"github.com/maxgio92/krawler/internal/format"
-	"github.com/maxgio92/krawler/pkg/distro/amazonlinux"
+	"github.com/maxgio92/krawler/pkg/distro/amazonlinux/v1"
 	"github.com/spf13/cobra"
 )
 
 // amazonLinuxCmd represents the centos command.
 var amazonLinuxCmd = &cobra.Command{
 	Use:   "amazonlinux",
-	Short: "List Amazon Linux kernel releases with headers available from mirrors",
+	Short: "List Amazon Linux 1 kernel releases with headers available from mirrors",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		kernelReleases, err := getKernelReleases(&amazonlinux.AmazonLinux1{})
+		kernelReleases, err := getKernelReleases(&v1.AmazonLinux{})
 		cobra.CheckErr(err)
 
 		if len(kernelReleases) > 0 {

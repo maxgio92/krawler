@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-func (a *AmazonLinux1) buildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
-	config, err := a.mergeConfig(def, user)
+func BuildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
+	config, err := mergeConfig(def, user)
 	if err != nil {
 		return distro.Config{}, err
 	}
 
-	err = a.sanitizeConfig(&config)
+	err = sanitizeConfig(&config)
 	if err != nil {
 		return distro.Config{}, err
 	}
@@ -22,7 +22,7 @@ func (a *AmazonLinux1) buildConfig(def distro.Config, user distro.Config) (distr
 }
 
 // mergeConfig returns the final configuration by merging the default with the user provided.
-func (a *AmazonLinux1) mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
+func mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
 	if len(config.Archs) < 1 {
 		config.Archs = def.Archs
 	} else {
@@ -48,11 +48,11 @@ func (a *AmazonLinux1) mergeConfig(def distro.Config, config distro.Config) (dis
 	}
 
 	if len(config.Repositories) < 1 {
-		config.Repositories = a.getDefaultRepositories()
+		config.Repositories = def.Repositories
 	} else {
 		for _, repository := range config.Repositories {
 			if repository.URI == "" {
-				config.Repositories = a.getDefaultRepositories()
+				config.Repositories = def.Repositories
 
 				break
 			}
@@ -67,8 +67,8 @@ func (a *AmazonLinux1) mergeConfig(def distro.Config, config distro.Config) (dis
 	return config, nil
 }
 
-func (a *AmazonLinux1) sanitizeConfig(config *distro.Config) error {
-	err := a.sanitizeMirrors(&config.Mirrors)
+func sanitizeConfig(config *distro.Config) error {
+	err := sanitizeMirrors(&config.Mirrors)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (a *AmazonLinux1) sanitizeConfig(config *distro.Config) error {
 	return nil
 }
 
-func (a *AmazonLinux1) sanitizeMirrors(mirrors *[]packages.Mirror) error {
+func sanitizeMirrors(mirrors *[]packages.Mirror) error {
 	for i, mirror := range *mirrors {
 		if !strings.HasSuffix(mirror.URL, "/") {
 			(*mirrors)[i].URL = mirror.URL + "/"

@@ -1,13 +1,8 @@
-package amazonlinux2022
+package v2022
 
 import (
 	"github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/packages"
-)
-
-const (
-	MirrorsDistroVersionRegex = `^(0|[1-9]\d*)(\.(0|[1-9]\d*)?)?(\.(0|[1-9]\d*)?)?(-[a-zA-Z\d][-a-zA-Z.\d]*)?(\+[a-zA-Z\d][-a-zA-Z.\d]*)?\/$`
-	PackageFileExtension      = "rpm"
 )
 
 var (
@@ -28,6 +23,4 @@ var (
 		Archs:    []distro.Arch{distro.DefaultArch},
 		Versions: []distro.Version{""},
 	}
-
-	debugScrape = true
 )
