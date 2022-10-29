@@ -17,14 +17,14 @@ package cmd
 
 import (
 	"github.com/maxgio92/krawler/internal/format"
-	"github.com/maxgio92/krawler/pkg/distro/amazonlinux/v2"
+	v2 "github.com/maxgio92/krawler/pkg/distro/amazonlinux/v2"
 	"github.com/spf13/cobra"
 )
 
 // amazonLinux2Cmd represents the centos command.
 var amazonLinux2Cmd = &cobra.Command{
 	Use:   "amazonlinux2",
-	Short: "List Amazon Linux kernel 2 releases with headers available from mirrors",
+	Short: "List Amazon Linux 2 kernel releases",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		kernelReleases, err := getKernelReleases(&v2.AmazonLinux{})
 		cobra.CheckErr(err)

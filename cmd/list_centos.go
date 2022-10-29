@@ -24,7 +24,7 @@ import (
 // centosCmd represents the centos command.
 var centosCmd = &cobra.Command{
 	Use:   "centos",
-	Short: "List CentOS kernel releases with headers available from mirrors",
+	Short: "List CentOS kernel releases",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		kernelReleases, err := getKernelReleases(&centos.Centos{})
 		cobra.CheckErr(err)
