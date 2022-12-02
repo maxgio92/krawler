@@ -29,6 +29,7 @@ nav:
   - reference/cli.md
   - reference/config.md
 - 'Roadmap': roadmap.md
+- 'Database': https://cdn.krawler.io
 
 extra:
   generator: false
