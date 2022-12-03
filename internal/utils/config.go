@@ -6,6 +6,7 @@ import (
 	d "github.com/maxgio92/krawler/pkg/distro"
 )
 
+//nolint:cyclop
 func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, map[string]interface{}, error) {
 	// The distro configuration.
 	var config d.Config
@@ -16,11 +17,11 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, map[string]inter
 	// The distro config variables from Viper
 	var varsSettings map[string]interface{}
 
+	//nolint:nestif
 	if distros := v.Sub("distros"); distros != nil {
 		centos := distros.Sub(string(d.CentosType))
 		if centos != nil {
-			err := centos.Unmarshal(&config)
-			if err != nil {
+			if err := centos.Unmarshal(&config); err != nil {
 				return d.Config{}, nil, err
 			}
 
@@ -29,8 +30,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, map[string]inter
 
 		amazonLinuxV1 := distros.Sub(string(d.AmazonLinuxV1Type))
 		if amazonLinuxV1 != nil {
-			err := amazonLinuxV1.Unmarshal(&config)
-			if err != nil {
+			if err := amazonLinuxV1.Unmarshal(&config); err != nil {
 				return d.Config{}, nil, err
 			}
 
@@ -39,8 +39,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, map[string]inter
 
 		amazonLinuxV2 := distros.Sub(string(d.AmazonLinuxV2Type))
 		if amazonLinuxV2 != nil {
-			err := amazonLinuxV2.Unmarshal(&config)
-			if err != nil {
+			if err := amazonLinuxV2.Unmarshal(&config); err != nil {
 				return d.Config{}, nil, err
 			}
 
@@ -49,8 +48,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, map[string]inter
 
 		amazonLinuxV2022 := distros.Sub(string(d.AmazonLinuxV2022Type))
 		if amazonLinuxV2022 != nil {
-			err := amazonLinuxV2022.Unmarshal(&config)
-			if err != nil {
+			if err := amazonLinuxV2022.Unmarshal(&config); err != nil {
 				return d.Config{}, nil, err
 			}
 
