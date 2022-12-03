@@ -44,7 +44,7 @@ func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]strin
 		link := e.Attr("href")
 
 		// Do not traverse the hierarchy in reverse order.
-		if !(strings.Contains(link, "../")) {
+		if !(strings.Contains(link, "../")) && link != "/" {
 			//nolint:errcheck
 			co.Visit(e.Request.AbsoluteURL(link))
 		}
@@ -58,7 +58,7 @@ func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]strin
 		if len(folderMatch) == 0 {
 			fileMatch := filePattern.FindStringSubmatch(r.URL.String())
 
-			// If the URL is of a file file.
+			// If the URL is of a file.
 			if len(fileMatch) > 0 {
 				fileName := path.Base(r.URL.String())
 				fileNameMatch := exactFilePattern.FindStringSubmatch(fileName)
@@ -76,18 +76,22 @@ func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]strin
 
 	// Visit each mirror root folder.
 	for _, seedURL := range seedURLs {
-		//nolint:errcheck
-		co.Visit(seedURL.String())
+		err := co.Visit(seedURL.String())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return files, nil
 }
 
 // Returns a list of folder names found from each seed URL, filtered by folder name regex.
-func CrawlFolders(seedURLs []*url.URL, regex string, debug bool) ([]string, error) {
-	var versions []string
+func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, debug bool) ([]string, error) {
+	var folders []string
 
-	versionPattern := regexp.MustCompile(regex)
+	folderPattern := regexp.MustCompile(folderRegex)
+
+	exactFolderPattern := regexp.MustCompile(exactFolderRegex)
 
 	allowedDomains := getHostnamesFromURLs(seedURLs)
 	if len(allowedDomains) < 1 {
@@ -108,20 +112,43 @@ func CrawlFolders(seedURLs []*url.URL, regex string, debug bool) ([]string, erro
 	// Create the collector.
 	co := colly.NewCollector(coOptions...)
 
-	// Visit each distro version-specific folder.
+	// Visit each specific folder.
 	co.OnHTML("a[href]", func(e *colly.HTMLElement) {
-		distroVersionFolderMatch := versionPattern.FindStringSubmatch(e.Attr("href"))
+		href := e.Attr("href")
 
-		if len(distroVersionFolderMatch) > 0 {
-			//nolint:errcheck
-			co.Visit(e.Request.AbsoluteURL(e.Attr("href")))
+		folderMatch := folderPattern.FindStringSubmatch(href)
+
+		// if the URL is of a folder.
+		if len(folderMatch) > 0 {
+
+			// Do not traverse the hierarchy in reverse order.
+			if strings.Contains(href, "../") || href == "/" {
+				return
+			}
+
+			exactFolderMatch := exactFolderPattern.FindStringSubmatch(href)
+			if len(exactFolderMatch) > 0 {
+				//if !recursive {
+
+				hrefAbsURL, _ := url.Parse(e.Request.AbsoluteURL(href))
+				if !urlSliceContains(seedURLs, hrefAbsURL) {
+
+					folders = append(folders, path.Base(hrefAbsURL.Path))
+				}
+			}
+			if recursive {
+				//nolint:errcheck
+				co.Visit(e.Request.AbsoluteURL(href))
+			}
 		}
 	})
 
-	// Collect all the version folder names.
 	co.OnRequest(func(r *colly.Request) {
-		if !urlSliceContains(seedURLs, r.URL) {
-			versions = append(versions, path.Base(r.URL.Path))
+		folderMatch := folderPattern.FindStringSubmatch(r.URL.String())
+
+		// if the URL is not of a folder.
+		if len(folderMatch) == 0 {
+			r.Abort()
 		}
 	})
 
@@ -133,5 +160,5 @@ func CrawlFolders(seedURLs []*url.URL, regex string, debug bool) ([]string, erro
 		}
 	}
 
-	return versions, nil
+	return folders, nil
 }
