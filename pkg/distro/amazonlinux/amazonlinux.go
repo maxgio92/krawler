@@ -109,7 +109,7 @@ func crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version, error) {
 		seedUrls = append(seedUrls, u)
 	}
 
-	folderNames, err := scrape.CrawlFolders(seedUrls, MirrorsDistroVersionRegex, debug)
+	folderNames, err := scrape.CrawlFolders(seedUrls, MirrorsDistroVersionRegex, true, debug)
 	if err != nil {
 		return []distro.Version{}, err
 	}
