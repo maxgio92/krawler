@@ -1,0 +1,22 @@
+distros:
+  amazonlinux:
+
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: http://amazonlinux.us-east-1.amazonaws.com/2
+      name: AmazonLinux2
+
+    repositories:
+    - uri: /core/{{ .al2_core_repos }}
+    - uri: /extras/{{ .al2_extras_repos }}/latest
+
+    vars:
+      al2_core_repos:
+      - "v2.0"
+      - "latest"
+      al2_extras_repos:
+      - kernel-5.4
+      - kernel-5.10

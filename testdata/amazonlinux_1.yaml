@@ -1,0 +1,24 @@
+distros:
+  amazonlinux:
+
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: http://repo.us-east-1.amazonaws.com
+      name: AmazonLinux1
+
+    repositories:
+    - uri: /latest/{{ .al1_repos }}
+    - uri: /2017.03/{{ .al1_repos }}
+    - uri: /2017.08/{{ .al1_repos }}
+    - uri: /2018.03/{{ .al1_repos }}
+
+    vars:
+      al1_repos:
+      - "main"
+      - "updates"
+      al2_core_repos:
+      - "v2.0"
+      - "latest"

@@ -2,7 +2,7 @@ distros:
   centos:
 
     versions:
-    - "7.0.1406"
+    #- "7.0.1406"
     - "8-stream"
 
     archs:
@@ -10,14 +10,14 @@ distros:
     - "aarch64"
 
     mirrors:
-    - url: https://archive.kernel.org/centos-vault
-      name: Archive
+    #- url: https://archive.kernel.org/centos-vault
+    #  name: Archive
     - url: https://mirrors.edge.kernel.org/centos
       name: Edge
 
     repositories:
-    - uri: "/{{ .old_repos }}/{{ .archs }}/"
-      name: Old
+    #- uri: "/{{ .old_repos }}/{{ .archs }}/"
+    #  name: Old
     - uri: "/{{ .new_repos }}/{{ .archs }}/os/"
       name: New
 
@@ -25,6 +25,6 @@ distros:
       new_repos:
       - "BaseOS"
       - "AppStream"
-      old_repos:
-      - "os"
-      - "updates"
+      #old_repos:
+      #- "os"
+      #- "updates"
