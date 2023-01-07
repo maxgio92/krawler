@@ -32,29 +32,13 @@ func (c *Debian) GetPackages(filter p.Filter) ([]p.Package, error) {
 	}
 
 	// Build distribution version-specific mirror root URLs.
-	releaseIndexURLs, err := c.buildReleaseIndexURLs(config.Mirrors, config.Versions)
+	distURLs, err := c.buildReleaseIndexURLs(config.Mirrors, config.Versions)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: from per-version (i.e. Debian Distribution) URL Release index file, get per-repository (e.g. Debian Component) Packages file
-	// e.g. dists/stable/Release -> dists/stable/main/binary-amd64/Packages.xz
-
-	// Build available repository URLs based on provided configuration,
-	//for each distribution version.
-	//
-	// This should be part of Deb logic (i.e. deb.BuildPackagesIndexURLs function).
-	packagesIndexURLs, err := c.buildPackagesIndexURLs(releaseIndexURLs, config.Repositories, c.vars)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: from URLs of Packages index files, get deb Packages
-	// e.g. dists/stable/main/binary-amd64/Packages.xz -> ... pool/main/l/linux-signed-amd64/linux-headers-amd64_5.10.140-1_amd64.deb
-
-	// Get deb packages from each repository.
-	//debs, err := deb.GetPackagesFromIndexURLs(packagesIndexURLs, filter.String(), filter.PackageFileNames()...)
-	debs, err := deb.GetPackagesFromIndexURLs(packagesIndexURLs, filter.String(), filter.PackageFileNames()...)
+	// TODO: filter by architecture
+	debs, err := deb.GetPackages(filter.String(), distURLs)
 	if err != nil {
 		return nil, err
 	}
@@ -63,21 +47,25 @@ func (c *Debian) GetPackages(filter p.Filter) ([]p.Package, error) {
 
 	for i, v := range debs {
 		v := v
-		packages[i] = p.Package(&v)
+		packages[i] = &deb.Package{
+			Name:    v.Package,
+			Arch:    v.Architecture.String(),
+			Version: v.Version.String(),
+		}
 	}
 
 	return packages, nil
 }
 
 // Returns the list of version-specific mirror URLs.
-func (c *Debian) buildReleaseIndexURLs(mirrors []p.Mirror, versions []distro.Version) ([]*url.URL, error) {
+func (c *Debian) buildReleaseIndexURLs(mirrors []p.Mirror, versions []distro.Version) ([]string, error) {
 	versions, err := c.buildVersions(mirrors, versions)
 	if err != nil {
-		return []*url.URL{}, err
+		return nil, nil
 	}
 
 	if (len(versions) > 0) && (len(mirrors) > 0) {
-		var versionRoots []*url.URL
+		var versionRoots []string
 
 		for _, mirror := range mirrors {
 			for _, version := range versions {
@@ -86,12 +74,7 @@ func (c *Debian) buildReleaseIndexURLs(mirrors []p.Mirror, versions []distro.Ver
 					return nil, err
 				}
 
-				versionRoot, err := url.Parse(v)
-				if err != nil {
-					return nil, err
-				}
-
-				versionRoots = append(versionRoots, versionRoot)
+				versionRoots = append(versionRoots, v)
 			}
 		}
 
@@ -149,37 +132,6 @@ func (c *Debian) crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version
 	}
 
 	return versions, nil
-}
-
-// Returns the list of repositories URLs.
-func (c *Debian) buildPackagesIndexURLs(roots []*url.URL, components []p.Repository, vars map[string]interface{}) ([]*url.URL, error) {
-	var urls []*url.URL
-
-	paths, err := c.buildComponentPaths(components, vars)
-	if err != nil {
-		return []*url.URL{}, err
-	}
-
-	for _, root := range roots {
-		//nolint:revive,stylecheck
-		for _, path := range paths {
-			// Get component URL from path.
-			//nolint:revive,stylecheck
-			us, err := url.JoinPath(root.String(), path)
-			if err != nil {
-				return nil, err
-			}
-
-			componentURL, err := url.Parse(us)
-			if err != nil {
-				return nil, err
-			}
-
-			urls = append(urls, componentURL)
-		}
-	}
-
-	return urls, nil
 }
 
 func (c *Debian) buildComponentPaths(components []p.Repository, vars map[string]interface{}) ([]string, error) {
