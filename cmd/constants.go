@@ -17,6 +17,7 @@ limitations under the License.
 package cmd
 
 const (
-	ConfigDistrosRoot        = "distros"
-	KernelHeadersPackageName = "kernel-devel"
+	ConfigDistrosRoot           = "distros"
+	RPMKernelHeadersPackageName = "kernel-devel"
+	DebKernelHeadersPackageName = "linux-headers"
 )
