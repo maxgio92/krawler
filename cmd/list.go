@@ -43,9 +43,9 @@ func init() {
 	listCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format (text, json, yaml)")
 }
 
-func getKernelReleases(distro distro.Distro) ([]kr.KernelRelease, error) {
+func getKernelReleases(distro distro.Distro, packageName string) ([]kr.KernelRelease, error) {
 	// The filter for filter packages.
-	filter := packages.NewFilter(KernelHeadersPackageName, ".config")
+	filter := packages.NewFilter(packageName, ".config")
 
 	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
 	if err != nil {
@@ -64,7 +64,7 @@ func getKernelReleases(distro distro.Distro) ([]kr.KernelRelease, error) {
 	}
 
 	// Get kernel releases from kernel header packages.
-	kernelReleases, err := kr.GetKernelReleaseListFromPackageList(packages, KernelHeadersPackageName)
+	kernelReleases, err := kr.GetKernelReleaseListFromPackageList(packages, packageName)
 	if err != nil {
 		return []kr.KernelRelease{}, err
 	}

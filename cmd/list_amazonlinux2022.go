@@ -26,7 +26,7 @@ var amazonLinux2022Cmd = &cobra.Command{
 	Use:   "amazonlinux2022",
 	Short: "List Amazon Linux 2022 kernel releases",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		kernelReleases, err := getKernelReleases(&v2022.AmazonLinux{})
+		kernelReleases, err := getKernelReleases(&v2022.AmazonLinux{}, KernelHeadersPackageName)
 		cobra.CheckErr(err)
 
 		if len(kernelReleases) > 0 {
