@@ -26,7 +26,7 @@ var centosCmd = &cobra.Command{
 	Use:   "centos",
 	Short: "List CentOS kernel releases",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		kernelReleases, err := getKernelReleases(&centos.Centos{}, KernelHeadersPackageName)
+		kernelReleases, err := getKernelReleases(&centos.Centos{}, RPMKernelHeadersPackageName)
 		cobra.CheckErr(err)
 
 		if len(kernelReleases) > 0 {

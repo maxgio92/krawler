@@ -26,7 +26,7 @@ var debianCmd = &cobra.Command{
 	Use:   "debian",
 	Short: "List CentOS kernel releases",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		kernelReleases, err := getKernelReleases(&debian.Debian{}, "linux-headers")
+		kernelReleases, err := getKernelReleases(&debian.Debian{}, DebKernelHeadersPackageName)
 		cobra.CheckErr(err)
 
 		if len(kernelReleases) > 0 {
