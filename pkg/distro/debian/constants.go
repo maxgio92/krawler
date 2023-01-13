@@ -21,7 +21,9 @@ var (
 			{Name: "contrib", URI: packages.URITemplate("/contrib/")},
 			{Name: "non-free", URI: packages.URITemplate("/non-free/")},
 		},
-		Archs:    []distro.Arch{distro.DefaultArch},
+		Archs: []distro.Arch{distro.DefaultArch},
+
+		// Distribution versions, i.e. Debian dists
 		Versions: nil,
 	}
 
