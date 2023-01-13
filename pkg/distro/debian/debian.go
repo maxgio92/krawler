@@ -32,6 +32,7 @@ func (c *Debian) GetPackages(filter p.Filter) ([]p.Package, error) {
 	}
 
 	// Build distribution version-specific mirror root URLs.
+	// TODO: introduce support for Release index files, where InRelease does not exist.
 	distURLs, err := c.buildReleaseIndexURLs(config.Mirrors, config.Versions)
 	if err != nil {
 		return nil, err
