@@ -1,21 +1,19 @@
 package output
 
+import (
+	"github.com/schollz/progressbar/v3"
+)
+
 type ProgressOptions struct {
-	InitFunc     func()
-	ProgressFunc func()
+	bar *progressbar.ProgressBar
 }
 
-func NewProgressOptions(InitFunc func(), ProgressFunc func()) *ProgressOptions {
+func NewProgressOptions(total int, message ...string) *ProgressOptions {
 	return &ProgressOptions{
-		InitFunc:     InitFunc,
-		ProgressFunc: ProgressFunc,
+		bar: progressbar.Default(int64(total), message...),
 	}
 }
 
-func (o *ProgressOptions) Init() {
-	o.InitFunc()
-}
-
-func (o *ProgressOptions) Progress() {
-	o.ProgressFunc()
+func (b *ProgressOptions) Progress(n int) {
+	b.bar.Add(n)
 }
