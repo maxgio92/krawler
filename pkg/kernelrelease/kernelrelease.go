@@ -103,7 +103,9 @@ func GetKernelReleaseListFromPackageList(packages []p.Package, prefix string) ([
 			return []KernelRelease{}, err
 		}
 
-		releases = append(releases, *kr)
+		if kr.Fullversion != "" {
+			releases = append(releases, *kr)
+		}
 	}
 
 	return UniqueKernelReleases(releases), nil
