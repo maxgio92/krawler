@@ -25,12 +25,11 @@ func init() {
 // GetPackages returns a slice of pault.ag/go/archive.Package objects, filtering per package name.
 // The needed arguments are the package name as string, and a list of URL of the deb dists as string
 // slice.
-// TODO: introduce support for filter by architecture.
-func GetPackages(packageName string, distURLs []string) ([]archive.Package, error) {
+func GetPackages(options *SearchOptions) ([]archive.Package, error) {
 	packages := []archive.Package{}
 
 	perDistWG := sync.WaitGroup{}
-	perDistWG.Add(len(distURLs))
+	perDistWG.Add(len(options.DistURLs()))
 
 	packagesCh := make(chan []archive.Package)
 
@@ -38,12 +37,12 @@ func GetPackages(packageName string, distURLs []string) ([]archive.Package, erro
 
 	done := make(chan bool, 1)
 
-	bar := progressbar.Default(int64(len(distURLs)), "Total")
+	bar := progressbar.Default(int64(len(options.DistURLs())), "Total")
 
 	// Run producer workers.
-	for _, v := range distURLs {
+	for _, v := range options.DistURLs() {
 		distURL := v
-		go getDistPackages(bar, &perDistWG, packagesCh, errCh, packageName, distURL)
+		go getDistPackages(bar, &perDistWG, packagesCh, errCh, options.PackageName(), distURL)
 	}
 
 	// Run consumer worker.
@@ -172,9 +171,9 @@ func consumePackages(done chan bool, packages *[]archive.Package, packagesCh cha
 	done <- true
 }
 
-func getIndexPackages(progressBar *progressbar.ProgressBar, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, indexURL string) {
+func getIndexPackages(bar *progressbar.ProgressBar, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, indexURL string) {
 	defer waitGroup.Done()
-	defer progressBar.Add(1)
+	defer bar.Add(1)
 
 	log.WithField("URL", indexURL).Debug("Downloading compressed index file")
 
