@@ -38,8 +38,9 @@ func (c *Debian) GetPackages(filter p.Filter) ([]p.Package, error) {
 		return nil, err
 	}
 
-	// TODO: filter by architecture
-	debs, err := deb.GetPackages(filter.String(), distURLs)
+	searchOptions := deb.NewSearchOptions(filter.String(), distURLs)
+
+	debs, err := deb.GetPackages(searchOptions)
 	if err != nil {
 		return nil, err
 	}
