@@ -2,7 +2,6 @@ package rpm
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 )
 
@@ -36,10 +35,6 @@ func (p *Package) GetRelease() string {
 
 func (p *Package) GetArch() string {
 	return p.Arch
-}
-
-func (p *Package) String() string {
-	return fmt.Sprintf("%s-%s-%s.%s", p.GetName(), p.GetVersion(), p.GetRelease(), p.GetArch())
 }
 
 func (p *Package) GetLocation() string {
