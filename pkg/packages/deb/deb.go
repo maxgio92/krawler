@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/maxgio92/krawler/pkg/output"
+
 	progressbar "github.com/schollz/progressbar/v3"
 	log "github.com/sirupsen/logrus"
 	"pault.ag/go/archive"
@@ -42,7 +44,9 @@ func GetPackages(options *SearchOptions) ([]archive.Package, error) {
 	// Run producer workers.
 	for _, v := range options.DistURLs() {
 		distURL := v
-		go getDistPackages(bar, &perDistWG, packagesCh, errCh, options.PackageName(), distURL)
+
+		progressOptions := output.NewProgressOptions(nil, func() { bar.Add(1) })
+		go getDistPackages(progressOptions, &perDistWG, packagesCh, errCh, options.PackageName(), distURL)
 	}
 
 	// Run consumer worker.
@@ -62,9 +66,9 @@ func GetPackages(options *SearchOptions) ([]archive.Package, error) {
 // getDistPackages writes to a channel pault.ag/go/archive.Package objects, writes errors to a channel, through usage
 // of asynchronous workers. It needs a *sync.WaitGroup as arguments to synchronize the producer workers.
 // Accepts as argument for filtering packages the package name as string and the deb dist URL where to look for packages.
-func getDistPackages(bar *progressbar.ProgressBar, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, distURL string) {
+func getDistPackages(progressOptions *output.ProgressOptions, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, distURL string) {
 	defer waitGroup.Done()
-	defer bar.Add(1)
+	defer progressOptions.Progress()
 
 	indexesWG := sync.WaitGroup{}
 
@@ -90,7 +94,7 @@ func getDistPackages(bar *progressbar.ProgressBar, waitGroup *sync.WaitGroup, pa
 	}
 
 	indexesWG.Add(len(indexPaths))
-	internalBar := progressbar.Default(int64(len(indexPaths)), fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
+	bar := progressbar.Default(int64(len(indexPaths)), fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
 
 	// From Packages index files, get deb Packages.
 	// E.g. /dists/stable/main/binary-amd64/Packages.xz -> /pool/main/l/linux-signed-amd64/linux-headers-amd64_5.10.140-1_amd64.deb
@@ -109,7 +113,8 @@ func getDistPackages(bar *progressbar.ProgressBar, waitGroup *sync.WaitGroup, pa
 			return
 		}
 
-		go getIndexPackages(internalBar, &indexesWG, packagesInternalCh, errInternalCh, packageName, indexURL)
+		progressOptions := output.NewProgressOptions(nil, func() { bar.Add(1) })
+		go getIndexPackages(progressOptions, &indexesWG, packagesInternalCh, errInternalCh, packageName, indexURL)
 	}
 
 	// Run consumer worker.
@@ -171,9 +176,9 @@ func consumePackages(done chan bool, packages *[]archive.Package, packagesCh cha
 	done <- true
 }
 
-func getIndexPackages(bar *progressbar.ProgressBar, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, indexURL string) {
+func getIndexPackages(progressOptions *output.ProgressOptions, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, indexURL string) {
 	defer waitGroup.Done()
-	defer bar.Add(1)
+	defer progressOptions.Progress()
 
 	log.WithField("URL", indexURL).Debug("Downloading compressed index file")
 
