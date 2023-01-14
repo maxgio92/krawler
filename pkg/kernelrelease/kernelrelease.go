@@ -2,11 +2,9 @@ package kernelrelease
 
 import (
 	"fmt"
+	p "github.com/maxgio92/krawler/pkg/packages"
 	"regexp"
 	"strconv"
-	"strings"
-
-	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
 type Arch string
@@ -34,8 +32,7 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	k.PackageURL = pkg.URL()
 	k.Architecture = Arch(pkg.GetArch())
 
-	prefix := fmt.Sprintf("%s-", pkg.GetName())
-	kernelVersion := strings.TrimPrefix(pkg.String(), prefix)
+	kernelVersion := VersionStringFromPackage(pkg)
 	match := kernelVersionPattern.FindStringSubmatch(kernelVersion)
 
 	identifiers := make(map[string]string)
@@ -75,6 +72,18 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	k.CompilerVersion = compilerVersion
 
 	return nil
+}
+
+func VersionStringFromPackage(pkg p.Package) string {
+	version := pkg.GetVersion()
+	if pkg.GetRelease() != "" {
+		version += fmt.Sprintf("-%s", pkg.GetRelease())
+	}
+	if pkg.GetArch() != "" {
+		version += fmt.Sprintf(".%s", pkg.GetArch())
+	}
+
+	return version
 }
 
 func UniqueKernelReleases(kernelReleases []KernelRelease) []KernelRelease {

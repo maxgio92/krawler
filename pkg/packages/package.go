@@ -8,7 +8,6 @@ type Package interface {
 	GetRelease() string
 	GetArch() string
 	GetLocation() string
-	String() string
 	URL() string
 	FileReaders() []io.Reader
 }
