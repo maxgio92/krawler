@@ -2,18 +2,13 @@ package deb
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"path"
-	"strings"
-	"sync"
-
-	"github.com/maxgio92/krawler/pkg/output"
-
-	progressbar "github.com/schollz/progressbar/v3"
-	log "github.com/sirupsen/logrus"
 	"pault.ag/go/archive"
 	"pault.ag/go/debian/deb"
+	"strings"
 )
 
 func init() {
@@ -24,147 +19,93 @@ func init() {
 	})
 }
 
-// GetPackages returns a slice of pault.ag/go/archive.Package objects, filtering per package name.
-// The needed arguments are the package name as string, and a list of URL of the deb dists as string
-// slice.
-func GetPackages(options *SearchOptions) ([]archive.Package, error) {
+// SearchPackages returns a slice of pault.ag/go/archive.Package objects, filtering as for search options.
+// The function crawls the repositories with asynchronous and parallel workers.
+func SearchPackages(so *SearchOptions) ([]archive.Package, error) {
 	packages := []archive.Package{}
 
-	perDistWG := sync.WaitGroup{}
-	perDistWG.Add(len(options.DistURLs()))
-
-	packagesCh := make(chan []archive.Package)
-
-	errCh := make(chan error)
-
-	done := make(chan bool, 1)
-
-	bar := progressbar.Default(int64(len(options.DistURLs())), "Total")
-
 	// Run producer workers.
-	for _, v := range options.DistURLs() {
+	for _, v := range so.SeedURLs() {
 		distURL := v
-
-		progressOptions := output.NewProgressOptions(nil, func() { bar.Add(1) })
-		go getDistPackages(progressOptions, &perDistWG, packagesCh, errCh, options.PackageName(), distURL)
+		go searchPackagesFromDist(
+			func() {
+				so.Progress(1)
+				so.WaitGroup().Done()
+			},
+			so, distURL)
 	}
 
 	// Run consumer worker.
-	go consumePackages(done, &packages, packagesCh, errCh)
+	go consumePackages(so, &packages)
 
-	// Wait for producers to complete.
-	perDistWG.Wait()
-	close(packagesCh)
-	close(errCh)
-
-	// Wait for consumers to complete.
-	<-done
+	// Wait for producers and consumers to complete.
+	so.WaitAll()
 
 	return packages, nil
 }
 
-// getDistPackages writes to a channel pault.ag/go/archive.Package objects, writes errors to a channel, through usage
-// of asynchronous workers. It needs a *sync.WaitGroup as arguments to synchronize the producer workers.
+// searchPackagesFromDist writes to a channel pault.ag/go/archive.Package objects, writes errors to a channel, through usage
+// of asynchronous workers. It needs a function doneFunc to be executed on completion.
 // Accepts as argument for filtering packages the package name as string and the deb dist URL where to look for packages.
-func getDistPackages(progressOptions *output.ProgressOptions, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, distURL string) {
-	defer waitGroup.Done()
-	defer progressOptions.Progress()
-
-	indexesWG := sync.WaitGroup{}
-
-	packagesInternalCh := make(chan []archive.Package)
-
-	errInternalCh := make(chan error)
-
-	done := make(chan bool, 1)
+func searchPackagesFromDist(doneFunc func(), so *SearchOptions, distURL string) {
+	defer doneFunc()
 
 	inRelease, err := getInReleaseFromDistURL(distURL)
 	if err != nil {
-		errCh <- err
+		so.ErrCh() <- err
 		return
 	}
 
-	// From per-dist Release index file, get per-component Packages index file.
-	// E.g. /dists/stable/Release -> /dists/stable/main/binary-amd64/Packages.xz
-	indexPaths := []string{}
-	for _, v := range inRelease.MD5Sum {
-		if strings.Contains(v.Filename, "Packages"+PackagesIndexFormat) {
-			indexPaths = append(indexPaths, v.Filename)
-		}
+	indexURLs, err := getPackagesIndexURLsFromInRelease(inRelease, distURL)
+	if err != nil {
+		so.ErrCh() <- err
+		return
 	}
 
-	indexesWG.Add(len(indexPaths))
-	bar := progressbar.Default(int64(len(indexPaths)), fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
+	indexSearchOptions := NewSearchOptions(so.PackageName(), indexURLs, fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
 
-	// From Packages index files, get deb Packages.
-	// E.g. /dists/stable/main/binary-amd64/Packages.xz -> /pool/main/l/linux-signed-amd64/linux-headers-amd64_5.10.140-1_amd64.deb
-	//
-	// Run producer workers.
-	for _, v := range indexPaths {
+	// Run producer workers, to search packages from Packages index files.
+	for _, v := range indexSearchOptions.SeedURLs() {
 		if ExcludeInstallers && strings.Contains(v, "debian-installer") {
-			indexesWG.Done()
+			indexSearchOptions.WaitGroup().Done()
 			continue
 		}
 
-		indexURL, err := url.JoinPath(distURL, v)
-		if err != nil {
-			errCh <- err
-			indexesWG.Done()
-			return
-		}
-
-		progressOptions := output.NewProgressOptions(nil, func() { bar.Add(1) })
-		go getIndexPackages(progressOptions, &indexesWG, packagesInternalCh, errInternalCh, packageName, indexURL)
+		go searchPackagesFromIndex(
+			func() {
+				indexSearchOptions.Progress(1)
+				indexSearchOptions.WaitGroup().Done()
+			},
+			indexSearchOptions, v)
 	}
 
-	// Run consumer worker.
-	go func() {
-		for errInternalCh != nil || packagesInternalCh != nil {
-			select {
-			case p, ok := <-packagesInternalCh:
-				if ok {
-					log.Debug("got a response from DB")
-					if len(p) > 0 {
-						packagesCh <- p
-					}
-					continue
-				}
-				packagesInternalCh = nil
-			case e, ok := <-errInternalCh:
-				if ok {
-					log.Debug("got an error from DB")
-					errCh <- e
-					continue
-				}
-				errInternalCh = nil
-			}
-		}
-		log.Debug("consumers are done")
-		done <- true
-	}()
+	// Run consumer worker from child option set, to fill the parent search option set.
+	go consumeIndexPackages(indexSearchOptions, so)
 
 	// Wait for producers to complete.
-	indexesWG.Wait()
-	close(packagesInternalCh)
-	close(errInternalCh)
+	indexSearchOptions.WaitGroup().Wait()
+	close(indexSearchOptions.ResultCh())
+	close(indexSearchOptions.ErrCh())
 
 	// Wait for consumers to complete.
-	<-done
+	<-indexSearchOptions.DoneCh()
 }
 
-func consumePackages(done chan bool, packages *[]archive.Package, packagesCh chan []archive.Package, errCh chan error) {
-	for errCh != nil || packagesCh != nil {
+func consumePackages(so *SearchOptions, target *[]archive.Package) {
+	resultCh := so.ResultCh()
+	errCh := so.ErrCh()
+	for errCh != nil || resultCh != nil {
 		select {
-		case p, ok := <-packagesCh:
+		case p, ok := <-resultCh:
 			if ok {
 				log.Debug("Scanned DB")
 				if len(p) > 0 {
-					*packages = append(*packages, p...)
+					*target = append(*target, p...)
 					log.Infof("New %d packages found", len(p))
 				}
 				continue
 			}
-			packagesCh = nil
+			resultCh = nil
 		case e, ok := <-errCh:
 			if ok {
 				log.Error(e)
@@ -173,22 +114,23 @@ func consumePackages(done chan bool, packages *[]archive.Package, packagesCh cha
 			errCh = nil
 		}
 	}
-	done <- true
+	so.DoneCh() <- true
 }
 
-func getIndexPackages(progressOptions *output.ProgressOptions, waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, packageName string, indexURL string) {
-	defer waitGroup.Done()
-	defer progressOptions.Progress()
+// searchPackagesFromIndex searches and fills with a channel of deb packages from Packages index files.
+// E.g. /dists/stable/main/binary-amd64/Packages.xz -> /pool/main/l/linux-signed-amd64/linux-headers-amd64_5.10.140-1_amd64.deb
+func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string) {
+	defer doneFunc()
 
 	log.WithField("URL", indexURL).Debug("Downloading compressed index file")
 
 	resp, err := http.Get(indexURL)
 	if err != nil {
-		errCh <- err
+		so.ErrCh() <- err
 		return
 	}
 	if got, want := resp.StatusCode, http.StatusOK; got != want {
-		errCh <- fmt.Errorf("download(%s): unexpected HTTP status code: got %d, want %d", indexURL, got, want)
+		so.ErrCh() <- fmt.Errorf("download(%s): unexpected HTTP status code: got %d, want %d", indexURL, got, want)
 		return
 	}
 	defer resp.Body.Close()
@@ -199,7 +141,7 @@ func getIndexPackages(progressOptions *output.ProgressOptions, waitGroup *sync.W
 	rd, err := debDecompressor(resp.Body)
 	defer rd.Close()
 	if err != nil {
-		errCh <- err
+		so.ErrCh() <- err
 		return
 	}
 
@@ -207,14 +149,14 @@ func getIndexPackages(progressOptions *output.ProgressOptions, waitGroup *sync.W
 
 	db, err := archive.LoadPackages(rd)
 	if err != nil {
-		errCh <- err
+		so.ErrCh() <- err
 		return
 	}
 
 	log.WithField("URL", indexURL).Debug("Querying packages from DB")
 
 	query := func(p *archive.Package) bool {
-		if strings.Contains(p.Package, packageName) && p.Architecture.CPU != "all" {
+		if strings.Contains(p.Package, so.PackageName()) && p.Architecture.CPU != "all" {
 			return true
 		}
 		return false
@@ -222,13 +164,43 @@ func getIndexPackages(progressOptions *output.ProgressOptions, waitGroup *sync.W
 
 	p, err := db.Map(query)
 	if err != nil {
-		errCh <- err
+		so.ErrCh() <- err
 		return
 	}
 
-	packagesCh <- p
+	so.ResultCh() <- p
 }
 
+func consumeIndexPackages(indexSearchOptions *SearchOptions, distSearchOptions *SearchOptions) {
+	indexResultCh := indexSearchOptions.ResultCh()
+	indexErrCh := indexSearchOptions.ErrCh()
+
+	for indexErrCh != nil || indexResultCh != nil {
+		select {
+		case p, ok := <-indexResultCh:
+			if ok {
+				log.Debug("got a response from DB")
+				if len(p) > 0 {
+					distSearchOptions.ResultCh() <- p
+				}
+				continue
+			}
+			indexResultCh = nil
+		case e, ok := <-indexErrCh:
+			if ok {
+				log.Debug("got an error from DB")
+				distSearchOptions.ErrCh() <- e
+				continue
+			}
+			indexErrCh = nil
+		}
+	}
+	log.Debug("consumers are done")
+	indexSearchOptions.DoneCh() <- true
+}
+
+// getInReleaseFromDistURL returns a *archive.Release object from the deb dist URL.
+// It leverages pault.ag/go/archive and pault.ag/go/debian/deb libraries to parse and build the Release object.
 func getInReleaseFromDistURL(distURL string) (*archive.Release, error) {
 	inReleaseURL, err := url.JoinPath(distURL, InRelease)
 	if err != nil {
@@ -256,4 +228,24 @@ func getInReleaseFromDistURL(distURL string) (*archive.Release, error) {
 	}
 
 	return release, nil
+}
+
+// getPackagesIndexURLsFromInRelease returns from per dist Release index file, the URLs of the per component Packages
+// index files.
+// E.g. from /dists/stable/Release -> /dists/stable/main/binary-amd64/Packages.xz
+func getPackagesIndexURLsFromInRelease(inRelease *archive.Release, distURL string) ([]string, error) {
+	indexURLs := []string{}
+	for _, v := range inRelease.MD5Sum {
+		if strings.Contains(v.Filename, "Packages"+PackagesIndexFormat) {
+
+			u, err := url.JoinPath(distURL, v.Filename)
+			if err != nil {
+				return nil, err
+			}
+
+			indexURLs = append(indexURLs, u)
+		}
+	}
+
+	return indexURLs, nil
 }

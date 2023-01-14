@@ -40,7 +40,7 @@ func (c *Debian) GetPackages(filter p.Filter) ([]p.Package, error) {
 
 	searchOptions := deb.NewSearchOptions(filter.String(), distURLs)
 
-	debs, err := deb.GetPackages(searchOptions)
+	debs, err := deb.SearchPackages(searchOptions)
 	if err != nil {
 		return nil, err
 	}

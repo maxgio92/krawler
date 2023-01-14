@@ -6,11 +6,6 @@ import (
 )
 
 func TestNewProgressOptions(t *testing.T) {
-	po := NewProgressOptions(
-		func() {},
-		func() {},
-	)
+	po := NewProgressOptions(100)
 	assert.NotNil(t, po)
-	assert.NotNil(t, po.InitFunc)
-	assert.NotNil(t, po.ProgressFunc)
 }
