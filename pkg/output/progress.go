@@ -1,7 +1,10 @@
 package output
 
 import (
+	"fmt"
 	"github.com/schollz/progressbar/v3"
+	"os"
+	"time"
 )
 
 type ProgressOptions struct {
@@ -9,8 +12,28 @@ type ProgressOptions struct {
 }
 
 func NewProgressOptions(total int, message ...string) *ProgressOptions {
+	desc := ""
+	if len(message) > 0 {
+		desc = message[0]
+	}
+	bar := progressbar.NewOptions64(
+		int64(total),
+		progressbar.OptionSetDescription(desc),
+		progressbar.OptionSetWriter(os.Stderr),
+		progressbar.OptionSetWidth(10),
+		progressbar.OptionThrottle(65*time.Millisecond),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionOnCompletion(func() {
+			fmt.Fprint(os.Stderr, "\n")
+		}),
+		progressbar.OptionSpinnerType(14),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionSetRenderBlankState(false),
+	)
+
 	return &ProgressOptions{
-		bar: progressbar.Default(int64(total), message...),
+		bar: bar,
 	}
 }
 

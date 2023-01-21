@@ -7,18 +7,9 @@ import (
 	"path"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"pault.ag/go/archive"
 	"pault.ag/go/debian/deb"
 )
-
-func init() {
-	log.SetLevel(log.FatalLevel)
-	log.SetFormatter(&log.TextFormatter{
-		ForceColors:      true,
-		DisableTimestamp: true,
-	})
-}
 
 // SearchPackages returns a slice of pault.ag/go/archive.Package objects, filtering as for search options.
 // The function crawls the repositories with asynchronous and parallel workers.
@@ -37,14 +28,14 @@ func SearchPackages(so *SearchOptions) ([]archive.Package, error) {
 	collect := func() {
 		so.Consume(
 			func(p ...archive.Package) {
-				log.Debug("Scanned DB")
+				so.Log().Debug("Scanned DB")
 				if len(p) > 0 {
 					packages = append(packages, p...)
-					log.Infof("New %d packages found", len(p))
+					so.Log().Infof("New %d packages found", len(p))
 				}
 			},
 			func(e error) {
-				log.Error(e)
+				so.Log().Error(e)
 			},
 		)
 	}
@@ -82,7 +73,7 @@ func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL stri
 		return
 	}
 
-	indexSO := NewSearchOptions(distSO.PackageName(), indexURLs, fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
+	indexSO := NewSearchOptions(distSO.PackageName(), indexURLs, distSO.Verbosity(), fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
 
 	// Run producers, to search packages from Packages index files.
 	for _, v := range indexSO.SeedURLs() {
@@ -102,14 +93,14 @@ func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL stri
 	// Run consumer from child option set, to fill the parent search option set.
 	go indexSO.Consume(
 		func(p ...archive.Package) {
-			log.Debug("got a response from DB")
+			indexSO.Log().Debug("got a response from DB")
 			if len(p) > 0 {
 				distSO.SendMessage(p...)
 			}
 		},
 		func(e error) {
-			log.Debug("got an error from DB")
-			distSO.ErrorCh() <- e
+			indexSO.Log().Debug("got an error from DB")
+			distSO.SendError(e)
 		},
 	)
 
@@ -122,38 +113,38 @@ func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL stri
 func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string) {
 	defer doneFunc()
 
-	log.WithField("URL", indexURL).Debug("Downloading compressed index file")
+	so.Log().WithField("URL", indexURL).Debug("Downloading compressed index file")
 
 	resp, err := http.Get(indexURL)
 	if err != nil {
-		so.ErrorCh() <- err
+		so.SendError(err)
 		return
 	}
 	if got, want := resp.StatusCode, http.StatusOK; got != want {
-		so.ErrorCh() <- fmt.Errorf("download(%s): unexpected HTTP status code: got %d, want %d", indexURL, got, want)
+		so.SendError(fmt.Errorf("download(%s): unexpected HTTP status code: got %d, want %d", indexURL, got, want))
 		return
 	}
 	defer resp.Body.Close()
 
-	log.WithField("URL", indexURL).Debug("Decompressing index file")
+	so.Log().WithField("URL", indexURL).Debug("Decompressing index file")
 
 	debDecompressor := deb.DecompressorFor(PackagesIndexFormat)
 	rd, err := debDecompressor(resp.Body)
 	defer rd.Close()
 	if err != nil {
-		so.ErrorCh() <- err
+		so.SendError(err)
 		return
 	}
 
-	log.WithField("URL", indexURL).Debug("Loading packages DB from index file")
+	so.Log().WithField("URL", indexURL).Debug("Loading packages DB from index file")
 
 	db, err := archive.LoadPackages(rd)
 	if err != nil {
-		so.ErrorCh() <- err
+		so.SendError(err)
 		return
 	}
 
-	log.WithField("URL", indexURL).Debug("Querying packages from DB")
+	so.Log().WithField("URL", indexURL).Debug("Querying packages from DB")
 
 	query := func(p *archive.Package) bool {
 		if strings.Contains(p.Package, so.PackageName()) && p.Architecture.CPU != "all" {

@@ -1,6 +1,7 @@
 package debian
 
 import (
+	"github.com/maxgio92/krawler/pkg/output"
 	"github.com/maxgio92/krawler/pkg/packages/deb"
 	"net/url"
 
@@ -38,7 +39,7 @@ func (c *Debian) GetPackages(filter p.Filter) ([]p.Package, error) {
 		return nil, err
 	}
 
-	searchOptions := deb.NewSearchOptions(filter.String(), distURLs)
+	searchOptions := deb.NewSearchOptions(filter.String(), distURLs, output.FatalLevel)
 
 	debs, err := deb.SearchPackages(searchOptions)
 	if err != nil {
