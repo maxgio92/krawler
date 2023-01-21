@@ -2,10 +2,13 @@ package deb
 
 import (
 	"fmt"
+	"golang.org/x/exp/slices"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+
+	"github.com/maxgio92/krawler/pkg/packages"
 
 	"pault.ag/go/archive"
 	"pault.ag/go/debian/deb"
@@ -13,8 +16,8 @@ import (
 
 // SearchPackages returns a slice of pault.ag/go/archive.Package objects, filtering as for search options.
 // The function crawls the repositories with asynchronous and parallel workers.
-func SearchPackages(so *SearchOptions) ([]archive.Package, error) {
-	packages := []archive.Package{}
+func SearchPackages(so *SearchOptions) ([]packages.Package, error) {
+	var result []packages.Package
 
 	search := func(distURL string) {
 		searchPackagesFromDist(
@@ -27,10 +30,10 @@ func SearchPackages(so *SearchOptions) ([]archive.Package, error) {
 
 	collect := func() {
 		so.Consume(
-			func(p ...archive.Package) {
+			func(p ...packages.Package) {
 				so.Log().Debug("Scanned DB")
 				if len(p) > 0 {
-					packages = append(packages, p...)
+					result = append(result, p...)
 					so.Log().Infof("New %d packages found", len(p))
 				}
 			},
@@ -52,7 +55,7 @@ func SearchPackages(so *SearchOptions) ([]archive.Package, error) {
 	// Wait for producers and consumers to complete and cleanup.
 	so.WaitAndClose()
 
-	return packages, nil
+	return result, nil
 }
 
 // searchPackagesFromDist writes to a channel pault.ag/go/archive.Package objects, writes errors to a channel, through usage
@@ -73,7 +76,8 @@ func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL stri
 		return
 	}
 
-	indexSO := NewSearchOptions(distSO.PackageName(), indexURLs, distSO.Verbosity(), fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
+	o := packages.NewSearchOptions(distSO.PackageName(), distSO.Architectures(), indexURLs, distSO.Verbosity(), fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
+	indexSO := NewSearchOptions(o, o.Architectures(), o.SeedURLs())
 
 	// Run producers, to search packages from Packages index files.
 	for _, v := range indexSO.SeedURLs() {
@@ -92,7 +96,7 @@ func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL stri
 
 	// Run consumer from child option set, to fill the parent search option set.
 	go indexSO.Consume(
-		func(p ...archive.Package) {
+		func(p ...packages.Package) {
 			indexSO.Log().Debug("got a response from DB")
 			if len(p) > 0 {
 				distSO.SendMessage(p...)
@@ -147,19 +151,38 @@ func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string
 	so.Log().WithField("URL", indexURL).Debug("Querying packages from DB")
 
 	query := func(p *archive.Package) bool {
-		if strings.Contains(p.Package, so.PackageName()) && p.Architecture.CPU != "all" {
-			return true
+		if strings.Contains(p.Package, so.PackageName()) {
+			if p.Architecture.CPU == "all" {
+				return false
+			}
+			if slices.Contains(so.Architectures(), packages.Architecture(p.Architecture.CPU)) {
+				return true
+			}
+			if so.Architectures() == nil {
+				return true
+			}
 		}
 		return false
 	}
 
-	p, err := db.Map(query)
+	ds, err := db.Map(query)
 	if err != nil {
 		so.SendError(err)
 		return
 	}
 
-	so.SendMessage(p...)
+	// Convert deb packages to a standard type.
+	ps := []packages.Package{}
+	for _, d := range ds {
+		p := &Package{
+			Name:    d.Package,
+			Arch:    d.Architecture.String(),
+			Version: d.Version.String(),
+		}
+		ps = append(ps, p)
+	}
+
+	so.SendMessage(ps...)
 }
 
 // getInReleaseFromDistURL returns a *archive.Release object from the deb dist URL.

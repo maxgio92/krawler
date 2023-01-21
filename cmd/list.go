@@ -19,7 +19,6 @@ import (
 	"github.com/maxgio92/krawler/internal/utils"
 	"github.com/maxgio92/krawler/pkg/distro"
 	kr "github.com/maxgio92/krawler/pkg/kernelrelease"
-	"github.com/maxgio92/krawler/pkg/output"
 	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/spf13/cobra"
 	v "github.com/spf13/viper"
@@ -45,21 +44,28 @@ func init() {
 }
 
 func getKernelReleases(distro distro.Distro, packageName string) ([]kr.KernelRelease, error) {
-	// The filter for filter packages.
-	filter := packages.NewFilter(output.FatalLevel, packageName, ".config")
-
-	config, vars, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
+	config, err := utils.GetDistroConfigAndVarsFromViper(v.GetViper())
 	if err != nil {
 		return []kr.KernelRelease{}, err
 	}
 
-	err = distro.Configure(config, vars)
+	// The searchOptions for searchOptions packages.
+	searchOptions := packages.NewSearchOptions(
+		packageName,
+		config.Architectures,
+		nil,
+		config.Output.Verbosity,
+		"Total",
+		".config",
+	)
+
+	err = distro.Configure(config)
 	if err != nil {
 		return []kr.KernelRelease{}, err
 	}
 
-	// Scrape mirrors for packeges by filter.
-	packages, err := distro.GetPackages(*filter)
+	// Scrape mirrors for packeges by searchOptions.
+	packages, err := distro.SearchPackages(*searchOptions)
 	if err != nil {
 		return []kr.KernelRelease{}, err
 	}

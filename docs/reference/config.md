@@ -17,6 +17,8 @@ distros:
     mirrors: [{name: "", url: ""}]
     repositories: [{name: "", uri: ""}]
     vars: []
+output:
+  verbosity: [0-6]
 ```
 
 > All `versions`, `archs`, `mirrors` are optional fields of the distro configuration.
@@ -131,3 +133,14 @@ distros:
 ```
 
 As you can see both system-declared (e.g. `archs`) and user-declared (e.g. `new_repos`) data structure can be referenced in the template string.
+
+### Output
+
+`output` is a map of settings for visual output of the commands:
+- `verbosity`
+
+#### Verbosity
+
+`verbosity` allows to set the verbosity of the visual output of the commands, through a decimal number from 0 to 6.
+
+> It can be set either globally (as above), and at `distro`-level.

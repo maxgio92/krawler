@@ -26,12 +26,12 @@ func (c *Centos) buildConfig(def distro.Config, user distro.Config) (distro.Conf
 //
 //nolint:unparam
 func (c *Centos) mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
-	if len(config.Archs) < 1 {
-		config.Archs = def.Archs
+	if len(config.Architectures) < 1 {
+		config.Architectures = def.Architectures
 	} else {
-		for _, arch := range config.Archs {
+		for _, arch := range config.Architectures {
 			if arch == "" {
-				config.Archs = def.Archs
+				config.Architectures = def.Architectures
 
 				break
 			}

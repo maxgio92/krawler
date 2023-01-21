@@ -22,7 +22,7 @@ var (
 			{Name: "", URI: "extras/kernel-5.10/latest"},
 			{Name: "", URI: "extras/kernel-5.15/latest"},
 		},
-		Archs:    []distro.Arch{distro.DefaultArch},
-		Versions: []distro.Version{""},
+		Architectures: []packages.Architecture{distro.DefaultArch},
+		Versions:      []distro.Version{""},
 	}
 )

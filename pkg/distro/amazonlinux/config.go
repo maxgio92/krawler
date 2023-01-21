@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func BuildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
+func mergeAndSanitizeConfig(def distro.Config, user distro.Config) (distro.Config, error) {
 	config, err := mergeConfig(def, user)
 	if err != nil {
 		return distro.Config{}, err
@@ -23,12 +23,12 @@ func BuildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
 
 // mergeConfig returns the final configuration by merging the default with the user provided.
 func mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
-	if len(config.Archs) < 1 {
-		config.Archs = def.Archs
+	if len(config.Architectures) < 1 {
+		config.Architectures = def.Architectures
 	} else {
-		for _, arch := range config.Archs {
+		for _, arch := range config.Architectures {
 			if arch == "" {
-				config.Archs = def.Archs
+				config.Architectures = def.Architectures
 
 				break
 			}

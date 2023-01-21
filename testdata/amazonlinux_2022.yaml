@@ -1,5 +1,5 @@
 distros:
-  amazonlinux:
+  amazonlinux2022:
 
     archs:
     - "x86_64"
@@ -10,5 +10,8 @@ distros:
       name: AmazonLinux2022
 
     repositories:
-    - uri: /v2022.0.20220202
-    - uri: /v2022.0.20220315
+    - uri: /2022.0.20220202
+    - uri: /2022.0.20220315
+
+output:
+  verbosity: 3
