@@ -15,5 +15,7 @@ func NewProgressOptions(total int, message ...string) *ProgressOptions {
 }
 
 func (b *ProgressOptions) Progress(n int) {
-	b.bar.Add(n)
+	if b.bar != nil {
+		b.bar.Add(n)
+	}
 }
