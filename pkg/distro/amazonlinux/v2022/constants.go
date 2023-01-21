@@ -20,7 +20,7 @@ var (
 			{Name: "", URI: "2022.0.20220315"},
 			{Name: "", URI: "2022.0.20221012"},
 		},
-		Archs:    []distro.Arch{distro.DefaultArch},
-		Versions: []distro.Version{""},
+		Architectures: []packages.Architecture{distro.DefaultArch},
+		Versions:      []distro.Version{""},
 	}
 )

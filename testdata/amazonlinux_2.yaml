@@ -1,5 +1,5 @@
 distros:
-  amazonlinux:
+  amazonlinux2:
 
     archs:
     - "x86_64"
@@ -20,3 +20,6 @@ distros:
       al2_extras_repos:
       - kernel-5.4
       - kernel-5.10
+
+output:
+  verbosity: 3

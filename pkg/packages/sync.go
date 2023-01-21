@@ -1,7 +1,6 @@
-package deb
+package packages
 
 import (
-	"pault.ag/go/archive"
 	"sync"
 )
 
@@ -11,16 +10,16 @@ import (
 type MPSCQueue struct {
 	producersWG    *sync.WaitGroup
 	consumerDoneCh chan bool
-	msgCh          chan []archive.Package
+	msgCh          chan []Package
 	errCh          chan error
 }
 
-// func NewSyncOptions(waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, doneCh chan bool) *MPSCQueue {
-func NewSyncOptions(parallelism int) *MPSCQueue {
+// func NewMPSCQueue(waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, doneCh chan bool) *MPSCQueue {
+func NewMPSCQueue(parallelism int) *MPSCQueue {
 	wg := &sync.WaitGroup{}
 	wg.Add(parallelism)
 
-	msgCh := make(chan []archive.Package)
+	msgCh := make(chan []Package)
 
 	errCh := make(chan error)
 
@@ -34,14 +33,14 @@ func NewSyncOptions(parallelism int) *MPSCQueue {
 	}
 }
 
-// SendMessage sends a message as variadic parameter msg of type archive.Package to the messages queue.
-func (q *MPSCQueue) SendMessage(msg ...archive.Package) {
+// SendMessage sends a message as variadic parameter msg of type packages.Package to the messages queue.
+func (q *MPSCQueue) SendMessage(msg ...Package) {
 	q.msgCh <- msg
 }
 
 // SendMessageAndComplete sends a message as variadic parameter msg of type archive.Package to the messages queue,
 // and eventually signals the completion of the current producer.
-func (q *MPSCQueue) SendMessageAndComplete(msg ...archive.Package) {
+func (q *MPSCQueue) SendMessageAndComplete(msg ...Package) {
 	defer q.SigProducerCompletion()
 	q.msgCh <- msg
 }
@@ -53,7 +52,7 @@ func (q *MPSCQueue) SendError(err error) {
 
 // Consume listens for both messages and errors on queues and do something with them,
 // as specified by msgHandler and errHandler functions.
-func (q *MPSCQueue) Consume(msgHandler func(msg ...archive.Package), errHandler func(err error)) {
+func (q *MPSCQueue) Consume(msgHandler func(msg ...Package), errHandler func(err error)) {
 	for q.errCh != nil || q.msgCh != nil {
 		select {
 		case p, ok := <-q.msgCh:
@@ -106,7 +105,7 @@ func (q *MPSCQueue) ProducersWG() *sync.WaitGroup {
 	return q.producersWG
 }
 
-func (q *MPSCQueue) MessageCh() chan []archive.Package {
+func (q *MPSCQueue) MessageCh() chan []Package {
 	return q.msgCh
 }
 

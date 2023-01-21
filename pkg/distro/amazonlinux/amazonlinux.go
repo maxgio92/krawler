@@ -2,27 +2,29 @@ package amazonlinux
 
 import (
 	"github.com/maxgio92/krawler/pkg/distro"
+	"github.com/maxgio92/krawler/pkg/output"
 	p "github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/scrape"
-	"github.com/maxgio92/krawler/pkg/utils/template"
 	"net/url"
 )
 
 type AmazonLinux struct {
 	Config distro.Config
-	Vars   map[string]interface{}
 }
 
-func (a *AmazonLinux) ConfigureCommon(config distro.Config, vars map[string]interface{}) error {
-	a.Config = config
-	a.Vars = vars
+func (a *AmazonLinux) ConfigureCommon(def distro.Config, config distro.Config) error {
+	c, err := mergeAndSanitizeConfig(def, config)
+	if err != nil {
+		return err
+	}
+	a.Config = c
 
 	return nil
 }
 
 // Returns the list of version-specific mirror URLs.
-func BuildMirrorURLs(mirrors []p.Mirror, versions []distro.Version) ([]*url.URL, error) {
-	versions, err := buildVersions(mirrors, versions)
+func (a *AmazonLinux) BuildMirrorURLs(mirrors []p.Mirror, versions []distro.Version) ([]*url.URL, error) {
+	versions, err := a.buildVersions(mirrors, versions)
 	if err != nil {
 		return []*url.URL{}, err
 	}
@@ -48,18 +50,13 @@ func BuildMirrorURLs(mirrors []p.Mirror, versions []distro.Version) ([]*url.URL,
 }
 
 // Returns the list of repositories URLs.
-func BuildRepositoriesURLs(roots []*url.URL, repositories []p.Repository, vars map[string]interface{}) ([]*url.URL, error) {
+func BuildRepositoriesURLs(roots []*url.URL, repositories []p.Repository) ([]*url.URL, error) {
 	var urls []*url.URL
 
-	uris, err := buildRepositoriesURIs(repositories, vars)
-	if err != nil {
-		return []*url.URL{}, err
-	}
-
 	for _, root := range roots {
-		for _, uri := range uris {
+		for _, r := range repositories {
 
-			us, err := url.JoinPath(root.String(), uri)
+			us, err := url.JoinPath(root.String(), string(r.URI))
 			if err != nil {
 				return nil, err
 			}
@@ -78,14 +75,14 @@ func BuildRepositoriesURLs(roots []*url.URL, repositories []p.Repository, vars m
 
 // Returns a list of distro versions, considering the user-provided configuration,
 // and if not, the ones available on configured mirrors.
-func buildVersions(mirrors []p.Mirror, staticVersions []distro.Version) ([]distro.Version, error) {
+func (a *AmazonLinux) buildVersions(mirrors []p.Mirror, staticVersions []distro.Version) ([]distro.Version, error) {
 	if staticVersions != nil {
 		return staticVersions, nil
 	}
 
 	var dynamicVersions []distro.Version
 
-	dynamicVersions, err := crawlVersions(mirrors, debugScrape)
+	dynamicVersions, err := a.crawlVersions(mirrors)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +92,7 @@ func buildVersions(mirrors []p.Mirror, staticVersions []distro.Version) ([]distr
 
 // Returns the list of the current available distro versions, by scraping
 // the specified mirrors, dynamically.
-func crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version, error) {
+func (a *AmazonLinux) crawlVersions(mirrors []p.Mirror) ([]distro.Version, error) {
 	versions := []distro.Version{}
 
 	seedUrls := make([]*url.URL, 0, len(mirrors))
@@ -109,6 +106,11 @@ func crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version, error) {
 		seedUrls = append(seedUrls, u)
 	}
 
+	debug := false
+	if a.Config.Output.Verbosity >= output.DebugLevel {
+		debug = true
+	}
+
 	folderNames, err := scrape.CrawlFolders(seedUrls, MirrorsDistroVersionRegex, true, debug)
 	if err != nil {
 		return []distro.Version{}, err
@@ -119,26 +121,4 @@ func crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version, error) {
 	}
 
 	return versions, nil
-}
-
-func buildRepositoriesURIs(repositories []p.Repository, vars map[string]interface{}) ([]string, error) {
-	uris := []string{}
-
-	for _, repository := range repositories {
-		if repository.URI != "" {
-			result, err := template.MultiplexAndExecute(string(repository.URI), vars)
-			if err != nil {
-				return nil, err
-			}
-
-			uris = append(uris, result...)
-		}
-	}
-
-	// Scrape for all possible repositories.
-	if len(uris) == 0 {
-		uris = append(uris, "/")
-	}
-
-	return uris, nil
 }

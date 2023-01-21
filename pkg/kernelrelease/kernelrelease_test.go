@@ -50,7 +50,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Architecture:     Arch(""),
 			},
 		},
-		"Arch Linux version": {
+		"Architecture Linux version": {
 			pkg: &deb.Package{
 				Name:    "linux-headers",
 				Version: "6.1.5",

@@ -11,16 +11,3 @@ type Logger struct {
 func NewLogger() *Logger {
 	return &Logger{*log.New()}
 }
-
-// Verbosity type
-type Verbosity uint32
-
-const (
-	PanicLevel Verbosity = iota
-	FatalLevel
-	ErrorLevel
-	WarnLevel
-	InfoLevel
-	DebugLevel
-	TraceLevel
-)

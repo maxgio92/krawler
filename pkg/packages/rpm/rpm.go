@@ -25,9 +25,9 @@ func init() {
 	})
 }
 
-// GetPackagesFromRepositories crawls packages from the specified repositories,
+// SearchPackages crawls packages from the specified repositories,
 // and returns a list of package of type Package with specified name.
-func GetPackagesFromRepositories(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
+func SearchPackages(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
 	var packages []Package
 
 	packagesCh := make(chan Package)

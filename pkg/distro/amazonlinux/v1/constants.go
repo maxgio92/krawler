@@ -16,7 +16,7 @@ var (
 			{Name: "", URI: "/updates/"},
 			{Name: "", URI: "/main/"},
 		},
-		Archs: []distro.Arch{distro.DefaultArch},
+		Architectures: []packages.Architecture{distro.DefaultArch},
 		Versions: []distro.Version{
 			"latest",
 			"2017.03",

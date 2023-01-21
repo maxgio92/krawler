@@ -1,68 +1,54 @@
 package debian
 
 import (
-	"github.com/maxgio92/krawler/pkg/output"
-	"github.com/maxgio92/krawler/pkg/packages/deb"
 	"net/url"
 
 	"github.com/maxgio92/krawler/pkg/distro"
-	p "github.com/maxgio92/krawler/pkg/packages"
+	"github.com/maxgio92/krawler/pkg/output"
+	"github.com/maxgio92/krawler/pkg/packages"
+	"github.com/maxgio92/krawler/pkg/packages/deb"
 	"github.com/maxgio92/krawler/pkg/scrape"
-	"github.com/maxgio92/krawler/pkg/utils/template"
 )
 
 type Debian struct {
 	config distro.Config
-	vars   map[string]interface{}
 }
 
-func (c *Debian) Configure(config distro.Config, vars map[string]interface{}) error {
-	c.config = config
-	c.vars = vars
+func (d *Debian) Configure(config distro.Config) error {
+	c, err := d.buildConfig(DefaultConfig, config)
+	if err != nil {
+		return err
+	}
+	d.config = c
 
 	return nil
 }
 
 // GetPackages scrapes each mirror, for each distro version, for each repository,
 // for each architecture, and returns slice of Package and optionally an error.
-func (c *Debian) GetPackages(options p.PackageOptions) ([]p.Package, error) {
-	// Merge custom config with default config.
-	config, err := c.buildConfig(DebianDefaultConfig, c.config)
-	if err != nil {
-		return nil, err
-	}
+func (d *Debian) SearchPackages(options packages.SearchOptions) ([]packages.Package, error) {
+	d.config.Output.Logger = options.Log()
 
-	// Build distribution version-specific mirror root URLs.
+	// Build distribution version-specific seed URLs.
 	// TODO: introduce support for Release index files, where InRelease does not exist.
-	distURLs, err := c.buildReleaseIndexURLs(config.Mirrors, config.Versions, options.Verbosity())
+	distURLs, err := d.buildReleaseIndexURLs(d.config.Mirrors, d.config.Versions, options.Verbosity())
 	if err != nil {
 		return nil, err
 	}
 
-	searchOptions := deb.NewSearchOptions(options.PackageName(), distURLs, options.Verbosity())
+	searchOptions := deb.NewSearchOptions(&options, d.config.Architectures, distURLs)
 
 	debs, err := deb.SearchPackages(searchOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	packages := make([]p.Package, len(debs))
-
-	for i, v := range debs {
-		v := v
-		packages[i] = &deb.Package{
-			Name:    v.Package,
-			Arch:    v.Architecture.String(),
-			Version: v.Version.String(),
-		}
-	}
-
-	return packages, nil
+	return debs, nil
 }
 
 // Returns the list of version-specific mirror URLs.
-func (c *Debian) buildReleaseIndexURLs(mirrors []p.Mirror, versions []distro.Version, verbosity output.Verbosity) ([]string, error) {
-	versions, err := c.buildVersions(mirrors, versions, verbosity)
+func (d *Debian) buildReleaseIndexURLs(mirrors []packages.Mirror, versions []distro.Version, verbosity output.Verbosity) ([]string, error) {
+	versions, err := d.buildVersions(mirrors, versions, verbosity)
 	if err != nil {
 		return nil, nil
 	}
@@ -89,14 +75,14 @@ func (c *Debian) buildReleaseIndexURLs(mirrors []p.Mirror, versions []distro.Ver
 
 // Returns a list of distro versions, considering the user-provided configuration,
 // and if not, the ones available on configured mirrors.
-func (c *Debian) buildVersions(mirrors []p.Mirror, staticVersions []distro.Version, verbosity output.Verbosity) ([]distro.Version, error) {
+func (d *Debian) buildVersions(mirrors []packages.Mirror, staticVersions []distro.Version, verbosity output.Verbosity) ([]distro.Version, error) {
 	if staticVersions != nil {
 		return staticVersions, nil
 	}
 
 	var dynamicVersions []distro.Version
 
-	dynamicVersions, err := c.crawlVersions(mirrors, verbosity)
+	dynamicVersions, err := d.crawlVersions(mirrors, verbosity)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +92,7 @@ func (c *Debian) buildVersions(mirrors []p.Mirror, staticVersions []distro.Versi
 
 // Returns the list of the current available distro versions, by scraping
 // the specified mirrors, dynamically.
-func (c *Debian) crawlVersions(mirrors []p.Mirror, verbosity output.Verbosity) ([]distro.Version, error) {
+func (d *Debian) crawlVersions(mirrors []packages.Mirror, verbosity output.Verbosity) ([]distro.Version, error) {
 	versions := []distro.Version{}
 
 	seedUrls := make([]*url.URL, 0, len(mirrors))
@@ -142,33 +128,11 @@ func (c *Debian) crawlVersions(mirrors []p.Mirror, verbosity output.Verbosity) (
 	return versions, nil
 }
 
-func (c *Debian) buildComponentPaths(components []p.Repository, vars map[string]interface{}) ([]string, error) {
-	paths := []string{}
-
-	for _, component := range components {
-		if component.URI != "" {
-			result, err := template.MultiplexAndExecute(string(component.URI), vars)
-			if err != nil {
-				return nil, err
-			}
-
-			paths = append(paths, result...)
-		}
-	}
-
-	// Scrape for all possible components.
-	if len(paths) < 1 {
-		paths = append(paths, "/")
-	}
-
-	return paths, nil
-}
-
 // Returns the list of default repositories from the default config.
-func (c *Debian) getDefaultRepositories() []p.Repository {
-	var repositories []p.Repository
+func (d *Debian) getDefaultRepositories() []packages.Repository {
+	var repositories []packages.Repository
 
-	for _, repository := range DebianDefaultConfig.Repositories {
+	for _, repository := range DefaultConfig.Repositories {
 		if !distro.RepositorySliceContains(repositories, repository) {
 			repositories = append(repositories, repository)
 		}

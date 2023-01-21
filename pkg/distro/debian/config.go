@@ -8,13 +8,13 @@ import (
 	"github.com/maxgio92/krawler/pkg/packages"
 )
 
-func (c *Debian) buildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
-	config, err := c.mergeConfig(def, user)
+func (d *Debian) buildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
+	config, err := d.mergeConfig(def, user)
 	if err != nil {
 		return distro.Config{}, err
 	}
 
-	err = c.sanitizeConfig(&config)
+	err = d.sanitizeConfig(&config)
 	if err != nil {
 		return distro.Config{}, err
 	}
@@ -25,13 +25,13 @@ func (c *Debian) buildConfig(def distro.Config, user distro.Config) (distro.Conf
 // Returns the final configuration by merging the default with the user provided.
 //
 //nolint:unparam
-func (c *Debian) mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
-	if len(config.Archs) < 1 {
-		config.Archs = def.Archs
+func (d *Debian) mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
+	if len(config.Architectures) < 1 {
+		config.Architectures = def.Architectures
 	} else {
-		for _, arch := range config.Archs {
+		for _, arch := range config.Architectures {
 			if arch == "" {
-				config.Archs = def.Archs
+				config.Architectures = def.Architectures
 
 				break
 			}
@@ -51,11 +51,11 @@ func (c *Debian) mergeConfig(def distro.Config, config distro.Config) (distro.Co
 	}
 
 	if len(config.Repositories) < 1 {
-		config.Repositories = c.getDefaultRepositories()
+		config.Repositories = d.getDefaultRepositories()
 	} else {
 		for _, repository := range config.Repositories {
 			if repository.URI == "" {
-				config.Repositories = c.getDefaultRepositories()
+				config.Repositories = d.getDefaultRepositories()
 
 				break
 			}
@@ -65,8 +65,8 @@ func (c *Debian) mergeConfig(def distro.Config, config distro.Config) (distro.Co
 	return config, nil
 }
 
-func (c *Debian) sanitizeConfig(config *distro.Config) error {
-	err := c.sanitizeMirrors(&config.Mirrors)
+func (d *Debian) sanitizeConfig(config *distro.Config) error {
+	err := d.sanitizeMirrors(&config.Mirrors)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (c *Debian) sanitizeConfig(config *distro.Config) error {
 	return nil
 }
 
-func (c *Debian) sanitizeMirrors(mirrors *[]packages.Mirror) error {
+func (d *Debian) sanitizeMirrors(mirrors *[]packages.Mirror) error {
 	for i, mirror := range *mirrors {
 		if !strings.HasSuffix(mirror.URL, "/") {
 			(*mirrors)[i].URL = mirror.URL + "/"

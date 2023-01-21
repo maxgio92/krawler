@@ -4,64 +4,63 @@ import (
 	"net/url"
 
 	"github.com/maxgio92/krawler/pkg/distro"
-	p "github.com/maxgio92/krawler/pkg/packages"
+	"github.com/maxgio92/krawler/pkg/output"
+	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/packages/rpm"
 	"github.com/maxgio92/krawler/pkg/scrape"
-	"github.com/maxgio92/krawler/pkg/utils/template"
 )
 
 type Centos struct {
 	config distro.Config
-	vars   map[string]interface{}
 }
 
-func (c *Centos) Configure(config distro.Config, vars map[string]interface{}) error {
-	c.config = config
-	c.vars = vars
+func (c *Centos) Configure(config distro.Config) error {
+	cfg, err := c.buildConfig(DefaultConfig, config)
+	if err != nil {
+		return err
+	}
+
+	c.config = cfg
 
 	return nil
 }
 
 // GetPackages scrapes each mirror, for each distro version, for each repository,
 // for each architecture, and returns slice of Package and optionally an error.
-func (c *Centos) GetPackages(filter p.PackageOptions) ([]p.Package, error) {
-	// Merge custom config with default config.
-	config, err := c.buildConfig(CentosDefaultConfig, c.config)
-	if err != nil {
-		return nil, err
-	}
+func (c *Centos) SearchPackages(options packages.SearchOptions) ([]packages.Package, error) {
+	c.config.Output.Logger = options.Log()
 
 	// Build distribution version-specific mirror root URLs.
-	perVersionMirrorUrls, err := c.buildPerVersionMirrorUrls(config.Mirrors, config.Versions)
+	perVersionMirrorUrls, err := c.buildPerVersionMirrorUrls(c.config.Mirrors, c.config.Versions)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build available repository URLs based on provided configuration,
 	//for each distribution version.
-	repositoriesUrls, err := c.buildRepositoriesUrls(perVersionMirrorUrls, config.Repositories, c.vars)
+	repositoriesUrls, err := c.buildRepositoriesUrls(perVersionMirrorUrls, c.config.Repositories)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get RPM packages from each repository.
-	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoriesUrls, filter.PackageName(), filter.PackageFileNames()...)
+	// Get RPM pkgs from each repository.
+	rpmPackages, err := rpm.SearchPackages(repositoriesUrls, options.PackageName(), options.PackageFileNames()...)
 	if err != nil {
 		return nil, err
 	}
 
-	packages := make([]p.Package, len(rpmPackages))
+	pkgs := make([]packages.Package, len(rpmPackages))
 
 	for i, v := range rpmPackages {
 		v := v
-		packages[i] = p.Package(&v)
+		pkgs[i] = packages.Package(&v)
 	}
 
-	return packages, nil
+	return pkgs, nil
 }
 
 // Returns the list of version-specific mirror URLs.
-func (c *Centos) buildPerVersionMirrorUrls(mirrors []p.Mirror, versions []distro.Version) ([]*url.URL, error) {
+func (c *Centos) buildPerVersionMirrorUrls(mirrors []packages.Mirror, versions []distro.Version) ([]*url.URL, error) {
 	versions, err := c.buildVersions(mirrors, versions)
 	if err != nil {
 		return []*url.URL{}, err
@@ -89,14 +88,14 @@ func (c *Centos) buildPerVersionMirrorUrls(mirrors []p.Mirror, versions []distro
 
 // Returns a list of distro versions, considering the user-provided configuration,
 // and if not, the ones available on configured mirrors.
-func (c *Centos) buildVersions(mirrors []p.Mirror, staticVersions []distro.Version) ([]distro.Version, error) {
+func (c *Centos) buildVersions(mirrors []packages.Mirror, staticVersions []distro.Version) ([]distro.Version, error) {
 	if staticVersions != nil {
 		return staticVersions, nil
 	}
 
 	var dynamicVersions []distro.Version
 
-	dynamicVersions, err := c.crawlVersions(mirrors, debugScrape)
+	dynamicVersions, err := c.crawlVersions(mirrors)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +105,7 @@ func (c *Centos) buildVersions(mirrors []p.Mirror, staticVersions []distro.Versi
 
 // Returns the list of the current available distro versions, by scraping
 // the specified mirrors, dynamically.
-func (c *Centos) crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version, error) {
+func (c *Centos) crawlVersions(mirrors []packages.Mirror) ([]distro.Version, error) {
 	versions := []distro.Version{}
 
 	seedUrls := make([]*url.URL, 0, len(mirrors))
@@ -118,6 +117,11 @@ func (c *Centos) crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version
 		}
 
 		seedUrls = append(seedUrls, u)
+	}
+
+	debug := false
+	if c.config.Output.Verbosity >= output.DebugLevel {
+		debug = true
 	}
 
 	folderNames, err := scrape.CrawlFolders(seedUrls, CentosMirrorsDistroVersionRegex, false, debug)
@@ -133,20 +137,16 @@ func (c *Centos) crawlVersions(mirrors []p.Mirror, debug bool) ([]distro.Version
 }
 
 // Returns the list of repositories URLs.
-func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []p.Repository, vars map[string]interface{}) ([]*url.URL, error) {
+func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []packages.Repository) ([]*url.URL, error) {
 	var urls []*url.URL
-
-	uris, err := c.buildRepositoriesUris(repositories, vars)
-	if err != nil {
-		return []*url.URL{}, err
-	}
 
 	for _, root := range roots {
 		//nolint:revive,stylecheck
-		for _, uri := range uris {
+		for _, r := range repositories {
+
 			// Get repository URL from URI.
 			//nolint:revive,stylecheck
-			us, err := url.JoinPath(root.String(), uri)
+			us, err := url.JoinPath(root.String(), string(r.URI))
 			if err != nil {
 				return nil, err
 			}
@@ -163,33 +163,11 @@ func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []p.Reposi
 	return urls, nil
 }
 
-func (c *Centos) buildRepositoriesUris(repositories []p.Repository, vars map[string]interface{}) ([]string, error) {
-	uris := []string{}
-
-	for _, repository := range repositories {
-		if repository.URI != "" {
-			result, err := template.MultiplexAndExecute(string(repository.URI), vars)
-			if err != nil {
-				return nil, err
-			}
-
-			uris = append(uris, result...)
-		}
-	}
-
-	// Scrape for all possible repositories.
-	if len(uris) < 1 {
-		uris = append(uris, "/")
-	}
-
-	return uris, nil
-}
-
 // Returns the list of default repositories from the default config.
-func (c *Centos) getDefaultRepositories() []p.Repository {
-	var repositories []p.Repository
+func (c *Centos) getDefaultRepositories() []packages.Repository {
+	var repositories []packages.Repository
 
-	for _, repository := range CentosDefaultConfig.Repositories {
+	for _, repository := range DefaultConfig.Repositories {
 		if !distro.RepositorySliceContains(repositories, repository) {
 			repositories = append(repositories, repository)
 		}

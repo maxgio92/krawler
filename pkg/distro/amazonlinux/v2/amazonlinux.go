@@ -2,10 +2,9 @@ package v2
 
 import (
 	"context"
-	"fmt"
 	"github.com/maxgio92/krawler/pkg/distro"
 	common "github.com/maxgio92/krawler/pkg/distro/amazonlinux"
-	p "github.com/maxgio92/krawler/pkg/packages"
+	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/packages/rpm"
 	"io"
 	"net/http"
@@ -17,71 +16,70 @@ type AmazonLinux struct {
 	common.AmazonLinux
 }
 
-func (a *AmazonLinux) Configure(config distro.Config, vars map[string]interface{}) error {
-	return a.ConfigureCommon(config, vars)
+func (a *AmazonLinux) Configure(config distro.Config) error {
+	return a.ConfigureCommon(DefaultConfig, config)
 }
 
 // GetPackages scrapes each mirror, for each distro version, for each repository,
 // for each architecture, and returns slice of Package and optionally an error.
-func (a *AmazonLinux) GetPackages(filter p.PackageOptions) ([]p.Package, error) {
-	config, err := common.BuildConfig(DefaultConfig, a.Config)
-	if err != nil {
-		return nil, err
-	}
+func (a *AmazonLinux) SearchPackages(options packages.SearchOptions) ([]packages.Package, error) {
+	a.Config.Output.Logger = options.Log()
 
 	// Build distribution version-specific mirror root URLs.
-	perVersionMirrorURLs, err := common.BuildMirrorURLs(config.Mirrors, config.Versions)
+	perVersionMirrorURLs, err := a.BuildMirrorURLs(a.Config.Mirrors, a.Config.Versions)
 	if err != nil {
 		return nil, err
 	}
 
 	// Build available repository URLs based on provided configuration,
 	//for each distribution version.
-	repositoriesURLrefs, err := common.BuildRepositoriesURLs(perVersionMirrorURLs, config.Repositories, a.Vars)
+	repositoriesURLrefs, err := common.BuildRepositoriesURLs(perVersionMirrorURLs, a.Config.Repositories)
 	if err != nil {
 		return nil, err
 	}
 
 	// Dereference repository URLs.
-	repositoryURLs, err := dereferenceRepositoryURLs(repositoriesURLrefs, config.Archs)
+	repositoryURLs, err := a.dereferenceRepositoryURLs(repositoriesURLrefs, a.Config.Architectures)
 	if err != nil {
 		return nil, err
 	}
 
 	// Get RPM packages from each repository.
-	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoryURLs, filter.PackageName(), filter.PackageFileNames()...)
+	rpmPackages, err := rpm.SearchPackages(repositoryURLs, options.PackageName(), options.PackageFileNames()...)
 	if err != nil {
 		return nil, err
 	}
 
-	packages := make([]p.Package, len(rpmPackages))
+	pkgs := make([]packages.Package, len(rpmPackages))
 
 	for i, v := range rpmPackages {
 		v := v
-		packages[i] = p.Package(&v)
+		pkgs[i] = packages.Package(&v)
 	}
 
-	return packages, nil
+	return pkgs, nil
 }
 
-func dereferenceRepositoryURLs(repoURLs []*url.URL, archs []distro.Arch) ([]*url.URL, error) {
+func (a *AmazonLinux) dereferenceRepositoryURLs(repoURLs []*url.URL, archs []packages.Architecture) ([]*url.URL, error) {
 	var urls []*url.URL
 
 	for _, ar := range archs {
 		for _, v := range repoURLs {
-			r, err := dereferenceRepositoryURL(v, ar)
+			r, err := a.dereferenceRepositoryURL(v, ar)
 			if err != nil {
 				return nil, err
 			}
 
-			urls = append(urls, r)
+			if r != nil {
+				urls = append(urls, r)
+			}
 		}
 	}
 
 	return urls, nil
 }
 
-func dereferenceRepositoryURL(src *url.URL, arch distro.Arch) (*url.URL, error) {
+func (a *AmazonLinux) dereferenceRepositoryURL(src *url.URL, arch packages.Architecture) (*url.URL, error) {
 
 	var dest *url.URL
 
@@ -101,11 +99,13 @@ func dereferenceRepositoryURL(src *url.URL, arch distro.Arch) (*url.URL, error) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Amazon Linux v2 repository URL not valid to be dereferenced")
+		a.Config.Output.Logger.Error("Amazon Linux v1 repository URL not valid to be dereferenced")
+		return nil, nil
 	}
 
 	if resp.Body == nil {
-		return nil, fmt.Errorf("empty response from Amazon Linux v2 repository reference URL")
+		a.Config.Output.Logger.Error("empty response from Amazon Linux v2 repository reference URL")
+		return nil, nil
 	}
 
 	b, err := io.ReadAll(resp.Body)

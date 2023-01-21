@@ -10,15 +10,18 @@ distros:
       name: AmazonLinux1
 
     repositories:
-    - uri: /latest/{{ .al1_repos }}
-    - uri: /2017.03/{{ .al1_repos }}
-    - uri: /2017.08/{{ .al1_repos }}
-    - uri: /2018.03/{{ .al1_repos }}
+    - uri: /{{ .al1_repos }}
+
+    versions:
+    - "latest"
+    - "2017.03"
+    - "2017.08"
+    - "2018.03"
 
     vars:
       al1_repos:
       - "main"
       - "updates"
-      al2_core_repos:
-      - "v2.0"
-      - "latest"
+
+output:
+  verbosity: 3

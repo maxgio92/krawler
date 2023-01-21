@@ -6,12 +6,13 @@ import (
 )
 
 const (
-	DebianMirrorsDistroVersionRegex = `^.+$`
+	DebianMirrorsDistroVersionRegex                       = `^.+$`
+	DefaultArch                                           = X86_64Arch
+	X86_64Arch                      packages.Architecture = "amd64"
 )
 
 var (
-	// Default configuration for scrape Debian (deb) packages.
-	DebianDefaultConfig = distro.Config{
+	DefaultConfig = distro.Config{
 		Mirrors: []packages.Mirror{
 			{URL: "https://mirrors.edge.kernel.org/debian/"},
 			{URL: "https://security.debian.org/"},
@@ -21,11 +22,9 @@ var (
 			{Name: "contrib", URI: packages.URITemplate("/contrib/")},
 			{Name: "non-free", URI: packages.URITemplate("/non-free/")},
 		},
-		Archs: []distro.Arch{distro.DefaultArch},
+		Architectures: []packages.Architecture{DefaultArch},
 
 		// Distribution versions, i.e. Debian dists
 		Versions: nil,
 	}
-
-	debugScrape = true
 )
