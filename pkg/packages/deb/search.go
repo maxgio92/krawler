@@ -2,6 +2,7 @@ package deb
 
 import (
 	"github.com/maxgio92/krawler/pkg/output"
+	log "github.com/sirupsen/logrus"
 )
 
 // TODO: filter by architecture
@@ -10,9 +11,16 @@ type SearchOptions struct {
 	seedURLs    []string
 	*output.ProgressOptions
 	*MPSCQueue
+	logger *output.Logger
 }
 
-func NewSearchOptions(packageName string, seedURLs []string, message ...string) *SearchOptions {
+func NewSearchOptions(packageName string, seedURLs []string, verbosity output.Verbosity, message ...string) *SearchOptions {
+	logger := output.NewLogger()
+	logger.SetLevel(log.Level(verbosity))
+	logger.SetFormatter(&log.TextFormatter{
+		ForceColors:      true,
+		DisableTimestamp: true,
+	})
 
 	progressOptions := output.NewProgressOptions(len(seedURLs), message...)
 
@@ -23,6 +31,7 @@ func NewSearchOptions(packageName string, seedURLs []string, message ...string) 
 		seedURLs,
 		progressOptions,
 		syncOptions,
+		logger,
 	}
 }
 
@@ -32,4 +41,12 @@ func (o *SearchOptions) PackageName() string {
 
 func (o *SearchOptions) SeedURLs() []string {
 	return o.seedURLs
+}
+
+func (o *SearchOptions) Log() *output.Logger {
+	return o.logger
+}
+
+func (o *SearchOptions) Verbosity() output.Verbosity {
+	return output.Verbosity(o.logger.Level)
 }
