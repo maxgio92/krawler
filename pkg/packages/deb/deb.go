@@ -2,13 +2,14 @@ package deb
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
 	"pault.ag/go/archive"
 	"pault.ag/go/debian/deb"
-	"strings"
 )
 
 func init() {
@@ -24,22 +25,41 @@ func init() {
 func SearchPackages(so *SearchOptions) ([]archive.Package, error) {
 	packages := []archive.Package{}
 
-	// Run producer workers.
-	for _, v := range so.SeedURLs() {
-		distURL := v
-		go searchPackagesFromDist(
+	search := func(distURL string) {
+		searchPackagesFromDist(
 			func() {
 				so.Progress(1)
-				so.WaitGroup().Done()
+				so.SigProducerCompletion()
 			},
 			so, distURL)
 	}
 
-	// Run consumer worker.
-	go consumePackages(so, &packages)
+	collect := func() {
+		so.Consume(
+			func(p ...archive.Package) {
+				log.Debug("Scanned DB")
+				if len(p) > 0 {
+					packages = append(packages, p...)
+					log.Infof("New %d packages found", len(p))
+				}
+			},
+			func(e error) {
+				log.Error(e)
+			},
+		)
+	}
 
-	// Wait for producers and consumers to complete.
-	so.WaitAll()
+	// Run search producers.
+	for _, v := range so.SeedURLs() {
+		distURL := v
+		go search(distURL)
+	}
+
+	// Run collect consumer.
+	go collect()
+
+	// Wait for producers and consumers to complete and cleanup.
+	so.WaitAndClose()
 
 	return packages, nil
 }
@@ -47,74 +67,54 @@ func SearchPackages(so *SearchOptions) ([]archive.Package, error) {
 // searchPackagesFromDist writes to a channel pault.ag/go/archive.Package objects, writes errors to a channel, through usage
 // of asynchronous workers. It needs a function doneFunc to be executed on completion.
 // Accepts as argument for filtering packages the package name as string and the deb dist URL where to look for packages.
-func searchPackagesFromDist(doneFunc func(), so *SearchOptions, distURL string) {
+func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL string) {
 	defer doneFunc()
 
 	inRelease, err := getInReleaseFromDistURL(distURL)
 	if err != nil {
-		so.ErrCh() <- err
+		distSO.SendError(err)
 		return
 	}
 
 	indexURLs, err := getPackagesIndexURLsFromInRelease(inRelease, distURL)
 	if err != nil {
-		so.ErrCh() <- err
+		distSO.SendError(err)
 		return
 	}
 
-	indexSearchOptions := NewSearchOptions(so.PackageName(), indexURLs, fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
+	indexSO := NewSearchOptions(distSO.PackageName(), indexURLs, fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
 
-	// Run producer workers, to search packages from Packages index files.
-	for _, v := range indexSearchOptions.SeedURLs() {
+	// Run producers, to search packages from Packages index files.
+	for _, v := range indexSO.SeedURLs() {
 		if ExcludeInstallers && strings.Contains(v, "debian-installer") {
-			indexSearchOptions.WaitGroup().Done()
+			indexSO.SigProducerCompletion()
 			continue
 		}
 
 		go searchPackagesFromIndex(
 			func() {
-				indexSearchOptions.Progress(1)
-				indexSearchOptions.WaitGroup().Done()
+				indexSO.Progress(1)
+				indexSO.SigProducerCompletion()
 			},
-			indexSearchOptions, v)
+			indexSO, v)
 	}
 
-	// Run consumer worker from child option set, to fill the parent search option set.
-	go consumeIndexPackages(indexSearchOptions, so)
-
-	// Wait for producers to complete.
-	indexSearchOptions.WaitGroup().Wait()
-	close(indexSearchOptions.ResultCh())
-	close(indexSearchOptions.ErrCh())
-
-	// Wait for consumers to complete.
-	<-indexSearchOptions.DoneCh()
-}
-
-func consumePackages(so *SearchOptions, target *[]archive.Package) {
-	resultCh := so.ResultCh()
-	errCh := so.ErrCh()
-	for errCh != nil || resultCh != nil {
-		select {
-		case p, ok := <-resultCh:
-			if ok {
-				log.Debug("Scanned DB")
-				if len(p) > 0 {
-					*target = append(*target, p...)
-					log.Infof("New %d packages found", len(p))
-				}
-				continue
+	// Run consumer from child option set, to fill the parent search option set.
+	go indexSO.Consume(
+		func(p ...archive.Package) {
+			log.Debug("got a response from DB")
+			if len(p) > 0 {
+				distSO.SendMessage(p...)
 			}
-			resultCh = nil
-		case e, ok := <-errCh:
-			if ok {
-				log.Error(e)
-				continue
-			}
-			errCh = nil
-		}
-	}
-	so.DoneCh() <- true
+		},
+		func(e error) {
+			log.Debug("got an error from DB")
+			distSO.ErrorCh() <- e
+		},
+	)
+
+	// Wait for producersWG and consumer to complete.
+	indexSO.WaitAndClose()
 }
 
 // searchPackagesFromIndex searches and fills with a channel of deb packages from Packages index files.
@@ -126,11 +126,11 @@ func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string
 
 	resp, err := http.Get(indexURL)
 	if err != nil {
-		so.ErrCh() <- err
+		so.ErrorCh() <- err
 		return
 	}
 	if got, want := resp.StatusCode, http.StatusOK; got != want {
-		so.ErrCh() <- fmt.Errorf("download(%s): unexpected HTTP status code: got %d, want %d", indexURL, got, want)
+		so.ErrorCh() <- fmt.Errorf("download(%s): unexpected HTTP status code: got %d, want %d", indexURL, got, want)
 		return
 	}
 	defer resp.Body.Close()
@@ -141,7 +141,7 @@ func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string
 	rd, err := debDecompressor(resp.Body)
 	defer rd.Close()
 	if err != nil {
-		so.ErrCh() <- err
+		so.ErrorCh() <- err
 		return
 	}
 
@@ -149,7 +149,7 @@ func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string
 
 	db, err := archive.LoadPackages(rd)
 	if err != nil {
-		so.ErrCh() <- err
+		so.ErrorCh() <- err
 		return
 	}
 
@@ -164,39 +164,11 @@ func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string
 
 	p, err := db.Map(query)
 	if err != nil {
-		so.ErrCh() <- err
+		so.SendError(err)
 		return
 	}
 
-	so.ResultCh() <- p
-}
-
-func consumeIndexPackages(indexSearchOptions *SearchOptions, distSearchOptions *SearchOptions) {
-	indexResultCh := indexSearchOptions.ResultCh()
-	indexErrCh := indexSearchOptions.ErrCh()
-
-	for indexErrCh != nil || indexResultCh != nil {
-		select {
-		case p, ok := <-indexResultCh:
-			if ok {
-				log.Debug("got a response from DB")
-				if len(p) > 0 {
-					distSearchOptions.ResultCh() <- p
-				}
-				continue
-			}
-			indexResultCh = nil
-		case e, ok := <-indexErrCh:
-			if ok {
-				log.Debug("got an error from DB")
-				distSearchOptions.ErrCh() <- e
-				continue
-			}
-			indexErrCh = nil
-		}
-	}
-	log.Debug("consumers are done")
-	indexSearchOptions.DoneCh() <- true
+	so.SendMessage(p...)
 }
 
 // getInReleaseFromDistURL returns a *archive.Release object from the deb dist URL.
