@@ -24,7 +24,7 @@ func (c *Centos) Configure(config distro.Config, vars map[string]interface{}) er
 
 // GetPackages scrapes each mirror, for each distro version, for each repository,
 // for each architecture, and returns slice of Package and optionally an error.
-func (c *Centos) GetPackages(filter p.Filter) ([]p.Package, error) {
+func (c *Centos) GetPackages(filter p.PackageOptions) ([]p.Package, error) {
 	// Merge custom config with default config.
 	config, err := c.buildConfig(CentosDefaultConfig, c.config)
 	if err != nil {
@@ -45,7 +45,7 @@ func (c *Centos) GetPackages(filter p.Filter) ([]p.Package, error) {
 	}
 
 	// Get RPM packages from each repository.
-	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoriesUrls, filter.String(), filter.PackageFileNames()...)
+	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoriesUrls, filter.PackageName(), filter.PackageFileNames()...)
 	if err != nil {
 		return nil, err
 	}
