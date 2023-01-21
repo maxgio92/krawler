@@ -26,8 +26,8 @@ type Distro interface {
 	Configure(Config, map[string]interface{}) error
 
 	// GetPackages should return a slice of Package based on
-	// the provided Filter-type filter.
-	GetPackages(packages.Filter) ([]packages.Package, error)
+	// the provided PackageOptions-type filter.
+	GetPackages(packages.PackageOptions) ([]packages.Package, error)
 }
 
 type Version string

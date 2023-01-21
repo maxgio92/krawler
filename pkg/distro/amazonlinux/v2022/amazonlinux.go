@@ -23,7 +23,7 @@ func (a *AmazonLinux) Configure(config distro.Config, vars map[string]interface{
 
 // GetPackages scrapes each mirror, for each distro version, for each repository,
 // for each architecture, and returns slice of Package and optionally an error.
-func (a *AmazonLinux) GetPackages(filter p.Filter) ([]p.Package, error) {
+func (a *AmazonLinux) GetPackages(filter p.PackageOptions) ([]p.Package, error) {
 	config, err := common.BuildConfig(DefaultConfig, a.Config)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (a *AmazonLinux) GetPackages(filter p.Filter) ([]p.Package, error) {
 	}
 
 	// Get RPM packages from each repository.
-	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoryURLs, filter.String(), filter.PackageFileNames()...)
+	rpmPackages, err := rpm.GetPackagesFromRepositories(repositoryURLs, filter.PackageName(), filter.PackageFileNames()...)
 	if err != nil {
 		return nil, err
 	}

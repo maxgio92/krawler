@@ -1,6 +1,9 @@
 package packages
 
-import "io"
+import (
+	"github.com/maxgio92/krawler/pkg/output"
+	"io"
+)
 
 type Package interface {
 	GetName() string
@@ -12,23 +15,27 @@ type Package interface {
 	FileReaders() []io.Reader
 }
 
-type Filter struct {
+type PackageOptions struct {
 	packageName      string
 	packageFileNames []string
+	verbosity        output.Verbosity
 }
 
-func NewFilter(packageName string, packageFileNames ...string) *Filter {
-	return &Filter{
+func NewFilter(verbosity output.Verbosity, packageName string, packageFileNames ...string) *PackageOptions {
+	return &PackageOptions{
 		packageName:      packageName,
 		packageFileNames: packageFileNames,
 	}
 }
 
-// TODO: rename String to PackageName.
-func (f *Filter) String() string {
-	return f.packageName
+func (o *PackageOptions) PackageName() string {
+	return o.packageName
 }
 
-func (f *Filter) PackageFileNames() []string {
-	return f.packageFileNames
+func (o *PackageOptions) PackageFileNames() []string {
+	return o.packageFileNames
+}
+
+func (o *PackageOptions) Verbosity() output.Verbosity {
+	return o.verbosity
 }
