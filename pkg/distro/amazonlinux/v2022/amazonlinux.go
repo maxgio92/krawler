@@ -2,14 +2,15 @@ package v2022
 
 import (
 	"context"
-	"github.com/maxgio92/krawler/pkg/distro"
-	common "github.com/maxgio92/krawler/pkg/distro/amazonlinux"
-	packages "github.com/maxgio92/krawler/pkg/packages"
-	"github.com/maxgio92/krawler/pkg/packages/rpm"
 	"io"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/maxgio92/krawler/pkg/distro"
+	common "github.com/maxgio92/krawler/pkg/distro/amazonlinux"
+	packages "github.com/maxgio92/krawler/pkg/packages"
+	"github.com/maxgio92/krawler/pkg/packages/rpm"
 )
 
 type AmazonLinux struct {
@@ -32,7 +33,7 @@ func (a *AmazonLinux) SearchPackages(options packages.SearchOptions) ([]packages
 	}
 
 	// Build available repository URLs based on provided configuration,
-	//for each distribution version.
+	// for each distribution version.
 	repositoriesURLrefs, err := common.BuildRepositoriesURLs(perVersionMirrorURLs, a.Config.Repositories)
 	if err != nil {
 		return nil, err
@@ -91,6 +92,7 @@ func (a *AmazonLinux) dereferenceRepositoryURL(src *url.URL, arch packages.Archi
 	if err != nil {
 		return nil, err
 	}
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -99,11 +101,13 @@ func (a *AmazonLinux) dereferenceRepositoryURL(src *url.URL, arch packages.Archi
 
 	if resp.StatusCode != http.StatusOK {
 		a.Config.Output.Logger.Error("Amazon Linux v2022 repository URL not valid to be dereferenced")
+		//nolint:nilnil
 		return nil, nil
 	}
 
 	if resp.Body == nil {
 		a.Config.Output.Logger.Error("empty response from Amazon Linux v2022 repository reference URL")
+		//nolint:nilnil
 		return nil, nil
 	}
 

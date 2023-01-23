@@ -2,9 +2,10 @@ package kernelrelease
 
 import (
 	"fmt"
-	p "github.com/maxgio92/krawler/pkg/packages"
 	"regexp"
 	"strconv"
+
+	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
 type Arch string
@@ -79,6 +80,7 @@ func VersionStringFromPackage(pkg p.Package) string {
 	if pkg.GetRelease() != "" {
 		version += fmt.Sprintf("-%s", pkg.GetRelease())
 	}
+
 	if pkg.GetArch() != "" {
 		version += fmt.Sprintf(".%s", pkg.GetArch())
 	}

@@ -5,11 +5,12 @@ import (
 )
 
 type Package struct {
-	Name        string
-	Arch        string
-	Version     string
-	Release     string
-	Location    string
+	Name     string
+	Arch     string
+	Version  string
+	Release  string
+	Location string
+	//nolint:stylecheck,revive
 	Url         string
 	fileReaders []io.Reader
 }

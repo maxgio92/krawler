@@ -1,20 +1,17 @@
 package amazonlinux
 
 import (
-	"github.com/maxgio92/krawler/pkg/distro"
-	"github.com/maxgio92/krawler/pkg/packages"
 	"net/url"
 	"strings"
+
+	"github.com/maxgio92/krawler/pkg/distro"
+	"github.com/maxgio92/krawler/pkg/packages"
 )
 
 func mergeAndSanitizeConfig(def distro.Config, user distro.Config) (distro.Config, error) {
-	config, err := mergeConfig(def, user)
-	if err != nil {
-		return distro.Config{}, err
-	}
+	config := mergeConfig(def, user)
 
-	err = sanitizeConfig(&config)
-	if err != nil {
+	if err := sanitizeConfig(&config); err != nil {
 		return distro.Config{}, err
 	}
 
@@ -22,7 +19,9 @@ func mergeAndSanitizeConfig(def distro.Config, user distro.Config) (distro.Confi
 }
 
 // mergeConfig returns the final configuration by merging the default with the user provided.
-func mergeConfig(def distro.Config, config distro.Config) (distro.Config, error) {
+//
+//nolint:cyclop
+func mergeConfig(def distro.Config, config distro.Config) distro.Config {
 	if len(config.Architectures) < 1 {
 		config.Architectures = def.Architectures
 	} else {
@@ -64,7 +63,7 @@ func mergeConfig(def distro.Config, config distro.Config) (distro.Config, error)
 		config.Versions = def.Versions
 	}
 
-	return config, nil
+	return config
 }
 
 func sanitizeConfig(config *distro.Config) error {

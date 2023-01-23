@@ -19,5 +19,6 @@ func NewSearchOptions(options *packages.SearchOptions, architectures []packages.
 			options.Verbosity(),
 			options.ProgressMessage(),
 			options.PackageFileNames()...,
-		)}
+		),
+	}
 }

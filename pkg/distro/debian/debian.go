@@ -19,6 +19,7 @@ func (d *Debian) Configure(config distro.Config) error {
 	if err != nil {
 		return err
 	}
+
 	d.config = c
 
 	return nil
@@ -48,10 +49,7 @@ func (d *Debian) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 
 // Returns the list of version-specific mirror URLs.
 func (d *Debian) buildReleaseIndexURLs(mirrors []packages.Mirror, versions []distro.Version) ([]string, error) {
-	versions, err := d.buildVersions(mirrors, versions)
-	if err != nil {
-		return nil, nil
-	}
+	versions, _ = d.buildVersions(mirrors, versions)
 
 	if (len(versions) > 0) && (len(mirrors) > 0) {
 		var versionRoots []string
