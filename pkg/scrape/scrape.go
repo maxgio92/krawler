@@ -87,7 +87,7 @@ func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]strin
 
 // CrawlFolders returns a list of folder names found from each seed URL, filtered by folder name regex.
 //
-//nolint:funlen
+//nolint:funlen,cyclop
 func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, debug bool) ([]string, error) {
 	var folders []string
 
@@ -123,7 +123,6 @@ func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, 
 		// if the URL is of a folder.
 		//nolint:nestif
 		if len(folderMatch) > 0 {
-
 			// Do not traverse the hierarchy in reverse order.
 			if strings.Contains(href, "../") || href == "/" {
 				return
@@ -131,10 +130,9 @@ func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, 
 
 			exactFolderMatch := exactFolderPattern.FindStringSubmatch(href)
 			if len(exactFolderMatch) > 0 {
-
 				hrefAbsURL, _ := url.Parse(e.Request.AbsoluteURL(href))
-				if !urlSliceContains(seedURLs, hrefAbsURL) {
 
+				if !urlSliceContains(seedURLs, hrefAbsURL) {
 					folders = append(folders, path.Base(hrefAbsURL.Path))
 				}
 			}

@@ -1,11 +1,14 @@
-package output
+package output_test
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewProgressOptions(t *testing.T) {
+	t.Parallel()
+
 	po := NewProgressOptions(100)
 	assert.NotNil(t, po)
 }

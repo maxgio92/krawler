@@ -1,15 +1,18 @@
-package kernelrelease
+package kernelrelease_test
 
 import (
-	"github.com/maxgio92/krawler/pkg/packages/deb"
 	"testing"
 
 	"github.com/maxgio92/krawler/pkg/packages"
+	"github.com/maxgio92/krawler/pkg/packages/deb"
 
 	"gotest.tools/assert"
 )
 
+//nolint:funlen
 func TestBuildFromPackage(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		pkg  packages.Package
 		want KernelRelease
@@ -142,7 +145,11 @@ func TestBuildFromPackage(t *testing.T) {
 		},
 	}
 	for name, tt := range tests {
+		tt := tt
+
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			got := KernelRelease{}
 			err := got.BuildFromPackage(tt.pkg)
 

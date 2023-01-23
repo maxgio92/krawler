@@ -55,22 +55,24 @@ func (q *MPSCQueue) Consume(msgHandler func(msg ...Package), errHandler func(err
 	for q.errCh != nil || q.msgCh != nil {
 		select {
 		case p, ok := <-q.msgCh:
-
 			// If the channel is still open.
 			if ok {
 				// Do something with the message.
 				msgHandler(p...)
+
 				continue
 			}
+
 			q.msgCh = nil
 		case e, ok := <-q.errCh:
-
 			// If the channel is still open.
 			if ok {
 				// Do something with error.
 				errHandler(e)
+
 				continue
 			}
+
 			q.errCh = nil
 		}
 	}

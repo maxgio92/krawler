@@ -37,7 +37,7 @@ func (c *Centos) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 	}
 
 	// Build available repository URLs based on provided configuration,
-	//for each distribution version.
+	// for each distribution version.
 	repositoriesUrls, err := c.buildRepositoriesUrls(perVersionMirrorUrls, c.config.Repositories)
 	if err != nil {
 		return nil, err
@@ -143,7 +143,6 @@ func (c *Centos) buildRepositoriesUrls(roots []*url.URL, repositories []packages
 	for _, root := range roots {
 		//nolint:revive,stylecheck
 		for _, r := range repositories {
-
 			// Get repository URL from URI.
 			//nolint:revive,stylecheck
 			us, err := url.JoinPath(root.String(), string(r.URI))

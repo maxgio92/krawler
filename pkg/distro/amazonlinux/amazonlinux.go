@@ -1,11 +1,12 @@
 package amazonlinux
 
 import (
+	"net/url"
+
 	"github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/output"
 	p "github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/scrape"
-	"net/url"
 )
 
 type AmazonLinux struct {
@@ -17,6 +18,7 @@ func (a *AmazonLinux) ConfigureCommon(def distro.Config, config distro.Config) e
 	if err != nil {
 		return err
 	}
+
 	a.Config = c
 
 	return nil
@@ -55,18 +57,17 @@ func BuildRepositoriesURLs(roots []*url.URL, repositories []p.Repository) ([]*ur
 
 	for _, root := range roots {
 		for _, r := range repositories {
-
 			us, err := url.JoinPath(root.String(), string(r.URI))
 			if err != nil {
 				return nil, err
 			}
 
-			repositoryUrl, err := url.Parse(us)
+			repositoryURL, err := url.Parse(us)
 			if err != nil {
 				return nil, err
 			}
 
-			urls = append(urls, repositoryUrl)
+			urls = append(urls, repositoryURL)
 		}
 	}
 

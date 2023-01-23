@@ -1,11 +1,11 @@
 package utils
 
 import (
+	v "github.com/spf13/viper"
+
 	d "github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/utils/template"
-
-	v "github.com/spf13/viper"
 )
 
 //nolint:cyclop,funlen,gocognit
