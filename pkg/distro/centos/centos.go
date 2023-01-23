@@ -119,12 +119,12 @@ func (c *Centos) crawlVersions(mirrors []packages.Mirror) ([]distro.Version, err
 		seedUrls = append(seedUrls, u)
 	}
 
-	debug := false
-	if c.config.Output.Verbosity >= output.DebugLevel {
-		debug = true
-	}
-
-	folderNames, err := scrape.CrawlFolders(seedUrls, CentosMirrorsDistroVersionRegex, false, debug)
+	folderNames, err := scrape.CrawlFolders(
+		seedUrls,
+		CentosMirrorsDistroVersionRegex,
+		false,
+		c.config.Output.Verbosity >= output.DebugLevel,
+	)
 	if err != nil {
 		return []distro.Version{}, err
 	}

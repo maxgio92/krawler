@@ -106,12 +106,12 @@ func (a *AmazonLinux) crawlVersions(mirrors []p.Mirror) ([]distro.Version, error
 		seedUrls = append(seedUrls, u)
 	}
 
-	debug := false
-	if a.Config.Output.Verbosity >= output.DebugLevel {
-		debug = true
-	}
-
-	folderNames, err := scrape.CrawlFolders(seedUrls, MirrorsDistroVersionRegex, true, debug)
+	folderNames, err := scrape.CrawlFolders(
+		seedUrls,
+		MirrorsDistroVersionRegex,
+		true,
+		a.Config.Output.Verbosity >= output.DebugLevel,
+	)
 	if err != nil {
 		return []distro.Version{}, err
 	}
