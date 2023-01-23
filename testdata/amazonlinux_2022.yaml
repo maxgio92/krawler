@@ -12,6 +12,7 @@ distros:
     repositories:
     - uri: /2022.0.20220202
     - uri: /2022.0.20220315
+    - uri: /2022.0.20221012
 
 output:
   verbosity: 3

@@ -20,6 +20,7 @@ distros:
       al2_extras_repos:
       - kernel-5.4
       - kernel-5.10
+      - kernel-5.15
 
 output:
   verbosity: 3
