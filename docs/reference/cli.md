@@ -23,10 +23,11 @@ krawler [options] list|ls <distribution> [-o <format>]
 `distribution`: (**required**) The Linux distribution for which the release has been pubished.
 Available distributions:
 
-- centos
 - amazonlinux
 - amazonlinux2
 - amazonlinux2022
+- centos
+- debian
 
 ### Options
 `-o, --output format`: (optional) the format of the output of the list of kernel releases (one of *text*, *json* or *yaml*). By default *yaml*.
