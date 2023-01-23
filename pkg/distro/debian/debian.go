@@ -111,12 +111,12 @@ func (d *Debian) crawlVersions(mirrors []packages.Mirror) ([]distro.Version, err
 		seedUrls = append(seedUrls, u)
 	}
 
-	debug := false
-	if d.config.Output.Verbosity >= output.DebugLevel {
-		debug = true
-	}
-
-	folderNames, err := scrape.CrawlFolders(seedUrls, DebianMirrorsDistroVersionRegex, false, debug)
+	folderNames, err := scrape.CrawlFolders(
+		seedUrls,
+		DebianMirrorsDistroVersionRegex,
+		false,
+		d.config.Output.Verbosity >= output.DebugLevel,
+	)
 	if err != nil {
 		return []distro.Version{}, err
 	}
