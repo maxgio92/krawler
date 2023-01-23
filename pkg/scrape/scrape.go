@@ -11,7 +11,7 @@ import (
 	d "github.com/gocolly/colly/debug"
 )
 
-// Returns a list of file names found from the seed URL, filtered by file name regex.
+// CrawlFiles returns a list of file names found from the seed URL, filtered by file name regex.
 //
 //nolint:funlen
 func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]string, error) {
@@ -85,7 +85,9 @@ func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]strin
 	return files, nil
 }
 
-// Returns a list of folder names found from each seed URL, filtered by folder name regex.
+// CrawlFolders returns a list of folder names found from each seed URL, filtered by folder name regex.
+//
+//nolint:funlen
 func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, debug bool) ([]string, error) {
 	var folders []string
 
@@ -119,6 +121,7 @@ func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, 
 		folderMatch := folderPattern.FindStringSubmatch(href)
 
 		// if the URL is of a folder.
+		//nolint:nestif
 		if len(folderMatch) > 0 {
 
 			// Do not traverse the hierarchy in reverse order.
@@ -128,7 +131,6 @@ func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, 
 
 			exactFolderMatch := exactFolderPattern.FindStringSubmatch(href)
 			if len(exactFolderMatch) > 0 {
-				//if !recursive {
 
 				hrefAbsURL, _ := url.Parse(e.Request.AbsoluteURL(href))
 				if !urlSliceContains(seedURLs, hrefAbsURL) {

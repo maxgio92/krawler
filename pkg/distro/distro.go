@@ -6,7 +6,6 @@ import (
 )
 
 type Config struct {
-
 	// A list of Mirrors to scrape.
 	Mirrors []packages.Mirror
 
@@ -24,10 +23,8 @@ type Config struct {
 }
 
 type Distro interface {
-
 	// Configure expects distro.Config and arbitrary variables
 	// for config fields that support templating.
-	//Configure(Config, map[string]interface{}) error
 	Configure(Config) error
 
 	// GetPackages should return a slice of Package based on

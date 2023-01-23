@@ -1,14 +1,14 @@
 package utils
 
 import (
+	d "github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/utils/template"
-	v "github.com/spf13/viper"
 
-	d "github.com/maxgio92/krawler/pkg/distro"
+	v "github.com/spf13/viper"
 )
 
-//nolint:cyclop
+//nolint:cyclop,funlen,gocognit
 func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 	// The distro configuration.
 	var config d.Config

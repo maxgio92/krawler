@@ -14,7 +14,6 @@ type MPSCQueue struct {
 	errCh          chan error
 }
 
-// func NewMPSCQueue(waitGroup *sync.WaitGroup, packagesCh chan []archive.Package, errCh chan error, doneCh chan bool) *MPSCQueue {
 func NewMPSCQueue(parallelism int) *MPSCQueue {
 	wg := &sync.WaitGroup{}
 	wg.Add(parallelism)
@@ -59,7 +58,6 @@ func (q *MPSCQueue) Consume(msgHandler func(msg ...Package), errHandler func(err
 
 			// If the channel is still open.
 			if ok {
-
 				// Do something with the message.
 				msgHandler(p...)
 				continue
@@ -69,7 +67,6 @@ func (q *MPSCQueue) Consume(msgHandler func(msg ...Package), errHandler func(err
 
 			// If the channel is still open.
 			if ok {
-
 				// Do something with error.
 				errHandler(e)
 				continue
@@ -91,7 +88,6 @@ func (q *MPSCQueue) SigConsumerCompletion() {
 }
 
 func (q *MPSCQueue) WaitAndClose() {
-
 	// Wait for producersWG to complete.
 	q.producersWG.Wait()
 	close(q.msgCh)

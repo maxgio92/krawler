@@ -2,9 +2,10 @@ package output
 
 import (
 	"fmt"
-	"github.com/schollz/progressbar/v3"
 	"os"
 	"time"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 type ProgressOptions struct {
@@ -39,6 +40,7 @@ func NewProgressOptions(total int, message ...string) *ProgressOptions {
 
 func (b *ProgressOptions) Progress(n int) {
 	if b.bar != nil {
+		//nolint:errcheck
 		b.bar.Add(n)
 	}
 }
