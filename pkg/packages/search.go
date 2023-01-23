@@ -1,8 +1,9 @@
 package packages
 
 import (
-	"github.com/maxgio92/krawler/pkg/output"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/maxgio92/krawler/pkg/output"
 )
 
 type SearchOptions struct {
@@ -17,7 +18,6 @@ type SearchOptions struct {
 	logger    *output.Logger
 }
 
-// func NewSearchOptions(verbosity output.Verbosity, packageName string, architectures []Architecture, packageFileNames ...string) *SearchOptions {
 func NewSearchOptions(packageName string, architectures []Architecture, seedURLs []string, verbosity output.Verbosity, progressMessage string, packageFileNames ...string) *SearchOptions {
 	logger := output.NewLogger()
 	logger.SetLevel(log.Level(verbosity))
