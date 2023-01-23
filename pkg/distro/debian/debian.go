@@ -31,7 +31,7 @@ func (d *Debian) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 
 	// Build distribution version-specific seed URLs.
 	// TODO: introduce support for Release index files, where InRelease does not exist.
-	distURLs, err := d.buildReleaseIndexURLs(d.config.Mirrors, d.config.Versions, options.Verbosity())
+	distURLs, err := d.buildReleaseIndexURLs(d.config.Mirrors, d.config.Versions)
 	if err != nil {
 		return nil, err
 	}
@@ -47,8 +47,8 @@ func (d *Debian) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 }
 
 // Returns the list of version-specific mirror URLs.
-func (d *Debian) buildReleaseIndexURLs(mirrors []packages.Mirror, versions []distro.Version, verbosity output.Verbosity) ([]string, error) {
-	versions, err := d.buildVersions(mirrors, versions, verbosity)
+func (d *Debian) buildReleaseIndexURLs(mirrors []packages.Mirror, versions []distro.Version) ([]string, error) {
+	versions, err := d.buildVersions(mirrors, versions)
 	if err != nil {
 		return nil, nil
 	}
@@ -75,14 +75,14 @@ func (d *Debian) buildReleaseIndexURLs(mirrors []packages.Mirror, versions []dis
 
 // Returns a list of distro versions, considering the user-provided configuration,
 // and if not, the ones available on configured mirrors.
-func (d *Debian) buildVersions(mirrors []packages.Mirror, staticVersions []distro.Version, verbosity output.Verbosity) ([]distro.Version, error) {
+func (d *Debian) buildVersions(mirrors []packages.Mirror, staticVersions []distro.Version) ([]distro.Version, error) {
 	if staticVersions != nil {
 		return staticVersions, nil
 	}
 
 	var dynamicVersions []distro.Version
 
-	dynamicVersions, err := d.crawlVersions(mirrors, verbosity)
+	dynamicVersions, err := d.crawlVersions(mirrors)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (d *Debian) buildVersions(mirrors []packages.Mirror, staticVersions []distr
 
 // Returns the list of the current available distro versions, by scraping
 // the specified mirrors, dynamically.
-func (d *Debian) crawlVersions(mirrors []packages.Mirror, verbosity output.Verbosity) ([]distro.Version, error) {
+func (d *Debian) crawlVersions(mirrors []packages.Mirror) ([]distro.Version, error) {
 	versions := []distro.Version{}
 
 	seedUrls := make([]*url.URL, 0, len(mirrors))
@@ -112,7 +112,7 @@ func (d *Debian) crawlVersions(mirrors []packages.Mirror, verbosity output.Verbo
 	}
 
 	debug := false
-	if verbosity >= output.DebugLevel {
+	if d.config.Output.Verbosity >= output.DebugLevel {
 		debug = true
 	}
 
