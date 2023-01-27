@@ -18,6 +18,7 @@ package cmd
 import (
 	"github.com/maxgio92/krawler/internal/format"
 	"github.com/maxgio92/krawler/pkg/distro/centos"
+
 	"github.com/spf13/cobra"
 )
 
