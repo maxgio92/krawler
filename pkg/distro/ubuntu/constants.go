@@ -1,4 +1,4 @@
-package debian
+package ubuntu
 
 import (
 	"github.com/maxgio92/krawler/pkg/distro"
@@ -6,15 +6,15 @@ import (
 )
 
 const (
-	DebianMirrorsDistroVersionRegex                       = `^.+$`
-	DefaultArch                                           = X8664Arch
-	X8664Arch                       packages.Architecture = "amd64"
+	MirrorsDistroVersionRegex                       = `^.+$`
+	DefaultArch                                     = X8664Arch
+	X8664Arch                 packages.Architecture = "amd64"
 )
 
 var DefaultConfig = distro.Config{
 	Mirrors: []packages.Mirror{
-		{URL: "https://mirrors.edge.kernel.org/debian/"},
-		{URL: "http://security.debian.org"},
+		{URL: "https://mirrors.edge.kernel.org/ubuntu/"},
+		{URL: "http://security.ubuntu.com/ubuntu"},
 	},
 	Repositories: []packages.Repository{
 		{Name: "main", URI: packages.URITemplate("main")},
@@ -26,6 +26,6 @@ var DefaultConfig = distro.Config{
 	},
 	Architectures: []packages.Architecture{DefaultArch},
 
-	// Distribution versions, i.e. Debian dists
+	// Distribution versions, i.e. Ubuntu dists
 	Versions: nil,
 }
