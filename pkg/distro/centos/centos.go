@@ -38,25 +38,23 @@ func (c *Centos) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 
 	// Build available repository URLs based on provided configuration,
 	// for each distribution version.
-	repositoriesUrls, err := c.buildRepositoriesUrls(perVersionMirrorUrls, c.config.Repositories)
+	repositoryURLs, err := c.buildRepositoriesUrls(perVersionMirrorUrls, c.config.Repositories)
 	if err != nil {
 		return nil, err
 	}
 
-	// Get RPM pkgs from each repository.
-	rpmPackages, err := rpm.SearchPackages(repositoriesUrls, options.PackageName(), options.PackageFileNames()...)
+	// Get RPM packages from each repository.
+	rss := []string{}
+	for _, ru := range repositoryURLs {
+		rss = append(rss, ru.String())
+	}
+	searchOptions := rpm.NewSearchOptions(&options, c.config.Architectures, rss)
+	rpmPackages, err := rpm.SearchPackages(searchOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	pkgs := make([]packages.Package, len(rpmPackages))
-
-	for i, v := range rpmPackages {
-		v := v
-		pkgs[i] = packages.Package(&v)
-	}
-
-	return pkgs, nil
+	return rpmPackages, nil
 }
 
 // Returns the list of version-specific mirror URLs.

@@ -9,116 +9,95 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"sync"
+
+	"github.com/maxgio92/krawler/pkg/packages"
 
 	"github.com/antchfx/xmlquery"
 	"github.com/pkg/errors"
 	rpmutils "github.com/sassoftware/go-rpmutils"
-	log "github.com/sirupsen/logrus"
 )
-
-func init() {
-	logger.SetLevel(log.InfoLevel)
-	logger.SetFormatter(&log.TextFormatter{
-		ForceColors:      true,
-		DisableTimestamp: true,
-	})
-}
 
 // SearchPackages crawls packages from the specified repositories,
 // and returns a list of package of type Package with specified name.
-func SearchPackages(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
-	var packages []Package
+// func SearchPackages(repositoryURLs []*url.URL, packageName string, packageFileNames ...string) ([]Package, error) {
+func SearchPackages(so *SearchOptions) ([]packages.Package, error) {
+	var result []packages.Package
 
-	packagesCh := make(chan Package)
-
-	producersWG := sync.WaitGroup{}
-	producersWG.Add(len(repositoryURLs))
-
-	errCh := make(chan error)
-
-	consumersDoneCh := make(chan bool, 1)
-
-	// Run parallel packages producer workers.
-	for _, r := range repositoryURLs {
-		repoURL := r
-
-		go producePackagesFromRepository(&producersWG, packagesCh, errCh, repoURL, packageName, packageFileNames...)
+	search := func(repoURL string) {
+		searchPackagesFromRepository(
+			func() {
+				so.Progress(1)
+				so.SigProducerCompletion()
+			},
+			so, repoURL)
 	}
 
-	// Consume packages.
-	go consumePackages(consumersDoneCh, &packages, packagesCh, errCh)
+	collect := func() {
+		so.Consume(
+			func(p ...packages.Package) {
+				so.Log().Debug("Scanned DB")
+				if len(p) > 0 {
+					result = append(result, p...)
+					so.Log().Infof("New %d packages found", len(p))
+				}
+			},
+			func(e error) {
+				so.Log().Error(e)
+			},
+		)
+	}
 
-	// Wait for producers.
-	producersWG.Wait()
-	close(packagesCh)
-	close(errCh)
+	// Run search producers.
+	for _, v := range so.SeedURLs() {
+		repoURL := v
+		go search(repoURL)
+	}
 
-	// Wait for consumers.
-	<-consumersDoneCh
+	// Run collect consumer.
+	go collect()
 
-	return packages, nil
+	// Wait for producers and consumers to complete and cleanup.
+	so.WaitAndClose()
+
+	return result, nil
 }
 
-// producePackagesFromRepository crawls packages from specified repository as repositoryURL *URL,
+// searchPackagesFromRepository crawls packages from specified repository as repositoryURL *URL,
 // sends them over a packagesCh Package channel and signals completion through a WaitGroup.
 // The waitGroup counter needs to be greater than zero.
-func producePackagesFromRepository(waitGroup *sync.WaitGroup, packagesCh chan Package, errCh chan error, repositoryURL *url.URL, packageName string, packageFileNames ...string) {
-	defer waitGroup.Done()
-
-	repoURL := repositoryURL.String()
+func searchPackagesFromRepository(doneFunc func(), so *SearchOptions, repoURL string) {
+	defer doneFunc()
 
 	metadataURL, err := url.JoinPath(repoURL, metadataPath)
 	if err != nil {
-		errCh <- err
+		so.SendError(err)
+
+		return
 	}
 
-	logger.WithField("url", repoURL).Info("Analysing repository")
+	so.Log().WithField("url", repoURL).Info("Analysing repository")
 
-	dbs, err := getDBsFromMetadataURL(metadataURL)
+	dbs, err := getPrimaryDBsFromMetadataURL(metadataURL)
 	if err != nil {
-		errCh <- err
+		so.SendError(err)
+
+		return
 	}
 
+	dbURLs := []string{}
 	for _, db := range dbs {
-		logger.WithField("type", db.Type).Info("Analysing DB")
-
-		err = getPackagesFromDB(packagesCh, repoURL, db.GetLocation(), packageName, packageFileNames...)
-		if err != nil {
-			errCh <- err
-		}
+		dbURL, _ := url.JoinPath(repoURL, db.GetLocation())
+		dbURLs = append(dbURLs, dbURL)
 	}
-}
 
-// consumePackages receives Package over a packagesCh Package channel,
-// and signals completion through a bool channel done.
-func consumePackages(done chan bool, packages *[]Package, packagesCh chan Package, errCh chan error) {
-	for errCh != nil || packagesCh != nil {
-		select {
-		case p, ok := <-packagesCh:
-			if ok {
-				*packages = append(*packages, p)
-				logger.WithField("name", p.Name).WithField("version", p.Version.Ver).WithField("release", p.Version.Rel).Info("New package found")
-
-				continue
-			}
-
-			packagesCh = nil
-		case e, ok := <-errCh:
-			if ok {
-				logger.WithError(e).Error()
-
-				continue
-			}
-
-			errCh = nil
-		}
+	for _, dbURL := range dbURLs {
+		so.Log().WithField("url", dbURL).Info("Analysing DB")
+		searchPackagesFromDB(so, repoURL, dbURL)
 	}
-	done <- true
 }
 
 //nolint:cyclop
-func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
+func getPrimaryDBsFromMetadataURL(metadataURL string) ([]Data, error) {
 	var dbs []Data
 
 	u, err := url.Parse(metadataURL)
@@ -177,59 +156,107 @@ func getDBsFromMetadataURL(metadataURL string) ([]Data, error) {
 	return dbs, nil
 }
 
-func getPackagesFromDB(packagesCh chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) error {
-	return getPackagesFromXMLDB(packagesCh, repoURL, dbURI, packageName, fileNames...)
+// func searchPackagesFromDB(doneFunc func(), so *SearchOptions, repoURL, dbURL string) {
+func searchPackagesFromDB(so *SearchOptions, repoURL, dbURL string) {
+	xmlDB, err := getPackagesXMLDBFromURL(so, dbURL)
+	if err != nil {
+		so.SendError(err)
+	}
+
+	queue := packages.NewMPSCQueue(len(xmlDB))
+
+	for _, v := range xmlDB {
+		node := v
+
+		go func() {
+			defer queue.SigProducerCompletion()
+
+			p := &Package{}
+
+			err := xml.Unmarshal([]byte(node.OutputXML(true)), p)
+			if err != nil {
+				queue.SendError(err)
+
+				return
+			}
+
+			p.url, err = url.JoinPath(repoURL, p.GetLocation())
+			if err != nil {
+				queue.SendError(err)
+
+				return
+			}
+
+			so.Log().WithField("fullname", filepath.Base(p.GetLocation())).Debug("Opening package")
+
+			fileReaders, err := getFileReadersFromPackageURL(p.url, so.PackageFileNames()...)
+			if err != nil {
+				queue.SendError(err)
+
+				return
+			}
+
+			p.fileReaders = fileReaders
+
+			so.Log().WithField("version", p.Version.Ver).WithField("release", p.Version.Rel).WithField("name", p.Name).Debug("found package")
+			queue.SendMessage(p)
+		}()
+	}
+
+	go func() {
+		queue.Consume(
+			func(p ...packages.Package) {
+				so.SendMessage(p...)
+			},
+			func(e error) {
+				so.Log().Error(e)
+			},
+		)
+	}()
+
+	queue.WaitAndClose()
 }
 
-//nolint:cyclop
-func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string, packageName string, fileNames ...string) (err error) {
-	dbURL, err := url.JoinPath(repoURL, dbURI)
-	if err != nil {
-		return err
-	}
-
+func getPackagesXMLDBFromURL(so *SearchOptions, dbURL string) ([]*xmlquery.Node, error) {
 	u, err := url.Parse(dbURL)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	logger.WithField("url", u.String()).Debug("Downloading DB")
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, u.String(), nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.Wrap(errRepositoryURLNotValid, u.String())
+		return nil, errors.Wrap(errRepositoryURLNotValid, u.String())
 	}
 
 	if resp.Body == nil {
-		return errRepositoryInvalidResponse
+		return nil, errRepositoryInvalidResponse
 	}
 	defer resp.Body.Close()
 
 	gr, err := gzip.NewReader(resp.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer gr.Close()
 
-	logger.WithField("uri", filepath.Base(dbURI)).Debug("Parsing DB")
-
 	var packagesXML []*xmlquery.Node
 
-	sp, err := xmlquery.CreateStreamParser(gr, dataPackageXPath, dataPackageXPath+"[name='"+packageName+"']")
+	sp, err := xmlquery.CreateStreamParser(
+		gr,
+		dataPackageXPath,
+		dataPackageXPath+"[name='"+so.PackageName()+"']")
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	logger.WithField("package", packageName).Debug("Querying DB")
 
 	for {
 		n, err := sp.Read()
@@ -240,71 +267,7 @@ func getPackagesFromXMLDB(packagesCh chan Package, repoURL string, dbURI string,
 		packagesXML = append(packagesXML, n)
 	}
 
-	buildPackagesFromXMLNodes(packagesCh, packagesXML, repoURL, fileNames...)
-
-	return nil
-}
-
-func buildPackagesFromXMLNodes(packages chan Package, nodes []*xmlquery.Node, repositoryURL string, fileNames ...string) {
-	pkgWorkers := sync.WaitGroup{}
-	pkgWorkers.Add(len(nodes))
-
-	errCh := make(chan error)
-
-	done := make(chan bool, 1)
-
-	for _, v := range nodes {
-		node := v
-
-		go func() {
-			defer pkgWorkers.Done()
-
-			p, err := buildPackageFromXML(node, repositoryURL, fileNames...)
-			if err != nil {
-				errCh <- err
-
-				return
-			}
-			packages <- *p
-		}()
-	}
-
-	go func() {
-		for err := range errCh {
-			logger.WithError(err).Error("Error found building package from XML")
-		}
-		done <- true
-	}()
-
-	pkgWorkers.Wait()
-	close(errCh)
-
-	<-done
-}
-
-func buildPackageFromXML(node *xmlquery.Node, repositoryURL string, fileNames ...string) (*Package, error) {
-	p := &Package{}
-
-	err := xml.Unmarshal([]byte(node.OutputXML(true)), p)
-	if err != nil {
-		return nil, err
-	}
-
-	p.url, err = url.JoinPath(repositoryURL, p.GetLocation())
-	if err != nil {
-		return nil, err
-	}
-
-	logger.WithField("fullname", filepath.Base(p.GetLocation())).Debug("Opening package")
-
-	fileReaders, err := getFileReadersFromPackageURL(p.url, fileNames...)
-	if err != nil {
-		return nil, err
-	}
-
-	p.fileReaders = fileReaders
-
-	return p, nil
+	return packagesXML, nil
 }
 
 func getFileReadersFromPackageURL(packageURL string, fileNames ...string) ([]io.Reader, error) {
