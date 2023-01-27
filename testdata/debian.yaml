@@ -17,6 +17,12 @@ distros:
       uri: contrib
     - name: non-free
       uri: non-free
+    - name: multiverse
+      uri: multiverse
+    - name: universe
+      uri: universe
+    - name: restricted
+      uri: restricted
 
 output:
   verbosity: 6

@@ -1,0 +1,14 @@
+distros:
+  centos:
+
+    archs:
+    - "amd64"
+
+    mirrors:
+    - url: "https://mirrors.edge.kernel.org/ubuntu"
+      name: Edge
+    #- url: "http://security.ubuntu.com/ubuntu"
+    #  name: Security
+
+output:
+  verbosity: 6
