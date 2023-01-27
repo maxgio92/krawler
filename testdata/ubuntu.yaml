@@ -2,13 +2,16 @@ distros:
   centos:
 
     archs:
-    - ""
+    - "amd64"
 
     mirrors:
-    - url: "https://mirrors.edge.kernel.org/ubuntu/ubuntu"
+    - url: "https://mirrors.edge.kernel.org/ubuntu"
       name: Edge
-    - url: "https://security.ubuntu.com/"
-      name: Security
+    #- url: "http://security.ubuntu.com/ubuntu"
+    #  name: Security
+
+    #versions:
+    #- bionic
 
     repositories:
     - name: main
@@ -17,6 +20,12 @@ distros:
       uri: contrib
     - name: non-free
       uri: non-free
+    - name: multiverse
+      uri: multiverse
+    - name: universe
+      uri: universe
+    - name: restricted
+      uri: restricted
 
 output:
   verbosity: 6
