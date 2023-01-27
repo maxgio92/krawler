@@ -79,11 +79,20 @@ func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL stri
 	}
 
 	o := packages.NewSearchOptions(distSO.PackageName(), distSO.Architectures(), indexURLs, distSO.Verbosity(), fmt.Sprintf("Indexing packages for dist %s", path.Base(distURL)))
-	indexSO := NewSearchOptions(o, o.Architectures(), o.SeedURLs())
+	indexSO := NewSearchOptions(o, o.Architectures(), o.SeedURLs(), distSO.Components())
 
 	// Run producers, to search packages from Packages index files.
 	for _, v := range indexSO.SeedURLs() {
 		if ExcludeInstallers && strings.Contains(v, "debian-installer") {
+			indexSO.SigProducerCompletion()
+
+			continue
+		}
+
+		ss := strings.Split(v, "/")
+		component := ss[len(ss)-3]
+
+		if !slices.Contains(indexSO.Components(), component) {
 			indexSO.SigProducerCompletion()
 
 			continue
