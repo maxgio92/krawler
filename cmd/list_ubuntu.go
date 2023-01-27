@@ -17,16 +17,17 @@ package cmd
 
 import (
 	"github.com/maxgio92/krawler/internal/format"
-	"github.com/maxgio92/krawler/pkg/distro/debian"
+	"github.com/maxgio92/krawler/pkg/distro/ubuntu"
+
 	"github.com/spf13/cobra"
 )
 
-// debianCmd represents the debian command.
-var debianCmd = &cobra.Command{
-	Use:   "debian",
-	Short: "List Debian kernel releases",
+// ubuntuCmd represents the ubuntu command.
+var ubuntuCmd = &cobra.Command{
+	Use:   "ubuntu",
+	Short: "List Ubuntu kernel releases",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		kernelReleases, err := getKernelReleases(&debian.Debian{}, DebKernelHeadersPackageName)
+		kernelReleases, err := getKernelReleases(&ubuntu.Ubuntu{}, DebKernelHeadersPackageName)
 		cobra.CheckErr(err)
 
 		if len(kernelReleases) > 0 {
@@ -42,5 +43,5 @@ var debianCmd = &cobra.Command{
 }
 
 func init() {
-	listCmd.AddCommand(debianCmd)
+	listCmd.AddCommand(ubuntuCmd)
 }
