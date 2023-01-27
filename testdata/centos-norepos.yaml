@@ -11,3 +11,6 @@ distros:
       name: Edge
     - url: https://archive.kernel.org/centos-vault
       name: Archive
+
+output:
+  verbosity: 6

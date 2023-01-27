@@ -15,7 +15,7 @@ distros:
 
     vars:
       al2_core_repos:
-      - "v2.0"
+      - "2.0"
       - "latest"
       al2_extras_repos:
       - kernel-5.4
@@ -23,4 +23,4 @@ distros:
       - kernel-5.15
 
 output:
-  verbosity: 3
+  verbosity: 6

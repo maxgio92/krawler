@@ -15,4 +15,4 @@ distros:
     - uri: /2022.0.20221012
 
 output:
-  verbosity: 3
+  verbosity: 6

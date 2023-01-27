@@ -1,0 +1,13 @@
+distros:
+  amazonlinux2:
+
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: http://amazonlinux.us-east-1.amazonaws.com/2
+      name: AmazonLinux2
+
+output:
+  verbosity: 6

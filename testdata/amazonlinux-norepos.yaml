@@ -9,19 +9,11 @@ distros:
     - url: http://repo.us-east-1.amazonaws.com
       name: AmazonLinux1
 
-    repositories:
-    - uri: /{{ .al1_repos }}
-
     versions:
     - "latest"
     - "2017.03"
     - "2017.08"
     - "2018.03"
 
-    vars:
-      al1_repos:
-      - "main"
-      - "updates"
-
 output:
-  verbosity: 3
+  verbosity: 6

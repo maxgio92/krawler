@@ -1,0 +1,22 @@
+distros:
+  centos:
+
+    archs:
+    - ""
+
+    mirrors:
+    - url: "https://mirrors.edge.kernel.org/ubuntu/ubuntu"
+      name: Edge
+    - url: "https://security.ubuntu.com/"
+      name: Security
+
+    repositories:
+    - name: main
+      uri: main
+    - name: contrib
+      uri: contrib
+    - name: non-free
+      uri: non-free
+
+output:
+  verbosity: 6
