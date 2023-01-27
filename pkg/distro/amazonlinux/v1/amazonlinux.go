@@ -46,19 +46,18 @@ func (a *AmazonLinux) SearchPackages(options packages.SearchOptions) ([]packages
 	}
 
 	// Get RPM packages from each repository.
-	rpmPackages, err := rpm.SearchPackages(repositoryURLs, options.PackageName(), options.PackageFileNames()...)
+	rss := []string{}
+	for _, ru := range repositoryURLs {
+		rss = append(rss, ru.String())
+	}
+
+	searchOptions := rpm.NewSearchOptions(&options, a.Config.Architectures, rss)
+	rpmPackages, err := rpm.SearchPackages(searchOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	pkgs := make([]packages.Package, len(rpmPackages))
-
-	for i, v := range rpmPackages {
-		v := v
-		pkgs[i] = packages.Package(&v)
-	}
-
-	return pkgs, nil
+	return rpmPackages, nil
 }
 
 func (a *AmazonLinux) dereferenceRepositoryURLs(repoURLs []*url.URL, archs []packages.Architecture) ([]*url.URL, error) {
