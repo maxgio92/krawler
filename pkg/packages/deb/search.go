@@ -5,6 +5,8 @@ import (
 )
 
 type SearchOptions struct {
+	// Deb components are needed to filter indexed packages.
+	// More on this here: https://wiki.debian.org/DebianRepository.
 	components []string
 	*packages.SearchOptions
 }
