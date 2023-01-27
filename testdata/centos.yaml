@@ -18,9 +18,17 @@ distros:
       uri: "/{{ .new_repos }}/{{ .archs }}/os/"
 
     vars:
+
+      # Distribution version dependent (i.e. CentOS >= 8)
+      # (https://docs.centos.org/en-US/8-docs/managing-userspace-components/assembly_using-appstream/#packaging-methods-in-rhel-8_using-appstream)
       new_repos:
       - "BaseOS"
       - "AppStream"
+
+      # Distribution version dependent (i.e. CentOS < 8)
       old_repos:
       - "os"
       - "updates"
+
+output:
+  verbosity: 6

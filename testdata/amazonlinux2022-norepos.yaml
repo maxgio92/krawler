@@ -1,0 +1,13 @@
+distros:
+  amazonlinux2022:
+
+    archs:
+    - "x86_64"
+    - "aarch64"
+
+    mirrors:
+    - url: https://al2022-repos-us-east-1-9761ab97.s3.dualstack.us-east-1.amazonaws.com/core/mirrors
+      name: AmazonLinux2022
+
+output:
+  verbosity: 6

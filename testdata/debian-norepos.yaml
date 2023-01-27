@@ -1,0 +1,14 @@
+distros:
+  centos:
+
+    archs:
+    - ""
+
+    mirrors:
+    - url: "https://mirrors.edge.kernel.org/debian/"
+      name: Edge
+    - url: "https://security.debian.org/"
+      name: Security
+
+output:
+  verbosity: 6

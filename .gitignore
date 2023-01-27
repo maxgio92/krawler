@@ -43,3 +43,5 @@ bin
 
 # Visual Studio Code stuff
 /.vscode
+
+e2e/results/*
