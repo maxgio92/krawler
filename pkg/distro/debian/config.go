@@ -8,7 +8,7 @@ import (
 	"github.com/maxgio92/krawler/pkg/packages"
 )
 
-func (d *Debian) buildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
+func (d *Debian) BuildConfig(def distro.Config, user distro.Config) (distro.Config, error) {
 	config, err := d.mergeConfig(def, user)
 	if err != nil {
 		return distro.Config{}, err

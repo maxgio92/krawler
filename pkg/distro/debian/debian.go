@@ -2,6 +2,8 @@ package debian
 
 import (
 	"net/url"
+	"path"
+	"strings"
 
 	"github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/output"
@@ -11,16 +13,16 @@ import (
 )
 
 type Debian struct {
-	config distro.Config
+	Config distro.Config
 }
 
 func (d *Debian) Configure(config distro.Config) error {
-	c, err := d.buildConfig(DefaultConfig, config)
+	c, err := d.BuildConfig(DefaultConfig, config)
 	if err != nil {
 		return err
 	}
 
-	d.config = c
+	d.Config = c
 
 	return nil
 }
@@ -28,16 +30,21 @@ func (d *Debian) Configure(config distro.Config) error {
 // GetPackages scrapes each mirror, for each distro version, for each repository,
 // for each architecture, and returns slice of Package and optionally an error.
 func (d *Debian) SearchPackages(options packages.SearchOptions) ([]packages.Package, error) {
-	d.config.Output.Logger = options.Log()
+	d.Config.Output.Logger = options.Log()
 
 	// Build distribution version-specific seed URLs.
 	// TODO: introduce support for Release index files, where InRelease does not exist.
-	distURLs, err := d.buildReleaseIndexURLs(d.config.Mirrors, d.config.Versions)
+	distURLs, err := d.buildReleaseIndexURLs(d.Config.Mirrors, d.Config.Versions)
 	if err != nil {
 		return nil, err
 	}
 
-	searchOptions := deb.NewSearchOptions(&options, d.config.Architectures, distURLs)
+	components := []string{}
+	for _, v := range d.Config.Repositories {
+		components = append(components, strings.TrimPrefix(path.Clean(string(v.URI)), "/"))
+	}
+
+	searchOptions := deb.NewSearchOptions(&options, d.Config.Architectures, distURLs, components)
 
 	debs, err := deb.SearchPackages(searchOptions)
 	if err != nil {
@@ -113,7 +120,7 @@ func (d *Debian) crawlVersions(mirrors []packages.Mirror) ([]distro.Version, err
 		seedUrls,
 		DebianMirrorsDistroVersionRegex,
 		false,
-		d.config.Output.Verbosity >= output.DebugLevel,
+		d.Config.Output.Verbosity >= output.DebugLevel,
 	)
 	if err != nil {
 		return []distro.Version{}, err
@@ -126,7 +133,7 @@ func (d *Debian) crawlVersions(mirrors []packages.Mirror) ([]distro.Version, err
 	return versions, nil
 }
 
-// Returns the list of default repositories from the default config.
+// Returns the list of default repositories from the default Config.
 func (d *Debian) getDefaultRepositories() []packages.Repository {
 	var repositories []packages.Repository
 
