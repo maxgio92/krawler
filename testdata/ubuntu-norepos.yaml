@@ -7,8 +7,8 @@ distros:
     mirrors:
     - url: "https://mirrors.edge.kernel.org/ubuntu"
       name: Edge
-    #- url: "http://security.ubuntu.com/ubuntu"
-    #  name: Security
+    - url: "http://security.ubuntu.com/ubuntu"
+      name: Security
 
 output:
   verbosity: 6

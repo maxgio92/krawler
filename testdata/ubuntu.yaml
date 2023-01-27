@@ -7,11 +7,8 @@ distros:
     mirrors:
     - url: "https://mirrors.edge.kernel.org/ubuntu"
       name: Edge
-    #- url: "http://security.ubuntu.com/ubuntu"
-    #  name: Security
-
-    #versions:
-    #- bionic
+    - url: "http://security.ubuntu.com/ubuntu"
+      name: Security
 
     repositories:
     - name: main
