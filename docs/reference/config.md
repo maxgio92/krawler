@@ -31,6 +31,7 @@ output:
 - *amazonlinux2022*
 - *centos*
 - *debian*
+- *ubuntu*
  
 `distro` structure is a map of `versions`, `archs`, `mirrors`, `repositories`.
 
