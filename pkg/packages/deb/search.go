@@ -5,13 +5,15 @@ import (
 )
 
 type SearchOptions struct {
+	components []string
 	*packages.SearchOptions
 }
 
 // NewSearchOptions returns a pointer to a SearchOptions object from a pointer to a packages.SearchOptions, and
 // overriding architectures and seedURLs.
-func NewSearchOptions(options *packages.SearchOptions, architectures []packages.Architecture, seedURLs []string) *SearchOptions {
+func NewSearchOptions(options *packages.SearchOptions, architectures []packages.Architecture, seedURLs []string, components []string) *SearchOptions {
 	return &SearchOptions{
+		components,
 		packages.NewSearchOptions(
 			options.PackageName(),
 			architectures,
@@ -21,4 +23,8 @@ func NewSearchOptions(options *packages.SearchOptions, architectures []packages.
 			options.PackageFileNames()...,
 		),
 	}
+}
+
+func (s *SearchOptions) Components() []string {
+	return s.components
 }
