@@ -1,8 +1,8 @@
-name: Publish
+name: Publish artifacts
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '0 0 * * *'
 
 jobs:
   publish:

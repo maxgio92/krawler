@@ -62,7 +62,7 @@ endef
 define gen_publish_targets
 .PHONY: publish/$(1)
 publish/$(1): run/$(1)
-	$(aws) s3 sync $(RESULTS_DIR)/$(1)/index.json s3://$(BUCKET_NAME)/$(1)/
+	$(aws) s3 sync $(RESULTS_DIR)/$(1)/ s3://$(BUCKET_NAME)/$(1)/
 endef
 
 $(foreach distro,$(DISTROS),\
@@ -117,4 +117,4 @@ run: clean build $(patsubst %,run/%,$(DISTROS))
 e2e: clean build $(patsubst %,e2e/%,$(DISTROS))
 
 .PHONY: publish
-publish: $(patsubst %,publish/%,$(DISTROS))
+publish: clean build $(patsubst %,publish/%,$(DISTROS))
