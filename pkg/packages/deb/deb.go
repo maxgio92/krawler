@@ -83,12 +83,6 @@ func searchPackagesFromDist(doneFunc func(), distSO *SearchOptions, distURL stri
 
 	// Run producers, to search packages from Packages index files.
 	for _, v := range indexSO.SeedURLs() {
-		if ExcludeInstallers && strings.Contains(v, "debian-installer") {
-			indexSO.SigProducerCompletion()
-
-			continue
-		}
-
 		ss := strings.Split(v, "/")
 		component := ss[len(ss)-3]
 
@@ -175,15 +169,16 @@ func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string
 
 	query := func(p *archive.Package) bool {
 		if strings.Contains(p.Package, so.PackageName()) {
+
+			if so.Architectures() == nil {
+				return true
+			}
+
 			if p.Architecture.CPU == "all" {
 				return false
 			}
 
 			if slices.Contains(so.Architectures(), packages.Architecture(p.Architecture.CPU)) {
-				return true
-			}
-
-			if so.Architectures() == nil {
 				return true
 			}
 		}
