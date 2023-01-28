@@ -2,13 +2,14 @@ name: Publish artifacts
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '*/30 * * * *'
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
       - name: Install AWS CLI
         id: install-aws-cli
         uses: unfor19/install-aws-cli-action@master
