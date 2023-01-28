@@ -1,10 +1,8 @@
 distros:
   centos:
 
-    # Scrape for only the specified architectures
     archs:
-    - "x86_64"
-    - "aarch64"
+    - x86_64
 
     mirrors:
     - url: https://mirrors.edge.kernel.org/centos/

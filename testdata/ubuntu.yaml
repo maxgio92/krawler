@@ -1,8 +1,8 @@
 distros:
-  centos:
+  ubuntu:
 
     archs:
-    - "amd64"
+    - amd64
 
     mirrors:
     - url: "https://mirrors.edge.kernel.org/ubuntu"

@@ -2,8 +2,7 @@ distros:
   centos:
 
     archs:
-    - "x86_64"
-    - "aarch64"
+    - x86_64
 
     mirrors:
     - url: https://archive.kernel.org/centos-vault

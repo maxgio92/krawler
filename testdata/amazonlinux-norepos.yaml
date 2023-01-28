@@ -2,8 +2,7 @@ distros:
   amazonlinux:
 
     archs:
-    - "x86_64"
-    - "aarch64"
+    - x86_64
 
     mirrors:
     - url: http://repo.us-east-1.amazonaws.com
