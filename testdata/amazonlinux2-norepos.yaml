@@ -2,8 +2,7 @@ distros:
   amazonlinux2:
 
     archs:
-    - "x86_64"
-    - "aarch64"
+    - x86_64
 
     mirrors:
     - url: http://amazonlinux.us-east-1.amazonaws.com/2
