@@ -15,7 +15,11 @@ var DefaultConfig = distro.Config{
 		{Name: "", URI: "/updates/"},
 		{Name: "", URI: "/main/"},
 	},
-	Archs: []packages.Architecture{distro.DefaultArch},
+	Archs: []packages.Architecture{
+		"aarch64",
+		"x86_64",
+		"ppc64le",
+	},
 	Versions: []distro.Version{
 		"latest",
 		"2017.03",

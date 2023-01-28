@@ -19,6 +19,10 @@ var DefaultConfig = distro.Config{
 		{Name: "", URI: "2022.0.20220315"},
 		{Name: "", URI: "2022.0.20221012"},
 	},
-	Archs:    []packages.Architecture{distro.DefaultArch},
+	Archs: []packages.Architecture{
+		"aarch64",
+		"x86_64",
+		"ppc64le",
+	},
 	Versions: []distro.Version{""},
 }

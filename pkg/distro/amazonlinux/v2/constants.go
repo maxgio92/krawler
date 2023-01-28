@@ -21,6 +21,10 @@ var DefaultConfig = distro.Config{
 		{Name: "", URI: "extras/kernel-5.10/latest"},
 		{Name: "", URI: "extras/kernel-5.15/latest"},
 	},
-	Archs:    []packages.Architecture{distro.DefaultArch},
+	Archs: []packages.Architecture{
+		"aarch64",
+		"x86_64",
+		"ppc64le",
+	},
 	Versions: []distro.Version{""},
 }

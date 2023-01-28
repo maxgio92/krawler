@@ -2,7 +2,6 @@ distros:
   centos:
 
     archs:
-    - x86_64
 
     mirrors:
     - url: https://mirrors.edge.kernel.org/centos/
