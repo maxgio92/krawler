@@ -2,7 +2,6 @@ package distro
 
 import "github.com/maxgio92/krawler/pkg/packages"
 
-//nolint:nosnakecase
 const (
 	X8664Arch packages.Architecture = "x86_64"
 

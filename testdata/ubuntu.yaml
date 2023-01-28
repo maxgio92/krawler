@@ -2,7 +2,6 @@ distros:
   ubuntu:
 
     archs:
-    - amd64
 
     mirrors:
     - url: "https://mirrors.edge.kernel.org/ubuntu"
