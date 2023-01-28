@@ -15,7 +15,7 @@ var DefaultConfig = distro.Config{
 		{Name: "", URI: "/updates/"},
 		{Name: "", URI: "/main/"},
 	},
-	Architectures: []packages.Architecture{distro.DefaultArch},
+	Archs: []packages.Architecture{distro.DefaultArch},
 	Versions: []distro.Version{
 		"latest",
 		"2017.03",

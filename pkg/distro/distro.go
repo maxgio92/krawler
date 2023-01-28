@@ -13,13 +13,13 @@ type Config struct {
 	Repositories []packages.Repository
 
 	// A list of architecture for to which scrape packages.
-	Architectures []packages.Architecture `json:"archs"`
+	Archs []packages.Architecture
 
 	// A list of Distro versions.
 	Versions []Version
 
 	// Options for visual output.
-	Output output.Options `json:"output"`
+	Output output.Options `json:"output,omitempty"`
 }
 
 type Distro interface {

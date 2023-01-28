@@ -19,6 +19,6 @@ var DefaultConfig = distro.Config{
 		{Name: "", URI: "2022.0.20220315"},
 		{Name: "", URI: "2022.0.20221012"},
 	},
-	Architectures: []packages.Architecture{distro.DefaultArch},
-	Versions:      []distro.Version{""},
+	Archs:    []packages.Architecture{distro.DefaultArch},
+	Versions: []distro.Version{""},
 }

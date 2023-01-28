@@ -22,6 +22,6 @@ var DefaultConfig = distro.Config{
 		{Name: "AppStream", URI: packages.URITemplate("/AppStream/" + distro.DefaultArch + "/os/")},
 		{Name: "Devel", URI: packages.URITemplate("/Devel/" + distro.DefaultArch + "/os/")},
 	},
-	Architectures: []packages.Architecture{distro.DefaultArch},
-	Versions:      nil,
+	Archs:    []packages.Architecture{distro.DefaultArch},
+	Versions: nil,
 }
