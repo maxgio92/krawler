@@ -3,42 +3,72 @@ version := 0.1.0
 
 oci_image := quay.io/maxgio92/$(app)
 
-bins := go golangci-lint gofumpt
-commands := version list
+bins := go golangci-lint gofumpt aws
 
 DISTROS ?= amazonlinux amazonlinux2 amazonlinux2022 centos debian ubuntu
+
+RESULTS_DIR := e2e/results
+
+BUCKET_NAME := krawler-kernel-releases
 
 define declare_binpaths
 $(1) = $(shell command -v 2>/dev/null $(1))
 endef
 
-define gen_e2e_targets
-e2e/$(1):
-	@mkdir -p e2e/results
-	@rm -f e2e/results/$(1).* 2>/dev/null || true
-	@rm -f e2e/results/$(1)_custom.* 2>/dev/null || true
-	./$(app) list $(1) \
-	  -o json \
-	  > e2e/results/$(1).json 2> e2e/results/$(1).log
-	@echo "$(1) with default configuration: $$$$(jq length e2e/results/$(1).json) releases found."
-	./$(app) list $(1) \
-	  -c testdata/$(1).yaml \
-	  -o json \
-	  > e2e/results/$(1)_custom.json 2> e2e/results/$(1)_custom.log
-	@echo "$(1) with custom configuration (full): $$$$(jq length e2e/results/$(1)_custom.json) releases found."
-	./$(app) list $(1) \
-	  -c testdata/$(1)-norepos.yaml \
-	  -o json \
-	  > e2e/results/$(1)_custom_norepos.json 2> e2e/results/$(1)_custom_norepos.log
-	@echo "$(1) with custom configuration (no repositories): $$$$(jq length e2e/results/$(1)_custom_norepos.json) releases found."
-endef
+define gen_run_targets
+.PHONY: run/$(1)
+run/$(1):
+	@rm -rf $(RESULTS_DIR)/$(1) 2>/dev/null || true
+	@mkdir -p $(RESULTS_DIR)/$(1)
 
-$(foreach distro,$(DISTROS),\
-	$(eval $(call gen_e2e_targets,$(distro)))\
-)
+	@echo -n "$(1) with default configuration: "
+	@./$(app) list $(1) \
+	  -o json \
+	  > $(RESULTS_DIR)/$(1)/index.json 2> $(RESULTS_DIR)/$(1)/krawler.log
+	@echo "$$$$(jq length $(RESULTS_DIR)/$(1)/index.json) releases found."
+endef
 
 $(foreach bin,$(bins),\
 	$(eval $(call declare_binpaths,$(bin)))\
+)
+
+define gen_e2e_targets
+.PHONY: e2e/$(1)
+e2e/$(1): run/$(1)
+	@echo -n "$(1) with custom configuration (full): "
+	@./$(app) list $(1) \
+	  -c testdata/$(1).yaml \
+	  -o json \
+	  > $(RESULTS_DIR)/$(1)/index_custom.json 2> $(RESULTS_DIR)/$(1)/krawler_custom.log
+	@echo "$$$$(jq length $(RESULTS_DIR)/$(1)/index_custom.json) releases found."
+
+	@echo -n "$(1) with custom configuration (no repositories): "
+	@./$(app) list $(1) \
+	  -c testdata/$(1)-norepos.yaml \
+	  -o json \
+	  > $(RESULTS_DIR)/$(1)/index_custom_norepos.json 2> $(RESULTS_DIR)/$(1)/krawler_custom_norepos.log
+	@echo "$$$$(jq length $(RESULTS_DIR)/$(1)/index_custom_norepos.json) releases found."
+
+	@{ DEFAULT=$$$$(jq length $(RESULTS_DIR)/$(1)/index.json) \
+	CUSTOM=$$$$(jq length $(RESULTS_DIR)/$(1)/index_custom.json) \
+	CUSTOM_NOREPOS=$$$$(jq length $(RESULTS_DIR)/$(1)/index_custom_norepos.json); \
+		[[ $$$$DEFAULT == $$$$CUSTOM ]] && \
+		[[ $$$$CUSTOM == $$$$CUSTOM_NOREPOS ]] && \
+		echo "$(1) OK"; \
+	} \
+	|| { echo "$(1) KO"; exit 1; }
+endef
+
+define gen_publish_targets
+.PHONY: publish/$(1)
+publish/$(1): run/$(1)
+	$(aws) s3 sync $(RESULTS_DIR)/$(1)/index.json s3://$(BUCKET_NAME)/$(1)/
+endef
+
+$(foreach distro,$(DISTROS),\
+	$(eval $(call gen_run_targets,$(distro)))\
+	$(eval $(call gen_e2e_targets,$(distro)))\
+	$(eval $(call gen_publish_targets,$(distro)))\
 )
 
 .PHONY: build
@@ -80,5 +110,11 @@ help: list
 list:
 	@LC_ALL=C $(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
+.PHONY: run
+run: clean build $(patsubst %,run/%,$(DISTROS))
+
 .PHONY: e2e
 e2e: clean build $(patsubst %,e2e/%,$(DISTROS))
+
+.PHONY: publish
+publish: $(patsubst %,publish/%,$(DISTROS))
