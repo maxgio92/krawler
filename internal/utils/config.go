@@ -11,7 +11,7 @@ import (
 //nolint:cyclop,funlen,gocognit
 func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 	// The distro configuration.
-	var config d.Config
+	config := d.Config{}
 
 	// The distro all settings from Viper
 	var allsettings map[string]interface{}
@@ -70,6 +70,15 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 			}
 
 			allsettings = debian.AllSettings()
+		}
+
+		ubuntu := distros.Sub(d.UbuntuType)
+		if ubuntu != nil {
+			if err := ubuntu.Unmarshal(&config); err != nil {
+				return d.Config{}, err
+			}
+
+			allsettings = ubuntu.AllSettings()
 		}
 	}
 
