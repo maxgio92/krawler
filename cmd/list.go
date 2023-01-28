@@ -52,7 +52,7 @@ func getKernelReleases(distro distro.Distro, packageName string) ([]kr.KernelRel
 	// The searchOptions for searchOptions packages.
 	searchOptions := packages.NewSearchOptions(
 		packageName,
-		config.Architectures,
+		config.Archs,
 		nil,
 		config.Output.Verbosity,
 		"Total",

@@ -44,7 +44,7 @@ func (d *Debian) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 		components = append(components, strings.TrimPrefix(path.Clean(string(v.URI)), "/"))
 	}
 
-	searchOptions := deb.NewSearchOptions(&options, d.Config.Architectures, distURLs, components)
+	searchOptions := deb.NewSearchOptions(&options, d.Config.Archs, distURLs, components)
 
 	debs, err := deb.SearchPackages(searchOptions)
 	if err != nil {

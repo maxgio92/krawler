@@ -48,7 +48,7 @@ func (c *Centos) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 	for _, ru := range repositoryURLs {
 		rss = append(rss, ru.String())
 	}
-	searchOptions := rpm.NewSearchOptions(&options, c.config.Architectures, rss)
+	searchOptions := rpm.NewSearchOptions(&options, c.config.Archs, rss)
 	rpmPackages, err := rpm.SearchPackages(searchOptions)
 	if err != nil {
 		return nil, err

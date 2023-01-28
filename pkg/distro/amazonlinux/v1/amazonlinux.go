@@ -40,7 +40,7 @@ func (a *AmazonLinux) SearchPackages(options packages.SearchOptions) ([]packages
 	}
 
 	// Dereference repository URLs.
-	repositoryURLs, err := a.dereferenceRepositoryURLs(repositoriesURLrefs, a.Config.Architectures)
+	repositoryURLs, err := a.dereferenceRepositoryURLs(repositoriesURLrefs, a.Config.Archs)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (a *AmazonLinux) SearchPackages(options packages.SearchOptions) ([]packages
 		rss = append(rss, ru.String())
 	}
 
-	searchOptions := rpm.NewSearchOptions(&options, a.Config.Architectures, rss)
+	searchOptions := rpm.NewSearchOptions(&options, a.Config.Archs, rss)
 	rpmPackages, err := rpm.SearchPackages(searchOptions)
 	if err != nil {
 		return nil, err

@@ -24,7 +24,7 @@ var DefaultConfig = distro.Config{
 		{Name: "universe", URI: packages.URITemplate("universe")},
 		{Name: "restricted", URI: packages.URITemplate("restricted")},
 	},
-	Architectures: []packages.Architecture{DefaultArch},
+	Archs: []packages.Architecture{DefaultArch},
 
 	// Distribution versions, i.e. Debian dists
 	Versions: nil,
