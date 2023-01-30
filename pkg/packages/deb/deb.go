@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 
@@ -196,11 +197,16 @@ func searchPackagesFromIndex(doneFunc func(), so *SearchOptions, indexURL string
 	// Convert deb packages to a standard type.
 	ps := []packages.Package{}
 
+	rootURL := strings.Split(indexURL, string(os.PathSeparator)+"dists")[0]
+
 	for _, d := range ds {
+		packageURL, _ := url.JoinPath(rootURL, d.Filename)
+
 		p := &Package{
 			Name:    d.Package,
 			Arch:    d.Architecture.String(),
 			Version: d.Version.String(),
+			Url:     packageURL,
 		}
 		ps = append(ps, p)
 	}
