@@ -71,7 +71,7 @@ func getKernelReleases(distro distro.Distro, packageName string) ([]kr.KernelRel
 	}
 
 	// Get kernel releases from kernel header packages.
-	kernelReleases, err := kr.GetKernelReleaseListFromPackageList(packages, packageName)
+	kernelReleases, err := kr.GetKernelReleasesFromPackages(packages, packageName)
 	if err != nil {
 		return []kr.KernelRelease{}, err
 	}

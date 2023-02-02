@@ -1,8 +1,9 @@
 package kernelrelease
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
-	"regexp"
 	"strconv"
 
 	p "github.com/maxgio92/krawler/pkg/packages"
@@ -25,15 +26,13 @@ type KernelRelease struct {
 	CompilerVersion  string `json:"compiler_version"`
 }
 
-var kernelVersionPattern = regexp.MustCompile(`(?P<fullversion>^(?P<version>0|[1-9]\d*)\.(?P<patchlevel>0|[1-9]\d*)[.+]?(?P<sublevel>0|[1-9]\d*)?)(?P<fullextraversion>[-.+](?P<extraversion>0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)([\.+~](0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-_]*))*)?(\+[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*)?$`)
-
 //nolint:cyclop
 func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	k.PackageName = pkg.GetName()
 	k.PackageURL = pkg.URL()
 	k.Architecture = Arch(pkg.GetArch())
 
-	kernelVersion := VersionStringFromPackage(pkg)
+	kernelVersion := versionStringFromPackage(pkg)
 	match := kernelVersionPattern.FindStringSubmatch(kernelVersion)
 
 	identifiers := make(map[string]string)
@@ -75,49 +74,17 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	return nil
 }
 
-func VersionStringFromPackage(pkg p.Package) string {
-	version := pkg.GetVersion()
-	if pkg.GetRelease() != "" {
-		version += fmt.Sprintf("-%s", pkg.GetRelease())
-	}
+func (k *KernelRelease) MD5Hash() string {
+	md5.New()
 
-	if pkg.GetArch() != "" {
-		version += fmt.Sprintf(".%s", pkg.GetArch())
-	}
+	s := fmt.Sprintf("%s%s%s%s",
+		k.Fullversion,
+		k.FullExtraversion,
+		k.PackageName,
+		string(k.Architecture),
+	)
 
-	return version
-}
+	hash := md5.Sum([]byte(s))
 
-func UniqueKernelReleases(kernelReleases []KernelRelease) []KernelRelease {
-	krs := make([]KernelRelease, 0, len(kernelReleases))
-	m := make(map[KernelRelease]bool)
-
-	for _, v := range kernelReleases {
-		if _, ok := m[v]; !ok {
-			m[v] = true
-
-			krs = append(krs, v)
-		}
-	}
-
-	return krs
-}
-
-func GetKernelReleaseListFromPackageList(packages []p.Package, prefix string) ([]KernelRelease, error) {
-	releases := []KernelRelease{}
-
-	for _, pkg := range packages {
-		kr := &KernelRelease{}
-
-		err := kr.BuildFromPackage(pkg)
-		if err != nil {
-			return []KernelRelease{}, err
-		}
-
-		if kr.Fullversion != "" {
-			releases = append(releases, *kr)
-		}
-	}
-
-	return UniqueKernelReleases(releases), nil
+	return hex.EncodeToString(hash[:])
 }
