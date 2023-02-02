@@ -3,6 +3,7 @@ package kernelrelease_test
 import (
 	"testing"
 
+	"github.com/maxgio92/krawler/pkg/kernelrelease"
 	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/packages/deb"
 
@@ -15,7 +16,7 @@ func TestBuildFromPackage(t *testing.T) {
 
 	tests := map[string]struct {
 		pkg  packages.Package
-		want KernelRelease
+		want kernelrelease.KernelRelease
 	}{
 		"just kernel version": {
 			pkg: &deb.Package{
@@ -24,7 +25,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Release: "",
 				Arch:    "",
 			},
-			want: KernelRelease{
+			want: kernelrelease.KernelRelease{
 				Fullversion:      "5.5.2",
 				Version:          5,
 				PatchLevel:       5,
@@ -32,7 +33,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Extraversion:     "",
 				FullExtraversion: "",
 				PackageName:      "linux-headers",
-				Architecture:     Arch(""),
+				Architecture:     kernelrelease.Arch(""),
 			},
 		},
 		"an empty string": {
@@ -42,7 +43,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Release: "",
 				Arch:    "",
 			},
-			want: KernelRelease{
+			want: kernelrelease.KernelRelease{
 				Fullversion:      "",
 				Version:          0,
 				PatchLevel:       0,
@@ -50,7 +51,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Extraversion:     "",
 				FullExtraversion: "",
 				PackageName:      "linux-headers",
-				Architecture:     Arch(""),
+				Architecture:     kernelrelease.Arch(""),
 			},
 		},
 		"Architecture Linux version": {
@@ -60,7 +61,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Release: "arch2-1",
 				Arch:    "x86_64",
 			},
-			want: KernelRelease{
+			want: kernelrelease.KernelRelease{
 				Fullversion:      "6.1.5",
 				Version:          6,
 				PatchLevel:       1,
@@ -68,7 +69,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Extraversion:     "arch2-1",
 				FullExtraversion: "-arch2-1.x86_64",
 				PackageName:      "linux-headers",
-				Architecture:     Arch("x86_64"),
+				Architecture:     kernelrelease.Arch("x86_64"),
 			},
 		},
 		"Debian Jessie version": {
@@ -78,7 +79,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Release: "10",
 				Arch:    "amd64",
 			},
-			want: KernelRelease{
+			want: kernelrelease.KernelRelease{
 				Fullversion:      "3.16.0",
 				Version:          3,
 				PatchLevel:       16,
@@ -86,7 +87,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Extraversion:     "10",
 				FullExtraversion: "-10.amd64",
 				PackageName:      "linux-headers",
-				Architecture:     Arch("amd64"),
+				Architecture:     kernelrelease.Arch("amd64"),
 			},
 		},
 		"Debian Buster version": {
@@ -96,7 +97,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Release: "6",
 				Arch:    "amd64",
 			},
-			want: KernelRelease{
+			want: kernelrelease.KernelRelease{
 				Fullversion:      "4.19.0",
 				Version:          4,
 				PatchLevel:       19,
@@ -104,7 +105,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Extraversion:     "6",
 				FullExtraversion: "-6.amd64",
 				PackageName:      "linux-headers",
-				Architecture:     Arch("amd64"),
+				Architecture:     kernelrelease.Arch("amd64"),
 			},
 		},
 		"Debian version with tilde separator": {
@@ -114,7 +115,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Release: "2+grsecunoff1~bpo9+1",
 				Arch:    "amd64",
 			},
-			want: KernelRelease{
+			want: kernelrelease.KernelRelease{
 				Fullversion:      "4.9.65",
 				Version:          4,
 				PatchLevel:       9,
@@ -122,7 +123,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Extraversion:     "2",
 				FullExtraversion: "-2+grsecunoff1~bpo9+1.amd64",
 				PackageName:      "linux-headers",
-				Architecture:     Arch("amd64"),
+				Architecture:     kernelrelease.Arch("amd64"),
 			},
 		},
 		"Debian version with plus separator": {
@@ -132,7 +133,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Release: "deb10u4~bpo9+1",
 				Arch:    "amd64",
 			},
-			want: KernelRelease{
+			want: kernelrelease.KernelRelease{
 				Fullversion:      "4.19+105",
 				Version:          4,
 				PatchLevel:       19,
@@ -140,7 +141,7 @@ func TestBuildFromPackage(t *testing.T) {
 				Extraversion:     "deb10u4",
 				FullExtraversion: "-deb10u4~bpo9+1.amd64",
 				PackageName:      "linux-headers",
-				Architecture:     Arch("amd64"),
+				Architecture:     kernelrelease.Arch("amd64"),
 			},
 		},
 	}
@@ -150,7 +151,7 @@ func TestBuildFromPackage(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			got := KernelRelease{}
+			got := kernelrelease.KernelRelease{}
 			err := got.BuildFromPackage(tt.pkg)
 
 			assert.NilError(t, err)

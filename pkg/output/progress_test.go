@@ -1,6 +1,7 @@
 package output_test
 
 import (
+	"github.com/maxgio92/krawler/pkg/output"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,6 +10,6 @@ import (
 func TestNewProgressOptions(t *testing.T) {
 	t.Parallel()
 
-	po := NewProgressOptions(100)
+	po := output.NewProgressOptions(100)
 	assert.NotNil(t, po)
 }
