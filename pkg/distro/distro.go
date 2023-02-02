@@ -3,6 +3,7 @@ package distro
 import (
 	"github.com/maxgio92/krawler/pkg/output"
 	"github.com/maxgio92/krawler/pkg/packages"
+	"github.com/maxgio92/krawler/pkg/utils/template"
 )
 
 type Config struct {
@@ -35,3 +36,30 @@ type Distro interface {
 type Version string
 
 type Type string
+
+// BuildTemplates computes templated Config fields by evaluating the template against a set of variables,
+// expected as a map of string to interface argument.
+// As of now, only the URI field of Config.Repositories is a supported field to be templated.
+func (c *Config) BuildTemplates(vars map[string]interface{}) error {
+	uris := []string{}
+
+	for _, repository := range c.Repositories {
+		if repository.URI != "" {
+			result, err := template.MultiplexAndExecute(string(repository.URI), vars)
+			if err != nil {
+				return err
+			}
+
+			uris = append(uris, result...)
+		}
+	}
+
+	r := []packages.Repository{}
+	for _, v := range uris {
+		r = append(r, packages.Repository{Name: "", URI: packages.URITemplate(v)})
+	}
+
+	c.Repositories = r
+
+	return nil
+}

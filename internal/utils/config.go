@@ -4,8 +4,6 @@ import (
 	v "github.com/spf13/viper"
 
 	d "github.com/maxgio92/krawler/pkg/distro"
-	"github.com/maxgio92/krawler/pkg/packages"
-	"github.com/maxgio92/krawler/pkg/utils/template"
 )
 
 //nolint:cyclop,funlen,gocognit
@@ -89,36 +87,10 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 
 	vars := MergeMapsAndDeleteKeys(allsettings, varsSettings, "vars", "mirrors", "repositories")
 
-	err := expandTemplatedDistroConfig(&config, vars)
+	err := config.BuildTemplates(vars)
 	if err != nil {
 		return d.Config{}, err
 	}
 
 	return config, nil
-}
-
-func expandTemplatedDistroConfig(config *d.Config, vars map[string]interface{}) error {
-	repositories := config.Repositories
-
-	uris := []string{}
-
-	for _, repository := range repositories {
-		if repository.URI != "" {
-			result, err := template.MultiplexAndExecute(string(repository.URI), vars)
-			if err != nil {
-				return err
-			}
-
-			uris = append(uris, result...)
-		}
-	}
-
-	r := []packages.Repository{}
-	for _, v := range uris {
-		r = append(r, packages.Repository{Name: "", URI: packages.URITemplate(v)})
-	}
-
-	config.Repositories = r
-
-	return nil
 }

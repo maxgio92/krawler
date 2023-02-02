@@ -16,11 +16,11 @@ var DefaultConfig = distro.Config{
 		{URL: "https://archive.kernel.org/centos-vault/"},
 	},
 	Repositories: []packages.Repository{
-		{Name: "base", URI: packages.URITemplate("/os/" + distro.DefaultArch + "/")},
-		{Name: "updates", URI: packages.URITemplate("/updates/" + distro.DefaultArch + "/")},
-		{Name: "BaseOS", URI: packages.URITemplate("/BaseOS/" + distro.DefaultArch + "/os/")},
-		{Name: "AppStream", URI: packages.URITemplate("/AppStream/" + distro.DefaultArch + "/os/")},
-		{Name: "Devel", URI: packages.URITemplate("/Devel/" + distro.DefaultArch + "/os/")},
+		{Name: "base", URI: packages.URITemplate("/os/{{ .archs }}/")},
+		{Name: "updates", URI: packages.URITemplate("/updates/{{ .archs }}/")},
+		{Name: "BaseOS", URI: packages.URITemplate("/BaseOS/{{ .archs }}/os/")},
+		{Name: "AppStream", URI: packages.URITemplate("/AppStream/{{ .archs }}/os/")},
+		{Name: "Devel", URI: packages.URITemplate("/Devel/{{ .archs }}/os/")},
 	},
 	Archs: []packages.Architecture{
 		"aarch64",
