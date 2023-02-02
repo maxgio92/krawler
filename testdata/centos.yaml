@@ -2,6 +2,9 @@ distros:
   centos:
 
     archs:
+    - "aarch64"
+    - "x86_64"
+    - "ppc64le"
 
     mirrors:
     - url: https://archive.kernel.org/centos-vault
@@ -22,6 +25,7 @@ distros:
       new_repos:
       - "BaseOS"
       - "AppStream"
+      - "Devel"
 
       # Distribution version dependent (i.e. CentOS < 8)
       old_repos:

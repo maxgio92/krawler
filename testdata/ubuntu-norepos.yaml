@@ -1,8 +1,6 @@
 distros:
   ubuntu:
 
-    archs:
-
     mirrors:
     - url: "https://mirrors.edge.kernel.org/ubuntu"
       name: Edge

@@ -1,8 +1,6 @@
 distros:
   debian:
 
-    archs:
-
     mirrors:
     - url: "https://mirrors.edge.kernel.org/debian/"
       name: Edge
