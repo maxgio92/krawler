@@ -1,8 +1,6 @@
 distros:
   amazonlinux2:
 
-    archs:
-
     mirrors:
     - url: http://amazonlinux.us-east-1.amazonaws.com/2
       name: AmazonLinux2
