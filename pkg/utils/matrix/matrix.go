@@ -1,16 +1,21 @@
 package matrix
 
+// The combinations are built concatenating one element per column into a row,
+// and traversing all the columns' elements by shifting them from the last to the first columns
+// (decremental abscissa order).
+//
 // (ordinate)
 // y
 // ^
-// |		4
-// |		3	Z
-// |	B	2	Y
-// |	A	1	X
-// ---------------> x (abscissa)
-
+// |	4
+// |	3	Z
+// |B	2	Y
+// |A	1	X
+// -----------> x (abscissa)
+//
 // Provided the sample scenario above, this function
-// should return something like this:
+// should combine the elements in the order below:
+//
 // A + 1 + X
 // A + 1 + Y
 // A + 1 + Z
@@ -40,7 +45,7 @@ func GetColumnOrderedCombinationRows(columns []Column) ([]string, error) {
 			return nil, NewErrUnsopportedPointType()
 		}
 
-		if columns[0].OrdinateIndex == len(ssp) || completed {
+		if columns[0].CurrentOrdinateIndex == len(ssp) || completed {
 			break
 		}
 	}
@@ -49,14 +54,14 @@ func GetColumnOrderedCombinationRows(columns []Column) ([]string, error) {
 }
 
 func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Column, columns []Column, completed *bool) error {
-	ssp, ok := column.Points.([]string)
+	currentColumnPoints, ok := column.Points.([]string)
 	if !ok {
 		return NewErrUnsopportedPointType()
 	}
 
 	if abscissaIndex+1 < len(columns) { // Until the last column is reached
 
-		*row += ssp[column.OrdinateIndex]
+		*row += currentColumnPoints[column.CurrentOrdinateIndex]
 
 		// Move forward
 		abscissaIndex++
@@ -68,7 +73,7 @@ func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Co
 
 	} else { // When the last column is reached
 
-		for _, point := range ssp {
+		for _, point := range currentColumnPoints {
 			*points = append(*points, string(*row+point))
 		}
 
@@ -88,23 +93,29 @@ func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Co
 }
 
 func scrollDownPrevColumnPoint(column *Column, columns []Column, abscissaIndex int, completed *bool) error {
-	ssp, ok := column.Points.([]string)
+	currentColumnPoints, ok := column.Points.([]string)
 	if !ok {
 		return NewErrUnsopportedPointType()
 	}
 
-	if column.OrdinateIndex+1 < len(ssp) {
-		column.OrdinateIndex++
+	// If the current column has still elements/points
+	// and there are more than one column.
+	if column.CurrentOrdinateIndex+1 < len(currentColumnPoints) && len(columns) > 1 {
+		column.CurrentOrdinateIndex++
+
+		// If the current column has been completely processed.
 	} else {
-		column.OrdinateIndex = 0
+		column.CurrentOrdinateIndex = 0
 		abscissaIndex--
 
+		// If it's not the first column.
 		if abscissaIndex >= 0 {
-
 			err := scrollDownPrevColumnPoint(&columns[abscissaIndex], columns, abscissaIndex, completed)
 			if err != nil {
 				return err
 			}
+
+			// If it's the first column.
 		} else {
 			*completed = true
 		}
