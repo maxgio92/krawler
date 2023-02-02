@@ -37,7 +37,6 @@ func MultiplexAndExecute(templateString string, input map[string]interface{}) ([
 	}
 
 	// Populate the inventory.
-	// TODO: move into utility function or package.
 	inventory := make(map[string][]interface{})
 	for _, key := range supportedVariables {
 		i := input[key]
