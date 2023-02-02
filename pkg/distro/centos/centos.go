@@ -36,18 +36,6 @@ func (c *Centos) SearchPackages(options packages.SearchOptions) ([]packages.Pack
 		return nil, err
 	}
 
-	// Execute templated repositories URIs.
-	archs := make([]interface{}, 0, len(c.config.Archs))
-	for _, v := range c.config.Archs {
-		archs = append(archs, interface{}(string(v)))
-	}
-	err = c.config.BuildTemplates(map[string]interface{}{
-		"archs": archs,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	// Build available repository URLs based on provided configuration,
 	// for each distribution version.
 	repositoryURLs, err := c.buildRepositoriesUrls(perVersionMirrorUrls, c.config.Repositories)

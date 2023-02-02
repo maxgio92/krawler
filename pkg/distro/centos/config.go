@@ -19,6 +19,18 @@ func (c *Centos) buildConfig(def distro.Config, user distro.Config) (distro.Conf
 		return distro.Config{}, err
 	}
 
+	// Build templated repositories URIs against built-in variables (archs).
+	archs := make([]interface{}, 0, len(config.Archs))
+	for _, v := range config.Archs {
+		archs = append(archs, string(v))
+	}
+	err = config.BuildTemplates(map[string]interface{}{
+		"archs": archs,
+	})
+	if err != nil {
+		return distro.Config{}, err
+	}
+
 	return config, nil
 }
 
