@@ -26,8 +26,8 @@ func unique(kernelReleases []KernelRelease) []KernelRelease {
 	m := make(map[string]bool)
 
 	for _, v := range kernelReleases {
-		if _, ok := m[v.MD5Hash()]; !ok {
-			m[v.MD5Hash()] = true
+		if _, ok := m[v.SHA256Sum()]; !ok {
+			m[v.SHA256Sum()] = true
 
 			krs = append(krs, v)
 		}

@@ -1,7 +1,7 @@
 package kernelrelease
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"strconv"
@@ -74,8 +74,8 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 	return nil
 }
 
-func (k *KernelRelease) MD5Hash() string {
-	md5.New()
+func (k *KernelRelease) SHA256Sum() string {
+	sha256.New()
 
 	s := fmt.Sprintf("%s%s%s%s",
 		k.Fullversion,
@@ -84,7 +84,7 @@ func (k *KernelRelease) MD5Hash() string {
 		string(k.Architecture),
 	)
 
-	hash := md5.Sum([]byte(s))
+	hash := sha256.Sum256([]byte(s))
 
 	return hex.EncodeToString(hash[:])
 }
