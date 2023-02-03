@@ -24,10 +24,9 @@ func (c *Centos) buildConfig(def distro.Config, user distro.Config) (distro.Conf
 	for _, v := range config.Archs {
 		archs = append(archs, string(v))
 	}
-	err = config.BuildTemplates(map[string]interface{}{
+	if err = config.BuildTemplates(map[string]interface{}{
 		"archs": archs,
-	})
-	if err != nil {
+	}); err != nil {
 		return distro.Config{}, err
 	}
 
