@@ -93,7 +93,7 @@ gofumpt:
 
 .PHONY: oci/build
 oci/build:
-	@docker build . -t $(oci_image):$(version) -f Containerfile
+	@docker build . -t $(oci_image):$(version) -f Dockerfile
 
 .PHONY: oci/push
 oci/push: oci/build
