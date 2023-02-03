@@ -23,11 +23,49 @@ builds:
   ignore:
   - goos: darwin
     goarch: '386'
+  - goos: windows
+    goarch: 'arm'
+  - goos: windows
+    goarch: 'arm64'
+  ldflags:
+  - -s -w -X main.buildVersion={{ .Version }}
+  overrides:
+  - goos: windows
+    goarch: amd64
+    goamd64: v1
+    env:
+    - CC=x86_64-w64-mingw32-gcc
+  - goos: windows
+    goarch: arm64
+    env:
+    - CC=/llvm-mingw/llvm-mingw/bin/aarch64-w64-mingw32-gcc
+  - goos: darwin
+    goarch: amd64
+    goamd64: v1
+    env:
+    - CC=o64-clang
+  - goos: darwin
+    goarch: arm64
+    env:
+    - CC=oa64-clang
+  - goos: linux
+    goarch: arm64
+    env:
+    - CC=aarch64-linux-gnu-gcc
+  - goos: linux
+    goarch: arm
+    goarm: '6'
+    env:
+    - CC=arm-linux-gnueabihf-gcc
   - goos: linux
     goarch: arm
     goarm: '7'
-  ldflags:
-  - -s -w -X main.buildVersion={{ .Version }}
+    env:
+    - CC=arm-linux-gnueabihf-gcc
+  - goos: linux
+    goarch: amd64
+    env:
+    - CC=gcc
 
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'

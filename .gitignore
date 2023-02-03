@@ -45,3 +45,6 @@ bin
 /.vscode
 
 e2e/results/*
+
+# CGO Cross-compile GoReleaser-cross env file
+.release-env
