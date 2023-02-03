@@ -1,10 +1,11 @@
 package output_test
 
 import (
-	"github.com/maxgio92/krawler/pkg/output"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/maxgio92/krawler/pkg/output"
 )
 
 func TestNewProgressOptions(t *testing.T) {

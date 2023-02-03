@@ -2,6 +2,7 @@ package kernelrelease
 
 import (
 	"fmt"
+
 	p "github.com/maxgio92/krawler/pkg/packages"
 )
 
