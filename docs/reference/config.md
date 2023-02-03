@@ -25,7 +25,11 @@ output:
 
 ### Distros
 
-`distros` is a map of well-known supported distro structures. Supported keys are:
+`distros` is a map of well-known supported distro structures.
+
+#### Supported distros
+
+As of now, the supported Linux distributions are:
 - *amazonlinux1*
 - *amazonlinux2*
 - *amazonlinux2022*
@@ -53,8 +57,11 @@ distros:
 
 ### Distro.Archs
 
-`archs` is an array of supported architecture IDs. The name follows the one provided by package repository trees.
-For example *x86_64*, *aarch86*, *ppc64le*.
+`archs` is an array of supported architecture IDs.
+
+The name follows the one provided by package repository trees. For example *x86_64*/*amd64*, *aarch86*, *ppc64le*.
+
+> If omitted, **all supported** CPU architectures are selected.
  
 ### Distro.Mirrors
 
@@ -100,6 +107,7 @@ centos:
 ##### Supported data types
 
 The supported element types are:
+
 - array of strings
 
 #### System declared variables
@@ -145,4 +153,17 @@ As you can see both system-declared (e.g. `archs`) and user-declared (e.g. `new_
 
 `verbosity` allows to set the verbosity of the visual output of the commands, through a decimal number from 0 to 6.
 
-> It can be set either globally (as above), and at `distro`-level.
+It can be set either globally (as [above](#the-structure)), and per `distro`. For example:
+
+```
+distros:
+  ubuntu:
+    mirrors:
+    - url: "https://mirrors.edge.kernel.org/ubuntu"
+      name: Edge
+    - url: "http://security.ubuntu.com/ubuntu"
+      name: Security
+    output:
+      verbosity: 6
+```
+
