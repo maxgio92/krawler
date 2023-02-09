@@ -17,7 +17,7 @@ endef
 
 define gen_run_targets
 .PHONY: run/$(1)
-run/$(1):
+run/$(1): clean build
 	@rm -rf $(RESULTS_DIR)/$(1) 2>/dev/null || true
 	@mkdir -p $(RESULTS_DIR)/$(1)
 
@@ -117,7 +117,7 @@ run: clean build $(patsubst %,run/%,$(DISTROS))
 e2e: clean build $(patsubst %,e2e/%,$(DISTROS))
 
 .PHONY: publish
-publish: clean build $(patsubst %,publish/%,$(DISTROS))
+publish: $(patsubst %,publish/%,$(DISTROS))
 
 PACKAGE_NAME          := github.com/maxgio92/$(app)
 GOLANG_CROSS_VERSION  ?= v$(shell sed -nE 's/go[[:space:]]+([[:digit:]]\.[[:digit:]]+)/\1/p' go.mod)
@@ -137,3 +137,4 @@ release:
 		-w /go/src/$(PACKAGE_NAME) \
 		goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
 		release --rm-dist
+
