@@ -36,6 +36,7 @@ As of now, the supported Linux distributions are:
 - *centos*
 - *debian*
 - *ubuntu*
+- *oracle*
  
 `distro` structure is a map of `versions`, `archs`, `mirrors`, `repositories`.
 
