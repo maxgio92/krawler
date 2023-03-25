@@ -13,4 +13,5 @@ const (
 	AmazonLinuxV2022Type = "amazonlinux2022"
 	DebianType           = "debian"
 	UbuntuType           = "ubuntu"
+	FedoraType           = "fedora"
 )
