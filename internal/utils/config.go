@@ -25,8 +25,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 
 	//nolint:nestif
 	if distros := viper.Sub("distros"); distros != nil {
-		centos := distros.Sub(d.CentosType)
-		if centos != nil {
+		if centos := distros.Sub(d.CentosType); centos != nil {
 			if err := centos.Unmarshal(&config); err != nil {
 				return d.Config{}, err
 			}
@@ -34,8 +33,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 			allsettings = centos.AllSettings()
 		}
 
-		amazonLinuxV1 := distros.Sub(d.AmazonLinuxV1Type)
-		if amazonLinuxV1 != nil {
+		if amazonLinuxV1 := distros.Sub(d.AmazonLinuxV1Type); amazonLinuxV1 != nil {
 			if err := amazonLinuxV1.Unmarshal(&config); err != nil {
 				return d.Config{}, err
 			}
@@ -43,8 +41,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 			allsettings = amazonLinuxV1.AllSettings()
 		}
 
-		amazonLinuxV2 := distros.Sub(d.AmazonLinuxV2Type)
-		if amazonLinuxV2 != nil {
+		if amazonLinuxV2 := distros.Sub(d.AmazonLinuxV2Type); amazonLinuxV2 != nil {
 			if err := amazonLinuxV2.Unmarshal(&config); err != nil {
 				return d.Config{}, err
 			}
@@ -52,8 +49,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 			allsettings = amazonLinuxV2.AllSettings()
 		}
 
-		amazonLinuxV2022 := distros.Sub(d.AmazonLinuxV2022Type)
-		if amazonLinuxV2022 != nil {
+		if amazonLinuxV2022 := distros.Sub(d.AmazonLinuxV2022Type); amazonLinuxV2022 != nil {
 			if err := amazonLinuxV2022.Unmarshal(&config); err != nil {
 				return d.Config{}, err
 			}
@@ -61,8 +57,7 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 			allsettings = amazonLinuxV2022.AllSettings()
 		}
 
-		debian := distros.Sub(d.DebianType)
-		if debian != nil {
+		if debian := distros.Sub(d.DebianType); debian != nil {
 			if err := debian.Unmarshal(&config); err != nil {
 				return d.Config{}, err
 			}
@@ -70,13 +65,20 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 			allsettings = debian.AllSettings()
 		}
 
-		ubuntu := distros.Sub(d.UbuntuType)
-		if ubuntu != nil {
+		if ubuntu := distros.Sub(d.UbuntuType); ubuntu != nil {
 			if err := ubuntu.Unmarshal(&config); err != nil {
 				return d.Config{}, err
 			}
 
 			allsettings = ubuntu.AllSettings()
+		}
+
+		if fedora := distros.Sub(d.FedoraType); fedora != nil {
+			if err := fedora.Unmarshal(&config); err != nil {
+				return d.Config{}, err
+			}
+
+			allsettings = fedora.AllSettings()
 		}
 	}
 
