@@ -14,4 +14,5 @@ const (
 	DebianType           = "debian"
 	UbuntuType           = "ubuntu"
 	FedoraType           = "fedora"
+	OracleType           = "oracle"
 )
