@@ -1,25 +1,28 @@
 # Krawler: a kernel releases crawler
 
-> Under development
-
 [![Latest](https://img.shields.io/github/v/release/maxgio92/krawler)](https://github.com/maxgio92/krawler/releases/latest)
 [![CI](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml)
 [![Release](https://github.com/maxgio92/krawler/actions/workflows/release.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/release.yaml)
 
-A crawler for kernel releases distributed by the major Linux distributions.
-It works by scraping mirrors for published kernel headers packages on package mirrors.
+![](/home/massi/Pictures/madagascar_penguin_search_small.jpg)
+
+It supports, Amazon Linux v1, Amazon Linux v2, Amazon Linux 2022, Centos, Debian, Ubuntu, Fedora, Oracle Linux.
+
+The crawling data is continuously published and is available at [db.krawler.io](https://db.krawler.io).
+
+## Usage
 
 ```
 krawler [options] <command>
 ```
 
-## Options
+### Options
 - `-c, --config file`: (optional) the config file to customize the list of mirrors to scrape for kernel releases (by default it looks at *$HOME/.krawler.yaml*).
 - `-v, --verbosity level`: (optional) the verbosity level (*debug*, *info*, *warn*, *error*, *fatal*, *panic*). By (default *warning*).
 
-## Commands
+### Commands
 
-### `list`|`ls`
+#### `list`|`ls`
 
 List available kernel releases with distributed headers, by Linux distribution.
 It returns a list of `kernelRelease` objects. The output format can be specified by flag parameter.
@@ -28,22 +31,25 @@ It returns a list of `kernelRelease` objects. The output format can be specified
 krawler [options] list|ls <distribution> [-o <format>] 
 ```
 
-### Parameters
+#### Parameters
+
 `distribution`: (**required**) The Linux distribution for which the release has been pubished.
 Available distributions:
 
-- amazonlinux
-- amazonlinux2
-- amazonlinux2022
-- centos
-- debian
-- ubuntu
-- oracle
+- *amazonlinux*
+- *amazonlinux2*
+- *amazonlinux2022*
+- *centos*
+- *debian*
+- *fedora*
+- *oracle*
+- *ubuntu*
 
-### Options
+#### Options
+
 `-o, --output format`: (optional) the format of the output of the list of kernel releases (one of *text*, *json* or *yaml*). By default *yaml*.
 
-### Output
+#### Output
 
 The `list`|`ls` command prints on standard ouput a is a list of kernel release objects of type [`KernelRelease`](https://github.com/maxgio92/krawler/blob/main/pkg/kernelrelease/kernelrelease.go#L16).
 

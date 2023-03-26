@@ -29,6 +29,7 @@ Available distributions:
 - centos
 - debian
 - ubuntu
+- fedora
 - oracle
 
 ### Options
