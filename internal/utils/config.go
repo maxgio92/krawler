@@ -80,6 +80,14 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 
 			allsettings = fedora.AllSettings()
 		}
+
+		if oracle := distros.Sub(d.OracleType); oracle != nil {
+			if err := oracle.Unmarshal(&config); err != nil {
+				return d.Config{}, err
+			}
+
+			allsettings = oracle.AllSettings()
+		}
 	}
 
 	if _, ok := allsettings["vars"].(map[string]interface{}); ok {
