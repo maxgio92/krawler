@@ -2,6 +2,7 @@ package scrape
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"net/url"
 	"path"
 	"regexp"
@@ -156,7 +157,7 @@ func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, 
 	for _, seedURL := range seedURLs {
 		err := co.Visit(seedURL.String())
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, fmt.Sprintf("error scraping folder with URL %s", seedURL.String()))
 		}
 	}
 
