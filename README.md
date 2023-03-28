@@ -1,4 +1,4 @@
-# ![krawler_penguin](images/krawler_penguin.jpg) Krawler: a kernel releases crawler
+# Krawler: a kernel releases crawler ![logo](images/madagascar5.png)
 
 [![Latest](https://img.shields.io/github/v/release/maxgio92/krawler)](https://github.com/maxgio92/krawler/releases/latest)
 [![CI](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml)
