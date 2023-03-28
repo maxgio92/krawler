@@ -38,6 +38,7 @@ As of now, the supported Linux distributions are:
 - *ubuntu*
 - *fedora*
 - *oracle*
+- *opensuse*
  
 `distro` structure is a map of `versions`, `archs`, `mirrors`, `repositories`.
 
