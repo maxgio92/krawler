@@ -7,10 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/gocolly/colly"
 	d "github.com/gocolly/colly/debug"
+	"github.com/pkg/errors"
 )
 
 // CrawlFiles returns a list of file names found from the seed URL, filtered by file name regex.
