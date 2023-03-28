@@ -79,7 +79,7 @@ func CrawlFiles(seedURLs []*url.URL, exactFileRegex string, debug bool) ([]strin
 	for _, seedURL := range seedURLs {
 		err := co.Visit(seedURL.String())
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, fmt.Sprintf("error scraping file with URL %s", seedURL.String()))
 		}
 	}
 
