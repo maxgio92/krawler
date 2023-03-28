@@ -2,11 +2,12 @@ package scrape
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"net/url"
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/gocolly/colly"
 	d "github.com/gocolly/colly/debug"
