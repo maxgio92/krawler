@@ -1,6 +1,4 @@
-# Krawler: a kernel releases crawler ![logo](../images/madagascar_small.png)
-
-![](../images/debian.png) ![](../images/ubuntu.png) ![](../images/centos.png) ![](../images/fedora.png) ![](../images/oracle.png) ![](../images/opensuse.png) ![](../images/amazonlinux.png)
+# Krawler: a kernel releases crawler
 
 A crawler for kernel releases distributed by the major Linux distributions.
 
