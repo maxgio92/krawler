@@ -120,7 +120,7 @@ e2e: clean build $(patsubst %,e2e/%,$(DISTROS))
 publish: $(patsubst %,publish/%,$(DISTROS))
 
 PACKAGE_NAME          := github.com/maxgio92/$(app)
-GOLANG_CROSS_VERSION  ?= v$(shell sed -nE 's/go[[:space:]]+([[:digit:]]\.[[:digit:]]+)/\1/p' go.mod)
+GOLANG_CROSS_VERSION  ?= v1.19.4
 
 .PHONY: release
 release:

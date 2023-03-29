@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release-cross:
@@ -21,6 +22,7 @@ jobs:
         uses: actions/setup-go@v2
       - name: Setup release environment
         run: |-
-          echo 'GITHUB_TOKEN=${{secrets.GORELEASER_ACCESS_TOKEN}}' > .release-env
+          echo 'GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}' > .release-env
       - name: Publish release
         run: make release
+

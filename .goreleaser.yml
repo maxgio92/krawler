@@ -73,6 +73,3 @@ checksum:
 
 changelog:
   sort: asc
-  filters:
-    exclude:
-    - '^[^S][^L][^-][^\d+]*'
