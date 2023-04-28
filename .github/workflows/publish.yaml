@@ -75,6 +75,48 @@ jobs:
           version: "2"
       - name: Publish results to S3
         run: make publish/debian
+  fedora:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.19.0'
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@master
+        with:
+          version: "2"
+      - name: Publish results to S3
+        run: make publish/fedora
+  opensuse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.19.0'
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@master
+        with:
+          version: "2"
+      - name: Publish results to S3
+        run: make publish/opensuse
+  oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.19.0'
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@master
+        with:
+          version: "2"
+      - name: Publish results to S3
+        run: make publish/oracle
   ubuntu:
     runs-on: ubuntu-latest
     steps:
