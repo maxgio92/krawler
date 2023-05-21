@@ -18,12 +18,14 @@ package archlinux
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/packages/alpm"
+	"github.com/maxgio92/krawler/pkg/scrape"
 	"github.com/pkg/errors"
-	"net/url"
-	"strings"
 )
 
 type ArchLinux struct {
@@ -46,31 +48,30 @@ func (a *ArchLinux) Configure(config distro.Config) error {
 func (a *ArchLinux) SearchPackages(options packages.SearchOptions) ([]packages.Package, error) {
 	a.config.Output.Logger = options.Log()
 
-	// Arch Linux is a rolling release distribution.
-	mirrorURLs := []*url.URL{}
-	for _, v := range a.config.Mirrors {
-		u, err := url.Parse(v.URL)
-		if err != nil {
-			return nil, errors.Wrap(err, "error parsing mirror URL")
-		}
-
-		mirrorURLs = append(mirrorURLs, u)
+	mirrorURLs, err := a.buildMirrorURLs()
+	if err != nil {
+		return nil, errors.Wrap(err, "error building mirror URLs")
 	}
 
 	// Build available repository URLs based on provided configuration,
 	// for each distribution version.
-	repositoryURLs, err := a.buildRepositoriesUrls(mirrorURLs, a.config.Repositories)
+	rss := []string{}
+
+	repositoryURLs, err := a.buildRepositoriesURLs(mirrorURLs, a.config.Repositories)
 	if err != nil {
 		return nil, err
 	}
-
-	// Get packages from each repository.
-	rss := []string{}
 	for _, ru := range repositoryURLs {
 		rss = append(rss, ru.String())
 	}
 
-	// E.g. https://ftp.halifax.rwth-aachen.de/archlinux/core/os/x86_64/core.db.tar.gz
+	// TODO: input all repository URLs.
+	archiveURLs, err := a.buildArchiveURLs(archiveMirrorURLs, archiveRepos)
+	for _, au := range archiveURLs {
+		rss = append(rss, au.String())
+	}
+
+	// Get packages from each repository.
 	res := []packages.Package{}
 	for _, v := range rss {
 		var repoURL string
@@ -134,8 +135,24 @@ func (a *ArchLinux) SearchPackages(options packages.SearchOptions) ([]packages.P
 	return res, nil
 }
 
+func (a *ArchLinux) buildMirrorURLs() ([]*url.URL, error) {
+
+	// Arch Linux is a rolling release distribution.
+	mirrorURLs := []*url.URL{}
+	for _, v := range a.config.Mirrors {
+		u, err := url.Parse(v.URL)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing mirror URL")
+		}
+
+		mirrorURLs = append(mirrorURLs, u)
+	}
+
+	return mirrorURLs, nil
+}
+
 // Returns the list of repositories URLs.
-func (a *ArchLinux) buildRepositoriesUrls(roots []*url.URL, repositories []packages.Repository) ([]*url.URL, error) {
+func (a *ArchLinux) buildRepositoriesURLs(roots []*url.URL, repositories []packages.Repository) ([]*url.URL, error) {
 	var urls []*url.URL
 
 	for _, root := range roots {
@@ -158,6 +175,35 @@ func (a *ArchLinux) buildRepositoriesUrls(roots []*url.URL, repositories []packa
 	}
 
 	return urls, nil
+}
+
+func (a *ArchLinux) buildArchiveURLs(archiveMirrorURLs []string, repositoryNames []string) ([]*url.URL, error) {
+	seeds := []*url.URL{}
+	for _, v := range archiveMirrorURLs {
+		s, err := url.Parse(v)
+		if err != nil {
+			return nil, err
+		}
+
+		seeds = append(seeds, s)
+	}
+
+	au, err := scrape.CrawlFoldersPath(seeds, `^core\/$`, true, true)
+	if err != nil {
+		return nil, errors.Wrap(err, "error building archive repository URLs")
+	}
+
+	archiveURLs := []*url.URL{}
+	for _, v := range au {
+		u, err := url.Parse(v)
+		if err != nil {
+			return nil, err
+		}
+
+		archiveURLs = append(archiveURLs, u)
+	}
+
+	return archiveURLs, nil
 }
 
 // Returns the list of default repositories from the default config.

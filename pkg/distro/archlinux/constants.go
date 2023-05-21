@@ -38,31 +38,38 @@ const (
 	RepoTestingDebug          = "testing-debug"
 )
 
-var DefaultConfig = distro.Config{
-	Mirrors: []packages.Mirror{
-		{Name: "arm64", URL: "http://de.mirror.archlinuxarm.org/aarch64/"},
-		{Name: "arm32", URL: "http://de.mirror.archlinuxarm.org/armv7h/"},
-		{Name: "archmirror", URL: "https://archmirror.it/repos/"}, //$repo/os/$arch
-		{Name: "kernel.org", URL: "https://mirrors.edge.kernel.org/archlinux/"},
-	},
-	Repositories: []packages.Repository{
-		{Name: "core", URI: packages.URITemplate("/core/os/{{ .archs }}/")},
-		{Name: "aur", URI: packages.URITemplate("/core/os/{{ .archs }}/")},
-		{Name: "community", URI: packages.URITemplate("/core/os/{{ .archs }}/")},
-		{Name: "extra", URI: packages.URITemplate("/core/os/{{ .archs }}/")},
+var (
+	// As Arch Linux is a rolling release distribution, we need archives to track previous rollouts.
+	archiveMirrorURLs = []string{"https://archive.archlinux.org/repos/2023/01/"}
+	archiveRepos      = []string{RepoCore}
 
-		// Architecture is embedded already in the mirror URL.
-		{Name: "core-arm", URI: packages.URITemplate("/core/")},
-		{Name: "aur-arm", URI: packages.URITemplate("/aur/")},
-		{Name: "community-arm", URI: packages.URITemplate("/community/")},
-		{Name: "extra-arm", URI: packages.URITemplate("/extra/")},
-	},
-	Archs: []packages.Architecture{
-		"x86_64",
-		"aarch64",
-		"armv7h",
-	},
+	DefaultConfig = distro.Config{
+		Mirrors: []packages.Mirror{
+			{Name: "arm64", URL: "http://de.mirror.archlinuxarm.org/aarch64/"},
+			{Name: "arm64", URL: "http://de.mirror.archlinuxarm.org/aarch64/"},
+			{Name: "arm32", URL: "http://de.mirror.archlinuxarm.org/armv7h/"},
+			{Name: "archmirror", URL: "https://archmirror.it/repos/"},
+			{Name: "kernel.org", URL: "https://mirrors.edge.kernel.org/archlinux/"},
+		},
+		Repositories: []packages.Repository{
+			{Name: "core", URI: packages.URITemplate("/core/os/{{ .archs }}/")},
+			{Name: "aur", URI: packages.URITemplate("/aur/os/{{ .archs }}/")},
+			{Name: "community", URI: packages.URITemplate("/community/os/{{ .archs }}/")},
+			{Name: "extra", URI: packages.URITemplate("/extra/os/{{ .archs }}/")},
 
-	// Arch Linux is a rollin-release distribution.
-	Versions: nil,
-}
+			// Architecture is embedded already in the mirror URL.
+			{Name: "core-arm", URI: packages.URITemplate("/core-arm/")},
+			{Name: "aur-arm", URI: packages.URITemplate("/aur-arm/")},
+			{Name: "community-arm", URI: packages.URITemplate("/community-arm/")},
+			{Name: "extra-arm", URI: packages.URITemplate("/extra-arm/")},
+		},
+		Archs: []packages.Architecture{
+			"x86_64",
+			"aarch64",
+			"armv7h",
+		},
+
+		// Arch Linux is a rollin-release distribution.
+		Versions: nil,
+	}
+)
