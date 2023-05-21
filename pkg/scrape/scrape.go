@@ -163,3 +163,81 @@ func CrawlFolders(seedURLs []*url.URL, exactFolderRegex string, recursive bool, 
 
 	return folders, nil
 }
+
+// CrawlFoldersPath returns a list of folder names found from each seed URL, filtered by folder name regex.
+//
+//nolint:funlen,cyclop
+func CrawlFoldersPath(seedURLs []*url.URL, exactFolderRegex string, recursive bool, debug bool) ([]string, error) {
+	var folders []string
+
+	folderPattern := regexp.MustCompile(folderRegex)
+
+	exactFolderPattern := regexp.MustCompile(exactFolderRegex)
+
+	allowedDomains := getHostnamesFromURLs(seedURLs)
+	if len(allowedDomains) < 1 {
+		//nolint:goerr113
+		return nil, fmt.Errorf("invalid seed urls")
+	}
+
+	// Create the collector settings
+	coOptions := []func(*colly.Collector){
+		colly.AllowedDomains(allowedDomains...),
+		colly.Async(false),
+	}
+
+	if debug {
+		coOptions = append(coOptions, colly.Debugger(&d.LogDebugger{}))
+	}
+
+	// Create the collector.
+	co := colly.NewCollector(coOptions...)
+
+	// Visit each specific folder.
+	co.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		href := e.Attr("href")
+
+		folderMatch := folderPattern.FindStringSubmatch(href)
+
+		// if the URL is of a folder.
+		//nolint:nestif
+		if len(folderMatch) > 0 {
+			// Do not traverse the hierarchy in reverse order.
+			if strings.Contains(href, "../") || href == "/" {
+				return
+			}
+
+			exactFolderMatch := exactFolderPattern.FindStringSubmatch(href)
+			if len(exactFolderMatch) > 0 {
+				hrefAbsURL, _ := url.Parse(e.Request.AbsoluteURL(href))
+
+				if !urlSliceContains(seedURLs, hrefAbsURL) {
+					folders = append(folders, hrefAbsURL.Path)
+				}
+			}
+			if recursive {
+				//nolint:errcheck
+				co.Visit(e.Request.AbsoluteURL(href))
+			}
+		}
+	})
+
+	co.OnRequest(func(r *colly.Request) {
+		folderMatch := folderPattern.FindStringSubmatch(r.URL.String())
+
+		// if the URL is not of a folder.
+		if len(folderMatch) == 0 {
+			r.Abort()
+		}
+	})
+
+	// Visit each mirror root folder.
+	for _, seedURL := range seedURLs {
+		err := co.Visit(seedURL.String())
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("error scraping folder with URL %s", seedURL.String()))
+		}
+	}
+
+	return folders, nil
+}
