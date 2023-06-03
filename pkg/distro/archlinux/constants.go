@@ -92,4 +92,12 @@ var (
 
 	archiveMirrorURLs = []string{archiveMirror}
 	archiveRepos      = repos
+
+	additionalKernelHeadersPackages = []string{
+		"linux-zen-headers",
+		"linux-lts-headers",
+		"linux-hardened-headers",
+		"linux-aarch64-headers",
+		"linux-armv7-headers",
+	}
 )
