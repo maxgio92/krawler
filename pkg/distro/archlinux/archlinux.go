@@ -19,13 +19,15 @@ package archlinux
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/maxgio92/krawler/pkg/distro"
 	"github.com/maxgio92/krawler/pkg/packages"
 	"github.com/maxgio92/krawler/pkg/packages/alpm"
-	"github.com/maxgio92/krawler/pkg/scrape"
-	"github.com/pkg/errors"
 )
 
 type ArchLinux struct {
@@ -48,10 +50,23 @@ func (a *ArchLinux) Configure(config distro.Config) error {
 func (a *ArchLinux) SearchPackages(options packages.SearchOptions) ([]packages.Package, error) {
 	a.config.Output.Logger = options.Log()
 
-	mirrorURLs, err := a.buildMirrorURLs()
+	mirrorURLs := []*url.URL{}
+
+	// Get current release mirrors.
+	currentURLs, err := a.buildMirrorURLs()
 	if err != nil {
 		return nil, errors.Wrap(err, "error building mirror URLs")
 	}
+
+	mirrorURLs = append(mirrorURLs, currentURLs...)
+
+	// Get archive mirrors.
+	archiveURLs, err := a.buildArchiveURLs(archiveMirrorURLs, archiveRepos)
+	if err != nil {
+		return nil, errors.Wrap(err, "error building archive mirror URLs")
+	}
+
+	mirrorURLs = append(mirrorURLs, archiveURLs...)
 
 	// Build available repository URLs based on provided configuration,
 	// for each distribution version.
@@ -63,12 +78,6 @@ func (a *ArchLinux) SearchPackages(options packages.SearchOptions) ([]packages.P
 	}
 	for _, ru := range repositoryURLs {
 		rss = append(rss, ru.String())
-	}
-
-	// TODO: input all repository URLs.
-	archiveURLs, err := a.buildArchiveURLs(archiveMirrorURLs, archiveRepos)
-	for _, au := range archiveURLs {
-		rss = append(rss, au.String())
 	}
 
 	// Get packages from each repository.
@@ -115,12 +124,14 @@ func (a *ArchLinux) SearchPackages(options packages.SearchOptions) ([]packages.P
 
 		packageNames := []string{
 			options.PackageName(),
+			"linux-zen-headers",
 			"linux-lts-headers",
+			"linux-hardened-headers",
 			"linux-aarch64-headers",
 			"linux-armv7-headers",
 		}
 
-		// TODO: remove this serial work.
+		//// TODO: remove this serial work.
 		// ALPM binding seems to not work with multiple package names.
 		for _, v := range packageNames {
 			ps, err := alpm.SearchPackages(repoURL, []string{v})
@@ -177,24 +188,40 @@ func (a *ArchLinux) buildRepositoriesURLs(roots []*url.URL, repositories []packa
 	return urls, nil
 }
 
-func (a *ArchLinux) buildArchiveURLs(archiveMirrorURLs []string, repositoryNames []string) ([]*url.URL, error) {
-	seeds := []*url.URL{}
-	for _, v := range archiveMirrorURLs {
-		s, err := url.Parse(v)
-		if err != nil {
-			return nil, err
-		}
+// buildArchiveURLs build a list of archive reposity URLs of the last 12 months.
+func (a *ArchLinux) buildArchiveURLs(mirrorURLs []string, repositoryNames []string) ([]*url.URL, error) {
+	now := time.Now()
 
-		seeds = append(seeds, s)
+	// Get last 12 months.
+	lastMonths := []time.Time{}
+	i := 0
+	for i < archiveMonthRetention {
+		i++
+		lastMonths = append(lastMonths, now.AddDate(0, -i, 0))
 	}
 
-	au, err := scrape.CrawlFoldersPath(seeds, `^core\/$`, true, true)
-	if err != nil {
-		return nil, errors.Wrap(err, "error building archive repository URLs")
+	// Build the last 12 months archive URLs.
+	seeds := []string{}
+	releaseDay := strconv.Itoa(archiveReleaseDayOfMonth)
+	for _, v := range mirrorURLs {
+		for _, m := range lastMonths {
+			u, err := url.JoinPath(
+				v,
+				fmt.Sprintf("%04d", int(m.Year())),
+				fmt.Sprintf("%02d", int(m.Month())),
+				releaseDay,
+				"/",
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			seeds = append(seeds, u)
+		}
 	}
 
 	archiveURLs := []*url.URL{}
-	for _, v := range au {
+	for _, v := range seeds {
 		u, err := url.Parse(v)
 		if err != nil {
 			return nil, err
