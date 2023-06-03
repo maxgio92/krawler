@@ -11,11 +11,11 @@ require (
 	github.com/sassoftware/go-rpmutils v0.2.0
 	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.4.0
+	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.11.0
-	github.com/stretchr/testify v1.7.1
-	golang.org/x/build v0.0.0-20230519213405-c12c9e5efcec
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
+	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
 	pault.ag/go/archive v0.0.0-20200912011324-7149510a39c7
@@ -35,7 +35,7 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/kjk/lzma v0.0.0-20161016003348-3fd93898850d // indirect
 	github.com/klauspost/compress v1.11.7 // indirect
@@ -67,7 +67,7 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	pault.ag/go/blobstore v0.0.0-20180314122834-d6d187c5a029 // indirect
 	pault.ag/go/topsort v0.0.0-20160530003732-f98d2ad46e1a // indirect
 )
