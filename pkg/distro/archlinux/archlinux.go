@@ -70,79 +70,29 @@ func (a *ArchLinux) SearchPackages(options packages.SearchOptions) ([]packages.P
 
 	// Build available repository URLs based on provided configuration,
 	// for each distribution version.
-	rss := []string{}
-
 	repositoryURLs, err := a.buildRepositoriesURLs(mirrorURLs, a.config.Repositories)
 	if err != nil {
 		return nil, err
 	}
-	for _, ru := range repositoryURLs {
-		rss = append(rss, ru.String())
+
+	packageNames := []string{options.PackageName()}
+	packageNames = append(packageNames, additionalKernelHeadersPackages...)
+
+	dbURLs, err := buildDBURLs(repositoryURLs)
+	if err != nil {
+		return nil, errors.Wrap(err, "error building DB urls")
 	}
 
-	// Get packages from each repository.
-	res := []packages.Package{}
-	for _, v := range rss {
-		var repoURL string
-		var repo string
-
-		switch {
-		case strings.Contains(v, RepoCoreDebug):
-			repo = RepoCoreDebug
-		case strings.Contains(v, RepoCore):
-			repo = RepoCore
-		case strings.Contains(v, RepoCommunity):
-			repo = RepoCommunity
-		case strings.Contains(v, RepoCommunityDebug):
-			repo = RepoCommunityDebug
-		case strings.Contains(v, RepoCommunityTestingDebug):
-			repo = RepoCommunityTestingDebug
-		case strings.Contains(v, RepoCommunityTesting):
-			repo = RepoCommunityTesting
-		case strings.Contains(v, RepoCommunityStagingDebug):
-			repo = RepoCommunityStagingDebug
-		case strings.Contains(v, RepoCommunityStaging):
-			repo = RepoCommunityStaging
-		case strings.Contains(v, RepoExtraDebug):
-			repo = RepoExtraDebug
-		case strings.Contains(v, RepoExtra):
-			repo = RepoExtra
-		case strings.Contains(v, RepoStagingDebug):
-			repo = RepoStagingDebug
-		case strings.Contains(v, RepoStaging):
-			repo = RepoStaging
-		case strings.Contains(v, RepoTestingDebug):
-			repo = RepoTestingDebug
-		case strings.Contains(v, RepoTesting):
-			repo = RepoTesting
-		}
-
-		repoURL, err = url.JoinPath(v, fmt.Sprintf("%s.db.tar.gz", repo))
-		if err != nil {
-			return nil, errors.Wrap(err, "error generating repository URL")
-		}
-
-		packageNames := []string{options.PackageName()}
-		packageNames = append(packageNames, additionalKernelHeadersPackages...)
-
-		//// TODO: remove this serial work.
-		// ALPM binding seems to not work with multiple package names.
-		for _, v := range packageNames {
-			ps, err := alpm.SearchPackages(repoURL, []string{v})
-			if err != nil {
-				return nil, err
-			}
-
-			res = append(res, ps...)
-		}
+	searchOptions := alpm.NewSearchOptions(&options, dbURLs, packageNames)
+	res, err := alpm.SearchPackages(searchOptions)
+	if err != nil {
+		return nil, errors.Wrap(err, "searching packages")
 	}
 
 	return res, nil
 }
 
 func (a *ArchLinux) buildMirrorURLs() ([]*url.URL, error) {
-
-	// Arch Linux is a rolling release distribution.
 	mirrorURLs := []*url.URL{}
 	for _, v := range a.config.Mirrors {
 		u, err := url.Parse(v.URL)
@@ -157,8 +107,8 @@ func (a *ArchLinux) buildMirrorURLs() ([]*url.URL, error) {
 }
 
 // Returns the list of repositories URLs.
-func (a *ArchLinux) buildRepositoriesURLs(roots []*url.URL, repositories []packages.Repository) ([]*url.URL, error) {
-	var urls []*url.URL
+func (a *ArchLinux) buildRepositoriesURLs(roots []*url.URL, repositories []packages.Repository) ([]string, error) {
+	var urls []string
 
 	for _, root := range roots {
 		//nolint:revive,stylecheck
@@ -170,12 +120,7 @@ func (a *ArchLinux) buildRepositoriesURLs(roots []*url.URL, repositories []packa
 				return nil, err
 			}
 
-			repositoryUrl, err := url.Parse(us)
-			if err != nil {
-				return nil, err
-			}
-
-			urls = append(urls, repositoryUrl)
+			urls = append(urls, us)
 		}
 	}
 
@@ -238,4 +183,54 @@ func (a *ArchLinux) getDefaultRepositories() []packages.Repository {
 	}
 
 	return repositories
+}
+
+func buildDBURLs(repoURLs []string) ([]string, error) {
+	dbURLs := []string{}
+	for _, v := range repoURLs {
+		var dbURL string
+		var repo string
+
+		switch {
+		case strings.Contains(v, RepoCoreDebug):
+			repo = RepoCoreDebug
+		case strings.Contains(v, RepoCore):
+			repo = RepoCore
+		case strings.Contains(v, RepoCommunity):
+			repo = RepoCommunity
+		case strings.Contains(v, RepoCommunityDebug):
+			repo = RepoCommunityDebug
+		case strings.Contains(v, RepoCommunityTestingDebug):
+			repo = RepoCommunityTestingDebug
+		case strings.Contains(v, RepoCommunityTesting):
+			repo = RepoCommunityTesting
+		case strings.Contains(v, RepoCommunityStagingDebug):
+			repo = RepoCommunityStagingDebug
+		case strings.Contains(v, RepoCommunityStaging):
+			repo = RepoCommunityStaging
+		case strings.Contains(v, RepoExtraDebug):
+			repo = RepoExtraDebug
+		case strings.Contains(v, RepoExtra):
+			repo = RepoExtra
+		case strings.Contains(v, RepoStagingDebug):
+			repo = RepoStagingDebug
+		case strings.Contains(v, RepoStaging):
+			repo = RepoStaging
+		case strings.Contains(v, RepoTestingDebug):
+			repo = RepoTestingDebug
+		case strings.Contains(v, RepoTesting):
+			repo = RepoTesting
+		default:
+			repo = RepoCore
+		}
+
+		dbURL, err := url.JoinPath(v, fmt.Sprintf("%s.db.tar.gz", repo))
+		if err != nil {
+			return nil, err
+		}
+
+		dbURLs = append(dbURLs, dbURL)
+	}
+
+	return dbURLs, nil
 }

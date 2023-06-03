@@ -43,10 +43,62 @@ const (
 	ALPMDBVersion     = 9
 )
 
-// SearchPackages looks for the package of which the specified package names, parsing the remote
+func SearchPackages(so *SearchOptions) ([]packages.Package, error) {
+	var result []packages.Package
+
+	search := func(dbURL string) {
+		searchPackagesFromDB(
+			func() {
+				so.Progress(1)
+				so.SigProducerCompletion()
+			},
+			so, dbURL)
+	}
+
+	collect := func() {
+		so.Consume(
+			func(p ...packages.Package) {
+				so.Log().Info("scanned db")
+				if len(p) > 0 {
+					result = append(result, p...)
+					so.Log().Infof("new %d packages found", len(p))
+				}
+			},
+			func(e error) {
+				so.Log().Error(e)
+			},
+		)
+	}
+
+	// Run search producers.
+	for _, v := range so.SeedURLs() {
+		dbURL := v
+		go search(dbURL)
+	}
+
+	// Run collect consumer.
+	go collect()
+
+	// Wait for producers and consumers to complete and cleanup.
+	so.WaitAndClose()
+
+	return result, nil
+}
+
+func searchPackagesFromDB(doneFunc func(), so *SearchOptions, dbURL string) {
+	defer doneFunc()
+
+	p, err := doSearchPackagesFromDB(dbURL, so.PackageNames())
+	if err != nil {
+		so.SendError(errors.Wrap(err, "searching packages from db"))
+	}
+	so.SendMessage(p...)
+}
+
+// doSearchPackagesFromDB looks for the package of which the specified package names, parsing the remote
 // repository DB, and returns a slice of packages.Package.
 // It possibly returns an error.
-func SearchPackages(dbURL string, packageNames []string) ([]packages.Package, error) {
+func doSearchPackagesFromDB(dbURL string, packageNames []string) ([]packages.Package, error) {
 	fs := afero.NewOsFs()
 
 	tmpdir, err := afero.TempDir(fs, os.TempDir(), "krawler")
@@ -99,7 +151,11 @@ func SearchPackages(dbURL string, packageNames []string) ([]packages.Package, er
 		return nil, err
 	}
 
-	packageList := localDb.Search(packageNames).Slice()
+	var packageList []alpm.IPackage
+	for _, v := range packageNames {
+		list := localDb.Search([]string{v}).Slice()
+		packageList = append(packageList, list...)
+	}
 	os.Remove(tmpdir)
 
 	ps := []packages.Package{}
