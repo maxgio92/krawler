@@ -5,14 +5,17 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"github.com/Jguer/go-alpm/v2"
-	"github.com/maxgio92/krawler/pkg/packages"
-	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"strconv"
+
+	"github.com/Jguer/go-alpm/v2"
+	"github.com/pkg/errors"
+	"github.com/spf13/afero"
+
+	"github.com/maxgio92/krawler/pkg/packages"
 )
 
 type Package struct {
@@ -44,7 +47,9 @@ const (
 // repository DB, and returns a slice of packages.Package.
 // It possibly returns an error.
 func SearchPackages(dbURL string, packageNames []string) ([]packages.Package, error) {
-	tmpdir, err := os.MkdirTemp(os.TempDir(), "*")
+	fs := afero.NewOsFs()
+
+	tmpdir, err := afero.TempDir(fs, os.TempDir(), "krawler")
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating local DB temporeary directory")
 	}
@@ -71,8 +76,11 @@ func SearchPackages(dbURL string, packageNames []string) ([]packages.Package, er
 
 	trr := tar.NewReader(gzr)
 	local := path.Join(tmpdir, "local")
-	err = untar(trr, local)
+	err = untar(trr, fs, local)
 	if err != nil {
+		if errors.Is(err, ErrDirEmpty) {
+			return []packages.Package{}, nil
+		}
 		return nil, err
 	}
 
@@ -92,6 +100,7 @@ func SearchPackages(dbURL string, packageNames []string) ([]packages.Package, er
 	}
 
 	packageList := localDb.Search(packageNames).Slice()
+	os.Remove(tmpdir)
 
 	ps := []packages.Package{}
 	for _, p := range packageList {
@@ -109,7 +118,12 @@ func SearchPackages(dbURL string, packageNames []string) ([]packages.Package, er
 	return ps, nil
 }
 
-func untar(source *tar.Reader, target string) error {
+func untar(source *tar.Reader, fs afero.Fs, target string) error {
+	err := fs.MkdirAll(target, 0755)
+	if err != nil {
+		return errors.Wrap(err, "creating the target directory")
+	}
+
 	for {
 		header, err := source.Next()
 
@@ -152,6 +166,14 @@ func untar(source *tar.Reader, target string) error {
 			return fmt.Errorf("error on untar: file %s type not supported", header.Name)
 		}
 	}
+
+	d, err := fs.Open(target)
+	if _, err = d.Readdirnames(1); err != nil {
+		if err == io.EOF {
+			return ErrDirEmpty
+		}
+	}
+	defer d.Close()
 
 	return nil
 }
