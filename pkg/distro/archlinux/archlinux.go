@@ -122,14 +122,8 @@ func (a *ArchLinux) SearchPackages(options packages.SearchOptions) ([]packages.P
 			return nil, errors.Wrap(err, "error generating repository URL")
 		}
 
-		packageNames := []string{
-			options.PackageName(),
-			"linux-zen-headers",
-			"linux-lts-headers",
-			"linux-hardened-headers",
-			"linux-aarch64-headers",
-			"linux-armv7-headers",
-		}
+		packageNames := []string{options.PackageName()}
+		packageNames = append(packageNames, additionalKernelHeadersPackages...)
 
 		//// TODO: remove this serial work.
 		// ALPM binding seems to not work with multiple package names.
