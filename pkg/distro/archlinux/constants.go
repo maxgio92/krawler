@@ -36,12 +36,29 @@ const (
 	RepoStagingDebug          = "staging-debug"
 	RepoTesting               = "testing"
 	RepoTestingDebug          = "testing-debug"
+
+	archiveMonthRetention    = 3
+	archiveReleaseDayOfMonth = 10
+	archiveMirror            = "https://archive.archlinux.org/repos/"
 )
 
 var (
 	// As Arch Linux is a rolling release distribution, we need archives to track previous rollouts.
-	archiveMirrorURLs = []string{"https://archive.archlinux.org/repos/2023/01/"}
-	archiveRepos      = []string{RepoCore}
+	repos = []string{
+		RepoCore,
+		RepoCoreDebug,
+		RepoCommunity,
+		RepoCommunityTesting,
+		RepoCommunityDebug,
+		RepoCommunityTestingDebug,
+		RepoCommunityStagingDebug,
+		RepoExtra,
+		RepoExtraDebug,
+		RepoStaging,
+		RepoStagingDebug,
+		RepoTesting,
+		RepoTestingDebug,
+	}
 
 	DefaultConfig = distro.Config{
 		Mirrors: []packages.Mirror{
@@ -72,4 +89,7 @@ var (
 		// Arch Linux is a rollin-release distribution.
 		Versions: nil,
 	}
+
+	archiveMirrorURLs = []string{archiveMirror}
+	archiveRepos      = repos
 )
