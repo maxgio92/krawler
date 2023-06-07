@@ -25,7 +25,7 @@ import (
 // fedoraCmd represents the fedora command.
 var archLinuxCmd = &cobra.Command{
 	Use:   "archlinux",
-	Short: "List Arch Linux kernel releases",
+	Short: "List Arch Linux kernel releases (current plus three months archive)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		kernelReleases, err := getKernelReleases(&archlinux.ArchLinux{}, "linux-headers")
 		cobra.CheckErr(err)
