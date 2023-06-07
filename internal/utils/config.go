@@ -88,6 +88,14 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 
 			allsettings = oracle.AllSettings()
 		}
+
+		if archlinux := distros.Sub(d.ArchLinuxType); archlinux != nil {
+			if err := archlinux.Unmarshal(&config); err != nil {
+				return d.Config{}, err
+			}
+
+			allsettings = archlinux.AllSettings()
+		}
 	}
 
 	if _, ok := allsettings["vars"].(map[string]interface{}); ok {
