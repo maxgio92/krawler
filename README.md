@@ -4,11 +4,11 @@
 [![CI](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml)
 [![Release](https://github.com/maxgio92/krawler/actions/workflows/release.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/release.yaml)
 
-![](images/debian.png) ![](images/ubuntu.png) ![](images/centos.png) ![](images/fedora.png) ![](images/oracle.png) ![](images/opensuse.png) ![](images/amazonlinux.png)
+![](images/debian.png) ![](images/ubuntu.png) ![](images/centos.png) ![](images/fedora.png) ![](images/oracle.png) ![](images/opensuse.png) ![](images/amazonlinux.png) ![](images/archlinux.png)
 
 A crawler for kernel releases distributed by the major Linux distributions.
 
-It supports, Amazon Linux v1, Amazon Linux v2, Amazon Linux 2022, Centos, Debian, Ubuntu, Fedora, Oracle Linux, OpenSUSE Linux.
+It supports, Amazon Linux v1, Amazon Linux v2, Amazon Linux 2022, Centos, Debian, Ubuntu, Fedora, Oracle Linux, OpenSUSE Linux, Arch Linux.
 
 The crawling data is continuously published and is available at [db.krawler.io](https://db.krawler.io).
 
@@ -47,6 +47,7 @@ Available distributions:
 - *fedora*
 - *oracle*
 - *opensuse*
+- *archlinux*
 
 #### Options
 
