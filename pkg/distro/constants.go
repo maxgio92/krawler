@@ -15,4 +15,5 @@ const (
 	UbuntuType           = "ubuntu"
 	FedoraType           = "fedora"
 	OracleType           = "oracle"
+	ArchLinuxType        = "archlinux"
 )
