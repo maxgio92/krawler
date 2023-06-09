@@ -4,13 +4,19 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+env:
+  AWS_REGION: "eu-west-1"
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
 jobs:
   amazonlinux-1:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -24,9 +30,10 @@ jobs:
   amazonlinux-2:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -40,9 +47,10 @@ jobs:
   amazonlinux-2022:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -56,9 +64,10 @@ jobs:
   centos:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -72,9 +81,10 @@ jobs:
   debian:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -88,9 +98,10 @@ jobs:
   fedora:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -104,9 +115,10 @@ jobs:
   opensuse:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -120,9 +132,10 @@ jobs:
   oracle:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -136,9 +149,10 @@ jobs:
   ubuntu:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
-          ref: 'v0.4.0'
+          ref: ${{ env.STABLE }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -149,8 +163,3 @@ jobs:
           version: "2"
       - name: Publish results to S3
         run: make publish/ubuntu
-
-env:
-  AWS_REGION: "eu-west-1"
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
