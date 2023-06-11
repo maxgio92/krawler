@@ -3,6 +3,7 @@
 [![Latest](https://img.shields.io/github/v/release/maxgio92/krawler)](https://github.com/maxgio92/krawler/releases/latest)
 [![CI](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/ci.yaml)
 [![Release](https://github.com/maxgio92/krawler/actions/workflows/release.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/release.yaml)
+[![Database update](https://github.com/maxgio92/krawler/actions/workflows/publish.yaml/badge.svg)](https://github.com/maxgio92/krawler/actions/workflows/publish.yaml)
 
 ![](images/debian.png) ![](images/ubuntu.png) ![](images/centos.png) ![](images/fedora.png) ![](images/oracle.png) ![](images/opensuse.png) ![](images/amazonlinux.png) ![](images/archlinux.png)
 
