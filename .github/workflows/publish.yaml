@@ -13,6 +13,7 @@ jobs:
   amazonlinux-1:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -30,6 +31,7 @@ jobs:
   amazonlinux-2:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -47,6 +49,7 @@ jobs:
   amazonlinux-2022:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -64,6 +67,7 @@ jobs:
   centos:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -81,6 +85,7 @@ jobs:
   debian:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -98,6 +103,7 @@ jobs:
   fedora:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -115,6 +121,7 @@ jobs:
   opensuse:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -132,6 +139,7 @@ jobs:
   oracle:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
@@ -149,6 +157,7 @@ jobs:
   ubuntu:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
