@@ -8,16 +8,15 @@ env:
   AWS_REGION: "eu-west-1"
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  STABLE_VERSION: v0.4.0
 
 jobs:
   amazonlinux-1:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -32,10 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -50,10 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -68,10 +63,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -86,10 +79,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -104,10 +95,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -122,10 +111,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -140,10 +127,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
@@ -158,10 +143,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
         with:
-          ref: ${{ env.STABLE }}
+          ref: ${{ env.STABLE_VERSION }}
       - uses: actions/setup-go@v3
         with:
           go-version-file: 'go.mod'
