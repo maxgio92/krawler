@@ -1,7 +1,7 @@
 site_name: Krawler
 repo_name: maxgio92/krawler
 repo_url: https://github.com/maxgio92/krawler
-site_url: https://krawler.io/
+site_url: https://krawler.dev/
 docs_dir: docs
 site_dir: site
 
@@ -29,7 +29,7 @@ nav:
   - reference/cli.md
   - reference/config.md
 - 'Roadmap': roadmap.md
-- 'Database': https://db.krawler.io
+- 'Database': https://db.krawler.dev
 
 extra:
   generator: false
