@@ -1,3 +1,5 @@
+//go:build archlinux
+
 /*
 Copyright © 2022 maxgio92 <me@maxgio.it>
 

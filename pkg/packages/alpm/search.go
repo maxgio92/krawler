@@ -1,3 +1,5 @@
+//go:build archlinux
+
 package alpm
 
 import (
