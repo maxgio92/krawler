@@ -39,27 +39,21 @@ func (k *KernelRelease) BuildFromPackage(pkg p.Package) error {
 
 	for i, name := range kernelVersionPattern.SubexpNames() {
 		if i > 0 && i <= len(match) {
-			var err error
-
 			identifiers[name] = match[i]
 
 			switch name {
 			case "fullversion":
 				k.Fullversion = match[i]
 			case "version":
-				k.Version, err = strconv.Atoi(match[i])
+				k.Version, _ = strconv.Atoi(match[i])
 			case "patchlevel":
-				k.PatchLevel, err = strconv.Atoi(match[i])
+				k.PatchLevel, _ = strconv.Atoi(match[i])
 			case "sublevel":
-				k.Sublevel, err = strconv.Atoi(match[i])
+				k.Sublevel, _ = strconv.Atoi(match[i])
 			case "extraversion":
 				k.Extraversion = match[i]
 			case "fullextraversion":
 				k.FullExtraversion = match[i]
-			}
-
-			if err != nil {
-				return err
 			}
 		}
 	}
