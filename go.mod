@@ -3,7 +3,7 @@ module github.com/maxgio92/krawler
 go 1.19
 
 require (
-	github.com/Jguer/go-alpm/v2 v2.2.0
+	github.com/Jguer/go-alpm/v2 v2.2.2
 	github.com/antchfx/xmlquery v1.3.9
 	github.com/gocolly/colly v1.2.0
 	github.com/olekukonko/tablewriter v0.0.6-0.20210304033056-74c60be0ef68
@@ -11,11 +11,11 @@ require (
 	github.com/sassoftware/go-rpmutils v0.2.0
 	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/sirupsen/logrus v1.8.1
+	github.com/spf13/afero v1.8.2
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.11.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20230118134722-a68e582fa157
-	gopkg.in/src-d/go-billy.v4 v4.3.2
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
 	pault.ag/go/archive v0.0.0-20200912011324-7149510a39c7
@@ -50,7 +50,6 @@ require (
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
-	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
