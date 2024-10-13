@@ -57,6 +57,14 @@ func GetDistroConfigAndVarsFromViper(viper *v.Viper) (d.Config, error) {
 			allsettings = amazonLinuxV2022.AllSettings()
 		}
 
+		if amazonLinuxV2023 := distros.Sub(d.AmazonLinuxV2023Type); amazonLinuxV2023 != nil {
+			if err := amazonLinuxV2023.Unmarshal(&config); err != nil {
+				return d.Config{}, err
+			}
+
+			allsettings = amazonLinuxV2023.AllSettings()
+		}
+
 		if debian := distros.Sub(d.DebianType); debian != nil {
 			if err := debian.Unmarshal(&config); err != nil {
 				return d.Config{}, err
