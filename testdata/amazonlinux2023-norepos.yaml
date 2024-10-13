@@ -1,0 +1,9 @@
+distros:
+  amazonlinux2023:
+
+    mirrors:
+    - url: https://cdn.amazonlinux.com/al2023/core/mirrors
+      name: AmazonLinux2023
+
+output:
+  verbosity: 6

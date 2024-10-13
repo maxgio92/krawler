@@ -34,7 +34,7 @@ func (a *AmazonLinux) SearchPackages(options packages.SearchOptions) ([]packages
 
 	// Build available repository URLs based on provided configuration,
 	// for each distribution version.
-	repositoriesURLrefs, err := common.BuildRepositoriesURLs(perVersionMirrorURLs, a.Config.Repositories)
+	repositoriesURLrefs, err := common.BuildRepositoryURLs(perVersionMirrorURLs, a.Config.Repositories)
 	if err != nil {
 		return nil, err
 	}

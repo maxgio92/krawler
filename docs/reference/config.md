@@ -33,6 +33,7 @@ As of now, the supported Linux distributions are:
 - *amazonlinux1*
 - *amazonlinux2*
 - *amazonlinux2022*
+- *amazonlinux2023*
 - *centos*
 - *debian*
 - *ubuntu*

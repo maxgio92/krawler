@@ -16,6 +16,7 @@ var DefaultConfig = distro.Config{
 	},
 	Repositories: []packages.Repository{
 		{Name: "", URI: "latest"},
+		{Name: "", URI: "2023.5.20240730"},
 	},
 	Archs: []packages.Architecture{
 		"aarch64",
