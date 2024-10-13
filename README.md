@@ -42,6 +42,7 @@ Available distributions:
 - *amazonlinux*
 - *amazonlinux2*
 - *amazonlinux2022*
+- *amazonlinux2023*
 - *centos*
 - *debian*
 - *ubuntu*

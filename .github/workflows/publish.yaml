@@ -70,6 +70,26 @@ jobs:
           version: "2"
       - name: Publish results to S3
         run: make publish/amazonlinux2022
+  amazonlinux-2023:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+      - run: echo "STABLE=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.STABLE }}
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - name: Install AWS CLI
+        id: install-aws-cli
+        uses: unfor19/install-aws-cli-action@master
+        with:
+          version: "2"
+      - name: Publish results to S3
+        run: make publish/amazonlinux2023
   centos:
     runs-on: ubuntu-latest
     steps:
