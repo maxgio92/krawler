@@ -5,7 +5,7 @@ oci_image := quay.io/maxgio92/$(app)
 
 bins := go golangci-lint gofumpt aws
 
-DISTROS ?= amazonlinux amazonlinux2 amazonlinux2022 archlinux centos debian fedora opensuse oracle ubuntu
+DISTROS ?= amazonlinux amazonlinux2 amazonlinux2022 amazonlinux2023 archlinux centos debian fedora opensuse oracle ubuntu
 
 RESULTS_DIR := e2e/results
 
