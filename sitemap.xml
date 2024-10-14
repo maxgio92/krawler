@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://krawler.dev/</loc>
+         <lastmod>2024-10-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://krawler.dev/getting-started/</loc>
+         <lastmod>2024-10-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://krawler.dev/roadmap/</loc>
+         <lastmod>2024-10-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://krawler.dev/reference/</loc>
+         <lastmod>2024-10-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://krawler.dev/reference/cli/</loc>
+         <lastmod>2024-10-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://krawler.dev/reference/config/</loc>
+         <lastmod>2024-10-14</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+</urlset>
